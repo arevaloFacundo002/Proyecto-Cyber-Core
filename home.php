@@ -1,26 +1,16 @@
 <?php
-include "conexion.php";
+require_once "conexion.php";
 session_start();
+$dao = new UserDao();
 
-// Búsqueda
-$buscar = isset($_GET['buscar']) ? $_GET['buscar'] : "";
 
-// Consulta con tu base REAL
-$sql = "SELECT p.id_productos, p.nombre, p.precio, p.imagen_url,
-               p.stock,
-               c.nombre AS categoria,
-               m.nombre_marca
-        FROM productos p
-        INNER JOIN categoria c ON p.rela_id_categoria = c.id_categoria
-        INNER JOIN marcas m ON p.rela_id_marcas = m.id_marcas
-        WHERE p.nombre LIKE ? OR c.nombre LIKE ? OR m.nombre_marca LIKE ?
-        ORDER BY p.id_productos DESC";
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $buscar = $_GET['buscar']?? "";
+    $rol = $_SESSION['rol'];
 
-$stmt = mysqli_prepare($conexion, $sql);
-$param = "%$buscar%";
-mysqli_stmt_bind_param($stmt, "sss", $param, $param, $param);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
+    //busqueda de productos
+    $productos = $dao->listar_productos($buscar);
+}
 
 ?>
 <!DOCTYPE html>
@@ -31,7 +21,7 @@ $result = mysqli_stmt_get_result($stmt);
 <title>CyberCore - Inicio</title>
 
 <style>
-body {
+    body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
     background: #f5f5f5;
@@ -67,6 +57,16 @@ nav a {
 
 nav a:hover {
     color: #00eaff;
+}
+
+.logout {
+    color: #ff4b4b;
+    margin-left: 10px;
+    text-decoration: none;
+    font-weight: bold;
+}
+.logout:hover {
+    text-decoration: underline;
 }
 
 /* HERO */
@@ -227,10 +227,17 @@ nav a:hover {
     <div class="logo">CYBERCORE</div>
     <nav>
         <a href="home.php">Inicio</a>
-        <a href="login.php">Iniciar sesión</a>
-        <a href="registro.php">Registrarse</a>
-        <a href="carrito/carrito.php">🛒 Carrito</a>
+        <?php if ($rol == 'administrador' || $rol == 'empleado') { ?>
+            <a href="inicio.php">Panel</a>
 
+        <?php }elseif($rol == 'usuario' || $rol == 'cliente'){ ?>
+            <a href="carrito/carrito.php">🛒 Carrito</a>
+            <a class="logout" href="logout.php">Cerrar sesión</a>
+            
+        <?php }else{ ?>
+            <a href="index.php">Iniciar sesión</a>
+            <a href="registro.php">Registrarse</a>
+        <?php } ?>
     </nav>
 </header>
 
@@ -244,6 +251,7 @@ nav a:hover {
     </div>
 </div>
 
+
 <!-- BUSCADOR -->
 <div class="search-container">
     <form method="GET">
@@ -256,13 +264,15 @@ nav a:hover {
     </form>
 </div>
 
+
 <!-- TÍTULO LISTA -->
 <h2 class="products-title" id="productos">Productos destacados</h2>
+
 
 <!-- PRODUCTOS -->
 <div class="grid">
 
-<?php while ($p = mysqli_fetch_assoc($result)) { ?>
+<?php foreach($productos as $p) { ?>
     <div class="card">
 
         <img src="img/<?php echo $p['imagen_url']; ?>" alt="">
@@ -271,6 +281,7 @@ nav a:hover {
         <small><?php echo $p['nombre_marca']; ?> • <?php echo $p['categoria']; ?></small>
 
         <div class="price">$<?php echo number_format($p['precio'], 2); ?></div>
+
 
         <!-- STOCK -->
 <?php if ($p['stock'] == 0): ?>
@@ -287,7 +298,7 @@ nav a:hover {
     <p style="color:#ff4444; font-weight:bold; margin-top:8px;">
         🔥 Últimas unidades disponibles
     </p>
-    <a class="btn-ver" href="producto.php?id=<?php echo $p['id_productos']; ?>">
+    <a class="btn-ver" href="producto.php?id=<?php echo $p['id_producto']; ?>">
         Ver más
     </a>
 
@@ -296,14 +307,14 @@ nav a:hover {
     <p style="color:orange; font-weight:bold; margin-top:8px;">
         ⚠️ Pocas unidades en stock
     </p>
-    <a class="btn-ver" href="producto.php?id=<?php echo $p['id_productos']; ?>">
+    <a class="btn-ver" href="producto.php?id=<?php echo $p['id_producto']; ?>">
         Ver más
     </a>
 
 <?php else: ?>
 
     <!-- Stock suficiente → no mostrar cantidad -->
-    <a class="btn-ver" href="producto.php?id=<?php echo $p['id_productos']; ?>">
+    <a class="btn-ver" href="producto.php?id=<?php echo $p['id_producto']; ?>">
         Ver más
     </a>
 

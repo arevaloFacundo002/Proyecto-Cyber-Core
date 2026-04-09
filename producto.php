@@ -1,33 +1,21 @@
 <?php
-include "conexion.php";
+require_once "conexion.php";
 session_start();
+$dao = new UserDao();
 
 // Validar ID
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     die("Producto no encontrado.");
 }
 
-$id = intval($_GET['id']);
+    $id = intval($_GET['id']);      # intval() obtiene el valor entero (integer) de una variable
 
-// Consulta del producto (agregado STOCK)
-$sql = "SELECT p.id_productos, p.nombre, p.descripcion, p.precio, p.imagen_url,
-               p.stock,
-               c.nombre AS categoria,
-               m.nombre_marca
-        FROM productos p
-        INNER JOIN categoria c ON p.rela_id_categoria = c.id_categoria
-        INNER JOIN marcas m ON p.rela_id_marcas = m.id_marcas
-        WHERE p.id_productos = ?";
+    // Consulta del producto (agregado STOCK)
+    $producto = $dao->busqueda_de_producto($id);
+    if (!$producto) {
+        die("Producto no encontrado.");
+    }
 
-$stmt = mysqli_prepare($conexion, $sql);
-mysqli_stmt_bind_param($stmt, "i", $id);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-
-$producto = mysqli_fetch_assoc($result);
-if (!$producto) {
-    die("Producto no encontrado.");
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -182,7 +170,7 @@ nav a:hover {
             <?php echo $producto['nombre_marca']; ?> • <?php echo $producto['categoria']; ?>
         </div>
 
-        <div class="price">$<?php echo number_format($producto['precio'], 2); ?></div>
+        <div class="price">$<?php echo number_format($producto['precio'], 2); ?></div> 
 
         <!-- STOCK -->
 <?php if ($producto['stock'] == 0): ?>
@@ -214,7 +202,7 @@ nav a:hover {
         <?php if ($producto['stock'] == 0): ?>
             <a class="btn-add disabled-btn">No disponible 🛒</a>
         <?php else: ?>
-            <a href="carrito/agregar_carrito.php?id=<?php echo $producto['id_productos']; ?>" class="btn-add">
+            <a href="carrito/agregar_carrito.php?id=<?php echo $producto['id_producto']; ?>" class="btn-add">
                 Agregar al carrito 🛒
             </a>
         <?php endif; ?>
@@ -226,22 +214,16 @@ nav a:hover {
 
     <h2 style="color:#00eaff; margin-bottom:20px;">⭐ Reseñas del producto</h2>
 
+
     <?php
     // Consultar reseñas del producto actual (estructura REAL)
-    $sqlReseñas = "SELECT comentario, calificacion 
-                   FROM reseñas 
-                   WHERE rela_id_productos = ?
-                   ORDER BY id_reseñas DESC";
+    $reseñas = $dao->consultar_reseñas($id);
 
-    $stmtRes = mysqli_prepare($conexion, $sqlReseñas);
-    mysqli_stmt_bind_param($stmtRes, "i", $id);
-    mysqli_stmt_execute($stmtRes);
-    $reseñas = mysqli_stmt_get_result($stmtRes);
     ?>
 
     <!-- LISTADO DE RESEÑAS -->
-    <?php if (mysqli_num_rows($reseñas) > 0): ?>
-        <?php while ($r = mysqli_fetch_assoc($reseñas)): ?>
+    <?php if (!empty($reseñas)): ?>
+        <?php foreach($reseñas as $r): ?>
             <div style="background:#1a1a1a; padding:18px; border-radius:8px; margin-bottom:15px; border-left:4px solid #00eaff;">
 
                 <strong style="color:#00eaff;">⭐ <?php echo $r['calificacion']; ?>/5</strong>
@@ -249,37 +231,45 @@ nav a:hover {
                 <p style="margin:8px 0;"><?php echo htmlspecialchars($r['comentario']); ?></p>
 
             </div>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
     <?php else: ?>
         <p style="color:#aaa;">No hay reseñas todavía. ¡Sé el primero en opinar!</p>
     <?php endif; ?>
 
     <hr style="border-color:#333; margin:25px 0;">
 
-    <!-- FORMULARIO PARA AGREGAR RESEÑA -->
+    
+       <!-- FORMULARIO PARA AGREGAR RESEÑA -->
     <h3 style="margin-bottom:10px;">Dejar una reseña</h3>
 
-    <form action="guardar_resena.php" method="POST">
-        <input type="hidden" name="id_producto" value="<?php echo $id; ?>">
+    <?php if (isset($_SESSION['usuario'])): ?>
 
-        <textarea name="comentario" placeholder="Escribe tu reseña..." required
-                  style="width:100%; padding:12px; border-radius:8px; border:none; height:120px; background:#222; color:white;"></textarea>
+        <form action="guardar_resena.php" method="POST">
+            <input type="hidden" name="id_producto" value="<?php echo $id; ?>">
 
-        <label style="color:white; margin-top:10px; display:block;">Calificación:</label>
-        <select name="calificacion" required
-                style="padding:10px; border-radius:8px; background:#222; color:white; margin-bottom:12px;">
-            <option value="5">⭐⭐⭐⭐⭐</option>
-            <option value="4">⭐⭐⭐⭐</option>
-            <option value="3">⭐⭐⭐</option>
-            <option value="2">⭐⭐</option>
-            <option value="1">⭐</option>
-        </select>
+            <textarea name="comentario" placeholder="Escribe tu reseña..." required
+                style="width:100%; padding:12px; border-radius:8px; border:none; height:120px; background:#222; color:white;"></textarea>
 
-        <button type="submit"
+            <label style="color:white; margin-top:10px; display:block;">Calificación:</label>
+
+            <select name="calificacion" required
+                    style="padding:10px; border-radius:8px; background:#222; color:white; margin-bottom:12px;">
+                <option value="5">⭐⭐⭐⭐⭐</option>
+                <option value="4">⭐⭐⭐⭐</option>
+                <option value="3">⭐⭐⭐</option>
+                <option value="2">⭐⭐</option>
+                <option value="1">⭐</option>
+            </select>
+
+            <button type="submit"
                 style="margin-top:12px; padding:12px 25px; background:#00eaff; border:none; border-radius:20px; font-weight:bold; cursor:pointer;">
-            Publicar reseña ⭐
-        </button>
-    </form>
+                Publicar reseña ⭐
+            </button>
+        </form>
+
+    <?php else: ?>
+        <p style="color:#aaa;">Debes iniciar sesión para dejar una reseña.</p>
+    <?php endif; ?>
 
 </div>
 

@@ -1,12 +1,46 @@
 <?php
 session_start();
-include "../conexion.php";
+require_once "../conexion.php";
+$dao = new UserDao();
+$error='';
 
-// Si no hay sesión → fuera
+// Si no hay sesión fuera
 if (!isset($_SESSION['usuario'])) {
     header("Location: ../index.php");
     exit;
 }
+
+//  PROCESAR FORMULARIO 
+if (isset($_POST['guardar'])) {
+
+    $nombre = $_POST['nombre'];
+    $correo = $_POST['correo'];
+    $password = $_POST['password'];
+    $tipo_usuario = $_POST['tipo_usuario'];
+    $fecha = date("Y-m-d");
+
+    // VALIDACIONES
+    if (strlen($nombre) < 3) {
+        $error = "El nombre debe tener al menos 3 caracteres.";     #El largo del nombre
+    }
+    elseif (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {          #Validar correo
+        $error = "El correo no es válido.";
+    }
+    elseif (strlen($password) < 6) {                                #El largo de la contrasenia
+        $error = "La contraseña debe tener al menos 6 caracteres.";
+    }
+    elseif($dao->verificar_correo($correo)) {                       // verificar correo duplicado
+        $error = "Ya existe una cuenta con este correo.";
+    } else {
+        if ($dao->agregar_usuario_panel($nombre,$password,$correo,$fecha,$tipo_usuario)) {  //agregamos el usuario
+            header("Location: listar.php");
+            exit;
+        }else {
+           echo 'Error al insertar';
+        }
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -99,6 +133,14 @@ button:hover {
 .volver:hover {
     color: #00809b;
 }
+.msg-error {
+    background: #ff3b3b;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 18px;
+    font-weight: bold;
+    color: white;
+}
 
 </style>
 </head>
@@ -113,22 +155,25 @@ button:hover {
 <div class="form-container">
     <h2>Agregar Usuario</h2>
 
+    <?php if ($error!='') { ?>
+        <div class="msg-error"><?php echo $error ?></div>
+    <?php } ?>
+
     <form method="POST">
 
         <input type="text" name="nombre" placeholder="Nombre completo" required>
 
         <input type="email" name="correo" placeholder="Correo electrónico" required>
 
-        <input type="password" name="contrasena" placeholder="Contraseña" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
 
         <select name="tipo_usuario" required>
             <option value="cliente">Cliente</option>
-            <option value="admin">Administrador</option>
+            <option value="administrador">Administrador</option>
             <option value="empleado">Empleado</option>
         </select>
 
         <button type="submit" name="guardar">Guardar usuario</button>
-
     </form>
 
     <a class="volver" href="listar.php">Volver al listado</a>
@@ -137,29 +182,3 @@ button:hover {
 </body>
 </html>
 
-<?php
-
-// ------------------ PROCESAR FORMULARIO ------------------ //
-
-if (isset($_POST['guardar'])) {
-
-    $nombre = $_POST['nombre'];
-    $correo = $_POST['correo'];
-    $pass = $_POST['contrasena'];
-    $rol = $_POST['tipo_usuario'];
-
-    $fecha = date("Y-m-d");
-
-    $sql = "INSERT INTO usuarios (nombre, correo, contrasena, tipo_usuario, fecha_registro)
-            VALUES (?, ?, ?, ?, ?)";
-
-    $stmt = mysqli_prepare($conexion, $sql);
-    mysqli_stmt_bind_param($stmt, "sssss",
-        $nombre, $correo, $pass, $rol, $fecha);
-
-    mysqli_stmt_execute($stmt);
-
-    header("Location: listar.php");
-    exit;
-}
-?>

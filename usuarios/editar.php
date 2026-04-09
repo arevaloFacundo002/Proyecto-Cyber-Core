@@ -1,29 +1,49 @@
 <?php
 session_start();
-include "../conexion.php";
+require_once "../conexion.php";
+$dao = new UserDao();
 
-// Si no hay sesión → lo echamos
+// Si no hay sesión lo echamos
 if (!isset($_SESSION['usuario'])) {
     header("Location: ../index.php");
     exit;
 }
 
-// Obtener usuario
-$id = $_GET['id'];
-$sql = "SELECT * FROM usuarios WHERE id_usuario = ?";
-$stmt = mysqli_prepare($conexion, $sql);
-mysqli_stmt_bind_param($stmt, "i", $id);
-mysqli_stmt_execute($stmt);
-$res = mysqli_stmt_get_result($stmt);
-$usuario = mysqli_fetch_assoc($res);
+if (!isset($_GET['id'])) {
+    die('Usuario invalido');
+}
+
+$id = intval($_GET['id']);
+
+$usuario = $dao->obtener_usuario($id);
 
 // Si no existe → error
 if (!$usuario) {
     echo "Usuario no encontrado.";
     exit;
 }
-?>
 
+// Cuando envía →
+if (isset($_POST['guardar'])) {
+
+    $nombre = trim($_POST['nombre']);
+    $correo = trim($_POST['correo']);
+    $rol = $_POST['tipo_usuario'];
+
+    if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+        die("Correo inválido");
+    }
+
+
+    if ($dao->editar_usuario($nombre, $correo, $rol, $id)) {
+        header("Location: listar.php");
+        exit;
+    }else{
+        echo 'Error al editar Usuario';
+    }
+
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -127,17 +147,13 @@ button:hover {
     <h2>Editar Usuario</h2>
 
     <form method="POST">
-        <input type="text" name="nombre"
-               value="<?php echo $usuario['nombre']; ?>" required>
+        <input type="text" name="nombre" value="<?php echo $usuario['nombre']; ?>" required>
 
-        <input type="email" name="correo"
-               value="<?php echo $usuario['correo']; ?>" required>
-
-        
+        <input type="email" name="correo" value="<?php echo $usuario['correo']; ?>" required>
 
         <select name="tipo_usuario" required>
             <option value="cliente" <?php if($usuario["tipo_usuario"]=="cliente") echo "selected"; ?>>Cliente</option>
-            <option value="admin" <?php if($usuario["tipo_usuario"]=="admin") echo "selected"; ?>>Administrador</option>
+            <option value="administrador" <?php if($usuario["tipo_usuario"]=="admin") echo "selected"; ?>>Administrador</option>
             <option value="empleado" <?php if($usuario["tipo_usuario"]=="empleado") echo "selected"; ?>>Empleado</option>
         </select>
 
@@ -149,31 +165,3 @@ button:hover {
 
 </body>
 </html>
-
-<?php
-
-// Cuando envía →
-if (isset($_POST['guardar'])) {
-
-    $nombre = $_POST['nombre'];
-    $correo = $_POST['correo'];
-    $rol = $_POST['tipo_usuario'];
-
-    // Mantener contraseña anterior si no se cambió
-    $pass = !empty($_POST['contrasena']) ?
-            $_POST['contrasena'] : $usuario['contrasena'];
-
-    $sql_update = "UPDATE usuarios 
-                   SET nombre = ?, correo = ?, contrasena = ?, tipo_usuario = ?
-                   WHERE id_usuario = ?";
-
-    $stmt2 = mysqli_prepare($conexion, $sql_update);
-    mysqli_stmt_bind_param($stmt2, "ssssi",
-        $nombre, $correo, $pass, $rol, $id);
-
-    mysqli_stmt_execute($stmt2);
-
-    header("Location: listar.php");
-    exit;
-}
-?>

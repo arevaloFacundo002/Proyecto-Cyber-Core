@@ -1,46 +1,21 @@
 <?php
 session_start();
-include "../conexion.php";
+require_once "../conexion.php";
+$dao = new UserDao();
 
-// Si no hay sesión → fuera
+
 if (!isset($_SESSION['usuario'])) {
     header("Location: ../index.php");
     exit;
 }
 
-// 1. Búsqueda y filtro
-$busqueda = isset($_GET['buscar']) ? $_GET['buscar'] : "";
-$estado   = isset($_GET['estado']) ? $_GET['estado'] : "";
+// Búsqueda y filtro
+$busqueda = $_GET['buscar'] ?? "";
+$estado   = $_GET['estado'] ?? "";
 
-// Consulta base
-$sql = "SELECT 
-            u.*, 
-            c.id_cliente, 
-            c.cliente_estado
-        FROM usuarios u
-        LEFT JOIN clientes c ON c.rela_id_usuario = u.id_usuario
-        WHERE (u.nombre LIKE ? OR u.correo LIKE ? OR u.tipo_usuario LIKE ?)";
+$usuarios = $dao->listar_usuarios($busqueda,$estado);
 
-// Filtros opcionales
-if ($estado == "no-cliente") {
-    $sql .= " AND c.id_cliente IS NULL";
-} elseif ($estado != "") {
-    $allowed = ['activo','pausado','inactivo','bloqueado'];
-    if (in_array($estado, $allowed, true)) {
-        $sql .= " AND c.cliente_estado = '$estado'";
-    }
-}
-
-$sql .= " ORDER BY u.id_usuario DESC";
-
-// Preparar consulta
-$stmt = mysqli_prepare($conexion, $sql);
-$param = "%$busqueda%";
-mysqli_stmt_bind_param($stmt, "sss", $param, $param, $param);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -220,21 +195,21 @@ tr:hover {
 <div class="search-box">
     <form method="GET" style="display:flex; justify-content:center; gap:10px;">
 
-        <input type="text" name="buscar" placeholder="Buscar usuario..."
-               value="<?= htmlspecialchars($busqueda) ?>">
+        <input type="text" name="buscar" placeholder="Buscar por usuario, nombre, correo, rol..."
+               value="<?php echo htmlspecialchars($busqueda) ?>">
 
         <select name="estado">
-            <option value="">Estado Cliente (Todos)</option>
-            <option value="activo"    <?= $estado=="activo"?"selected":"" ?>>Activo</option>
-            <option value="pausado"   <?= $estado=="pausado"?"selected":"" ?>>Pausado</option>
-            <option value="inactivo"  <?= $estado=="inactivo"?"selected":"" ?>>Inactivo</option>
-            <option value="bloqueado" <?= $estado=="bloqueado"?"selected":"" ?>>Bloqueado</option>
-            <option value="no-cliente" <?= $estado=="no-cliente"?"selected":"" ?>>Solo No Clientes</option>
+            <option value="">Estado Usuario (Todos)</option>
+            <option value="activo"    <?php echo $estado=="activo"?"selected":"" ?>>Activo</option>
+            <option value="inactivo"  <?php echo $estado=="inactivo"?"selected":"" ?>>Inactivo</option>
+            <option value="bloqueado" <?php echo $estado=="bloqueado"?"selected":"" ?>>Bloqueado</option>
+            <option value="no-cliente" <?php echo $estado=="no-cliente"?"selected":"" ?>>Solo No Clientes</option>
         </select>
 
         <button type="submit">Buscar</button>
     </form>
 </div>
+
 
 <table>
     <tr>
@@ -247,55 +222,81 @@ tr:hover {
         <th>Acciones</th>
     </tr>
 
-<?php while ($fila = mysqli_fetch_assoc($result)) { 
-    $uid = (int)$fila['id_usuario'];
-    $uname = htmlspecialchars($fila['nombre']);
-    $uemail = htmlspecialchars($fila['correo']);
-    $urole = htmlspecialchars($fila['tipo_usuario']);
-    $ureg = htmlspecialchars($fila['fecha_registro']);
-    $cid = $fila['id_cliente'] ?? null;
-    $cestado = $fila['cliente_estado'] ?? null;
+<?php foreach($usuarios as $fila) { 
+        $u_id = (int)$fila['id_usuario'];
+        $u_name = htmlspecialchars($fila['nombre']);
+        $u_email = htmlspecialchars($fila['correo']);
+        $u_rol = htmlspecialchars($fila['tipo_usuario']);
+        $u_registro = htmlspecialchars($fila['fecha_registro']);
+        $c_id = $fila['id_cliente'] ?? null;
+        $u_estado = $fila['estado'] ?? null;
 ?>
     <tr>
-        <td><?= $uid ?></td>
-        <td><?= $uname ?></td>
-        <td><?= $uemail ?></td>
-        <td><?= $urole ?></td>
-        <td><?= $ureg ?></td>
+        <td><?php echo $u_id ?></td>
+        <td><?php echo $u_name ?></td>
+        <td><?php echo $u_email ?></td>
+        <td><?php echo $u_rol ?></td>
+        <td><?php echo $u_registro ?></td>
 
         <td>
-            <?php if ($cid !== null): 
+            <?php 
                 $color_map = [
                     'activo' => 'green',
-                    'pausado' => 'orange',
-                    'inactivo' => 'gray',
+                    'inactivo' => 'orange',
                     'bloqueado' => 'red'
                 ];
-                $color = $color_map[$cestado] ?? 'black';
+
+                $color = $color_map[$u_estado] ?? 'black';
             ?>
-                <strong style="color:<?= $color ?>">
-                    Cliente ID: <?= $cid ?> — <?= ucfirst($cestado) ?>
-                </strong>
+
+            <strong style="color:<?php echo $color ?>">
+                <?php echo ucfirst($u_estado ?? 'sin estado') ?>
+            </strong>
+
+            <br>
+
+            <?php if ($c_id !== null): ?>
+                <Strong>Cliente ID: </Strong> <?php echo $c_id ?>
             <?php else: ?>
-                <a class="link-cliente" href="../clientes/crear_cliente.php?u=<?= $uid ?>">Crear cliente</a>
+                <a class="link-cliente" href="../clientes/crear_cliente.php?id_user=<?php echo $u_id ?>">
+                    Crear cliente
+                </a>
             <?php endif; ?>
         </td>
 
+
         <td>
             <div class="actions">
-                <a class="btn" href="editar.php?id=<?= $uid ?>">Editar</a>
+                <?php if ($c_id == null): ?>
+                <a class="btn" href="editar.php?id=<?php echo $u_id ?>">Editar</a>
 
-                <?php if ($cid !== null): ?>
-                    <a class="btn btn-client" href="../clientes/editar_cliente.php?id=<?= $cid ?>">Editar Cliente</a>
+                <?php  else: ?>
+                    <a class="btn btn-client" href="../clientes/editar_cliente.php?id=<?php echo $c_id ?>">
+                        Editar Cliente</a>
                 <?php endif; ?>
 
-                <?php if ($cid === null): ?>
-                    <a class="btn btn-red"
-                       href="eliminar.php?id=<?= $uid ?>"
-                       onclick="return confirm('¿Eliminar usuario?')">
-                        Eliminar
-                    </a>
-                <?php endif; ?>
+                <form action="cambiar_estado.php" method="POST" style="display:flex; gap:5px; align-items:center;">
+                    <input type="hidden" name="id" value="<?= $u_id ?>">
+
+                    <select name="estado"
+                            class="form-select"
+                            style="color: <?= $color ?>; font-weight: bold; border-color: <?= $color ?>;">
+
+                        <option value="activo" <?= $u_estado == 'activo' ? 'selected' : '' ?>>
+                            🟢 Activo
+                        </option>
+                        <option value="inactivo" <?= $u_estado == 'inactivo' ? 'selected' : '' ?>>
+                            🟡 Inactivo
+                        </option>
+                        <option value="bloqueado" <?= $u_estado == 'bloqueado' ? 'selected' : '' ?>>
+                            🔴 Bloqueado
+                        </option>
+                    </select>
+
+                    <button class="btn btn-primary">
+                        Guardar
+                    </button>
+                </form>
             </div>
         </td>
     </tr>

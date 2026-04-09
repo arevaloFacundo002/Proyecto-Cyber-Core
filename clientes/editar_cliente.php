@@ -1,6 +1,7 @@
 <?php  
 session_start();
-include "../conexion.php";
+require_once "../conexion.php";
+$dao = new UserDao();
 
 // Validar login
 if (!isset($_SESSION['usuario'])) {
@@ -14,35 +15,42 @@ if (!isset($_GET['id'])) {
     exit();
 }
 
-$id_cliente = $_GET['id'];
+$id_cliente = intval($_GET['id']);
 
 // Obtener datos del cliente + provincia actual
-$sql = "SELECT c.*, u.correo, l.rela_id_provincias
-        FROM clientes c
-        INNER JOIN usuarios u ON u.id_usuario = c.rela_id_usuario
-        INNER JOIN localidades l ON l.id_localidades = c.rela_id_localidades
-        WHERE c.id_cliente = ?";
-$stmt = mysqli_prepare($conexion, $sql);
-mysqli_stmt_bind_param($stmt, "i", $id_cliente);
-mysqli_stmt_execute($stmt);
-$res = mysqli_stmt_get_result($stmt);
-$cliente = mysqli_fetch_assoc($res);
+$cliente = $dao->cliente_provincia($id_cliente);
 
 if (!$cliente) {
     echo "Cliente no encontrado.";
     exit();
 }
+$rela_id_provincia = $cliente['rela_id_provincia'];
 
 // Obtener provincias
-$prov_q = "SELECT * FROM provincias ORDER BY nombre_provincia ASC";
-$prov_r = mysqli_query($conexion, $prov_q);
+$provincias = $dao->obtener_provincias();
 
 // Obtener localidades según la provincia actual del cliente
-$loc_q = "SELECT * FROM localidades WHERE rela_id_provincias = ? ORDER BY nombre_localidad ASC";
-$stmt2 = mysqli_prepare($conexion, $loc_q);
-mysqli_stmt_bind_param($stmt2, "i", $cliente['rela_id_provincias']);
-mysqli_stmt_execute($stmt2);
-$loc_r = mysqli_stmt_get_result($stmt2);
+$localidades = $dao->localidades_provincia_del_cliente($rela_id_provincia);
+
+
+// PROCESO POST
+if (isset($_POST['guardar'])) {
+
+    $nombre = $_POST['nombre'];
+    $apellido = $_POST['apellido'];
+    $telefono = $_POST['telefono'];
+    $cuil = $_POST['cuil'];
+    $direccion = $_POST['direccion'];
+    $localidad = $_POST['localidad'];
+
+    // SIN PROVINCIA — ya no existe en la tabla clientes
+    if ($dao->actualizar_cliente($nombre, $apellido, $direccion, $telefono,$cuil, $localidad, $id_cliente)) {
+        header("Location: ../usuarios/listar.php");
+        exit;
+    }else{
+        echo 'Error en la actualizacion';
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -166,30 +174,22 @@ function cargarLocalidades(idProvincia) {
     <label>Provincia</label>
     <select name="provincia" required onchange="cargarLocalidades(this.value)">
         <option value="">Seleccione provincia...</option>
-        <?php while ($p = mysqli_fetch_assoc($prov_r)) { ?>
-            <option value="<?= $p['id_provincias'] ?>"
-                <?= ($p['id_provincias'] == $cliente['rela_id_provincias']) ? "selected" : "" ?>>
-                <?= $p['nombre_provincia'] ?>
+        <?php foreach($provincias as $provincia) { ?>
+            <option value="<?= $provincia['id_provincia'] ?>"
+                <?= ($provincia['id_provincia'] == $cliente['rela_id_provincia']) ? "selected" : "" ?>>
+                <?= $provincia['nombre_provincia'] ?>
             </option>
         <?php } ?>
     </select>
 
     <label>Localidad</label>
     <select name="localidad" id="localidad" required>
-        <?php while ($l = mysqli_fetch_assoc($loc_r)) { ?>
-            <option value="<?= $l['id_localidades'] ?>"
-                <?= ($l['id_localidades'] == $cliente['rela_id_localidades']) ? "selected" : "" ?>>
-                <?= $l['nombre_localidad'] ?>
+        <?php foreach($localidades as $localidad) { ?>
+            <option value="<?= $localidad['id_localidad'] ?>"
+                <?= ($localidad['id_localidad'] == $cliente['rela_id_localidades']) ? "selected" : "" ?>>
+                <?= $localidad['nombre_localidad'] ?>
             </option>
         <?php } ?>
-    </select>
-
-    <label>Estado del Cliente</label>
-    <select name="estado" required>
-        <option value="activo"    <?= $cliente['cliente_estado']=="activo"?"selected":"" ?>>Activo</option>
-        <option value="pausado"   <?= $cliente['cliente_estado']=="pausado"?"selected":"" ?>>Pausado</option>
-        <option value="inactivo"  <?= $cliente['cliente_estado']=="inactivo"?"selected":"" ?>>Inactivo</option>
-        <option value="bloqueado" <?= $cliente['cliente_estado']=="bloqueado"?"selected":"" ?>>Bloqueado</option>
     </select>
 
     <button type="submit" name="guardar">Guardar cambios</button>
@@ -200,38 +200,3 @@ function cargarLocalidades(idProvincia) {
 
 </body>
 </html>
-
-<?php
-// PROCESO POST
-if (isset($_POST['guardar'])) {
-
-    $nombre = $_POST['nombre'];
-    $apellido = $_POST['apellido'];
-    $telefono = $_POST['telefono'];
-    $cuil = $_POST['cuil'];
-    $direccion = $_POST['direccion'];
-    $loc = $_POST['localidad'];
-    $estado = $_POST['estado'];
-
-    // SIN PROVINCIA — ya no existe en la tabla clientes
-    $update = "UPDATE clientes 
-               SET nombre=?, apellido=?, direccion=?, telefono=?, 
-                   cuil_cuit=?, rela_id_localidades=?, 
-                   cliente_estado=? 
-               WHERE id_cliente=?";
-
-    $stmt3 = mysqli_prepare($conexion, $update);
-
-    mysqli_stmt_bind_param(
-        $stmt3,
-        "sssssisi",
-        $nombre, $apellido, $direccion, $telefono,
-        $cuil, $loc, $estado, $id_cliente
-    );
-
-    mysqli_stmt_execute($stmt3);
-
-    header("Location: ../usuarios/listar.php");
-    exit;
-}
-?>

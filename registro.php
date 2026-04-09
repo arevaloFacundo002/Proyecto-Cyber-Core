@@ -1,62 +1,52 @@
 <?php
-include "conexion.php";
+require_once "conexion.php";
 session_start();
+$dao = new UserDao();
 
 // Variables para mensajes
 $error = "";
-$ok = "";
 
 if (isset($_POST['registrar'])) {
 
     $nombre = trim($_POST['nombre']);
     $correo = trim($_POST['correo']);
-    $pass = trim($_POST['contrasena']);
-    $pass2 = trim($_POST['contrasena2']);
+    $password = trim($_POST['password']);
+    $password2 = trim($_POST['password2']);
     $fecha = date("Y-m-d");
-    $tipo = "cliente"; // por defecto cliente
+    $tipo_usuario = "usuario"; // por defecto usuario normal, todavia no es cliente
 
     // === VALIDACIONES ===
 
-    if ($pass !== $pass2) {
+    if (strlen($nombre) < 3) {
+        $error = "El nombre debe tener al menos 3 caracteres.";     #El largo del nombre
+    }
+    elseif (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {          #Validar correo
+        $error = "El correo no es válido.";
+    }
+    elseif ($password !== $password2) {                                 #la constrasenia
         $error = "Las contraseñas no coinciden.";
     }
-    elseif (strlen($pass) < 6) {
+    elseif (strlen($password) < 6) {                                #El largo de la contrasenia
         $error = "La contraseña debe tener al menos 6 caracteres.";
     }
     else {
         // verificar correo duplicado
-        $sqlCheck = "SELECT id_usuario FROM usuarios WHERE correo = ?";
-        $stmtCheck = mysqli_prepare($conexion, $sqlCheck);
-        mysqli_stmt_bind_param($stmtCheck, "s", $correo);
-        mysqli_stmt_execute($stmtCheck);
-        $resCheck = mysqli_stmt_get_result($stmtCheck);
-
-        if (mysqli_num_rows($resCheck) > 0) {
+        if ($dao->verificar_correo($correo)) {
             $error = "Ya existe una cuenta con este correo.";
         } else {
 
             // === REGISTRAR ===
-            $sql = "INSERT INTO usuarios (nombre, correo, contrasena, tipo_usuario, fecha_registro)
-                    VALUES (?, ?, ?, ?, ?)";
+            $nuevo_id = $dao->registrar_usuario($nombre,$correo,$password,$tipo_usuario,$fecha);
 
-            $stmt = mysqli_prepare($conexion, $sql);
-            mysqli_stmt_bind_param($stmt, "sssss", 
-                $nombre, $correo, $pass, $tipo, $fecha
-            );
-
-            mysqli_stmt_execute($stmt);
-
-            // Obtener ID recién insertado
-            $nuevo_id = mysqli_insert_id($conexion);
 
             // === AUTOLOGIN ===
             $_SESSION['usuario'] = $nombre;
             $_SESSION['id_usuario'] = $nuevo_id;
             $_SESSION['correo'] = $correo;
-            $_SESSION['rol'] = $tipo;
+            $_SESSION['rol'] = $tipo_usuario;
 
             // Redirección inmediata al panel
-            header("Location: inicio.php");
+            header("Location: home.php");
             exit;
         }
     }
@@ -139,15 +129,6 @@ a:hover {
     font-weight: bold;
     color: white;
 }
-
-.msg-ok {
-    background: #00d18a;
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 18px;
-    font-weight: bold;
-    color: black;
-}
 </style>
 </head>
 <body>
@@ -165,9 +146,9 @@ a:hover {
 
         <input type="email" name="correo" placeholder="Correo electrónico" required>
 
-        <input type="password" name="contrasena" placeholder="Contraseña" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
 
-        <input type="password" name="contrasena2" placeholder="Confirmar contraseña" required>
+        <input type="password" name="password2" placeholder="Confirmar contraseña" required>
 
         <button type="submit" name="registrar">Registrarme</button>
     </form>

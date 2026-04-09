@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+
 // Si NO hay usuario logueado → al login
 if (!isset($_SESSION['usuario'])) {
     header("Location: index.php");
@@ -8,7 +9,7 @@ if (!isset($_SESSION['usuario'])) {
 }
 
 // Si el usuario NO es admin ni empleado → a la tienda
-if ($_SESSION['rol'] != "admin" && $_SESSION['rol'] != "empleado") {
+if ($_SESSION['rol'] != "administrador" && $_SESSION['rol'] != "empleado") {
     header("Location: home.php");
     exit;
 }

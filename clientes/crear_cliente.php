@@ -1,26 +1,62 @@
 <?php
-include "../conexion.php";
+require_once "../conexion.php";
 session_start();
+$dao = new UserDao();
+
+if (!isset($_SESSION['usuario'])) {
+    header("Location: ../index.php");
+    exit;
+}
 
 // Validar ID de usuario
-if (!isset($_GET['u'])) {
+if (!isset($_GET['id_user'])) {
     echo "Error: No se recibió el ID del usuario.";
     exit();
 }
 
-$id_usuario = $_GET['u'];
+$id_usuario = intval($_GET['id_user']);
 
-// Obtener datos del usuario
-$consulta = "SELECT nombre, correo FROM usuarios WHERE id_usuario = ?";
-$stmt = mysqli_prepare($conexion, $consulta);
-mysqli_stmt_bind_param($stmt, "i", $id_usuario);
-mysqli_stmt_execute($stmt);
-$res = mysqli_stmt_get_result($stmt);
-$usuario = mysqli_fetch_assoc($res);
+// Obtener datos del usuario y validar que exista
+$usuario = $dao->obtener_usuario($id_usuario);
+if (!$usuario) {
+    die('El Usuario no existe');
+}
+
+//verificar que no tenga un cliente asociado
+if($dao->existe_cliente($id_usuario)){
+    die('El usuario ya tiene un cliente asociado');
+}
 
 // Obtener provincias
-$prov_q = "SELECT id_provincias, nombre_provincia FROM provincias ORDER BY nombre_provincia ASC";
-$provincias = mysqli_query($conexion, $prov_q);
+$provincias = $dao->obtener_provincias();
+
+
+// PROCESO POST
+if (isset($_POST['guardar'])) {
+    $nombre   = trim($_POST['nombre']);
+    $apellido = trim($_POST['apellido']);
+    $direccion = trim($_POST['direccion']);
+    $telefono = trim($_POST['telefono']);
+    $cuil = trim($_POST['cuil']);
+    $localidad = trim($_POST['localidad']);
+    $fecha = date("Y-m-d H:i:s");
+
+    // validaciones
+    if (!is_numeric($cuil)) {
+        die('El cuil debe ser un numero valido');
+    }
+    if ($localidad<=0) {
+        die('Debe seleccionar una localidad valida');
+    }
+
+    //Insertar cliente
+    if($dao->insertar_cliente($nombre,$apellido,$direccion,$telefono,$cuil,$fecha,$localidad,$id_usuario)){
+        header("Location: ../usuarios/listar.php");
+        exit;
+    }else{
+        echo 'Error al insertar';
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -137,14 +173,14 @@ button:hover {
         <!-- PROVINCIA -->
         <select id="provincia" name="provincia" required>
             <option value="">Seleccione provincia...</option>
-            <?php while ($p = mysqli_fetch_assoc($provincias)) { ?>
-                <option value="<?= $p['id_provincias'] ?>">
-                    <?= $p['nombre_provincia'] ?>
+            <?php foreach($provincias as $provincia) { ?>
+                <option value="<?php echo $provincia['id_provincia'] ?>">
+                    <?php echo $provincia['nombre_provincia'] ?>
                 </option>
             <?php } ?>
         </select>
 
-        <!-- LOCALIDAD (se llenará con AJAX) -->
+        <!-- LOCALIDAD -->
         <select id="localidad" name="localidad" required>
             <option value="">Seleccione provincia primero...</option>
         </select>
@@ -154,62 +190,44 @@ button:hover {
 
 </div>
 
-<!-- AJAX -->
-<script>
-// Cuando cambia la provincia
+<!-- CON JSON -->
+ <script>
 document.getElementById("provincia").addEventListener("change", function() {
-    
-    let idProvincia = this.value;
 
-    // Select de localidad
+    let idProvincia = this.value;
     let localidadSelect = document.getElementById("localidad");
+
+    // Reset
     localidadSelect.innerHTML = "<option>Cargando...</option>";
 
-    // Petición AJAX con fetch()
+    if (!idProvincia) return;
+
     fetch("obtener_localidades.php?provincia=" + idProvincia)
-        .then(response => response.text())
+        .then(response => response.json()) // 👈 ahora es JSON
         .then(data => {
-            localidadSelect.innerHTML = data;
+
+            localidadSelect.innerHTML = "";
+
+            if (data.length === 0) {
+                localidadSelect.innerHTML = "<option>No hay localidades</option>";
+                return;
+            }
+
+            // Crear options dinámicamente
+            data.forEach(localidad => {
+                let option = document.createElement("option");
+                option.value = localidad.id_localidad;
+                option.textContent = localidad.nombre_localidad;
+                localidadSelect.appendChild(option);
+            });
+
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            localidadSelect.innerHTML = "<option>Error al cargar</option>";
         });
 });
 </script>
 
 </body>
 </html>
-
-<?php
-// PROCESO POST
-if (isset($_POST['guardar'])) {
-
-    $nombre   = $_POST['nombre'];
-    $apellido = $_POST['apellido'];
-    $direccion = $_POST['direccion'];
-    $telefono = $_POST['telefono'];
-    $cuil = $_POST['cuil'];
-    $localidad = $_POST['localidad'];
-    $fecha = date("Y-m-d H:i:s");
-
-    // Insertar cliente
-    $sql = "INSERT INTO clientes 
-            (nombre, apellido, correo, direccion, contrasena, telefono, cuil_cuit, fecha_registro, rela_id_localidades, rela_id_usuario)
-            VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?)";
-
-    $stmt2 = mysqli_prepare($conexion, $sql);
-    mysqli_stmt_bind_param($stmt2, "sssssssii",
-        $nombre,
-        $apellido,
-        $usuario['correo'],
-        $direccion,
-        $telefono,
-        $cuil,
-        $fecha,
-        $localidad,
-        $id_usuario
-    );
-
-    mysqli_stmt_execute($stmt2);
-
-    header("Location: ../usuarios/listar.php");
-    exit;
-}
-?>

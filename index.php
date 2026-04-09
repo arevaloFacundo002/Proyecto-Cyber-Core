@@ -1,4 +1,51 @@
-<?php session_start(); ?>
+<?php
+session_start();
+require_once "conexion.php";
+$dao = new UserDao();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $correo = $_POST['correo']?? null;
+    $password = $_POST['password'] ?? null;
+
+    $usuario = $dao->login($correo);
+
+    if($usuario && password_verify($password, $usuario['password'])){
+
+        if ($usuario['estado'] == "bloqueado" || $usuario['estado'] == "inactivo") {
+            echo "<script>alert('Tu cuenta está bloqueada o inactiva. Acceso denegado.'); 
+                window.location='index.php';</script>";
+            exit;
+        }
+
+        $_SESSION['usuario'] = $usuario['nombre'];
+        $_SESSION['id_usuario'] = $usuario['id_usuario'];
+        $_SESSION['rol'] = $usuario['tipo_usuario'];
+        $_SESSION['correo'] = $usuario['correo'];
+
+
+        if ($usuario['tipo_usuario'] == 'administrador') {            
+                header('Location:inicio.php');
+                exit();
+
+        }elseif ($usuario['tipo_usuario'] == 'cliente' || $usuario['tipo_usuario'] == 'usuario') {
+                header('Location:home.php');
+                exit();
+                
+        }elseif ($usuario['tipo_usuario'] == 'empleado'){
+                header('Location:inicio.php');
+                exit();
+       }else {
+            echo "Rol No reconocido";
+       }
+
+    }else {
+        echo "<script>alert('Correo o contraseña incorrectos'); window.location='index.php';</script>";
+    }
+
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -104,10 +151,12 @@ button:hover {
     <div class="logo">CYBERCORE</div>
     <h2>Iniciar sesión</h2>
 
-    <form action="validar_login.php" method="POST">
+   <form action="" method="POST">
+
         <input type="email" name="correo" placeholder="Correo electrónico" required>
-        <input type="password" name="contrasena" placeholder="Contraseña" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
         <button type="submit">Ingresar</button>
+
     </form>
 
     <div class="registro">
