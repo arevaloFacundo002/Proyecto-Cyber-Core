@@ -28,14 +28,14 @@ if (isset($_POST['guardar'])) {
 
     $nombre = trim($_POST['nombre']);
     $correo = trim($_POST['correo']);
-    $rol = $_POST['tipo_usuario'];
+    $rela_id_perfil = $_POST['nombre_perfil'];
 
     if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
         die("Correo inválido");
     }
 
 
-    if ($dao->editar_usuario($nombre, $correo, $rol, $id)) {
+    if ($dao->editar_usuario($nombre, $correo, $rela_id_perfil, $id)) {
         header("Location: listar.php");
         exit;
     }else{
@@ -151,10 +151,10 @@ button:hover {
 
         <input type="email" name="correo" value="<?php echo $usuario['correo']; ?>" required>
 
-        <select name="tipo_usuario" required>
-            <option value="cliente" <?php if($usuario["tipo_usuario"]=="cliente") echo "selected"; ?>>Cliente</option>
-            <option value="administrador" <?php if($usuario["tipo_usuario"]=="admin") echo "selected"; ?>>Administrador</option>
-            <option value="empleado" <?php if($usuario["tipo_usuario"]=="empleado") echo "selected"; ?>>Empleado</option>
+        <select name="nombre_perfil" required>
+            <option value="3" <?= $usuario["nombre_perfil"]=="cliente" ? "selected":'' ?>>Cliente</option>
+            <option value="1" <?= $usuario["nombre_perfil"]=="administrador" ? "selected":'' ?>>Administrador</option>
+            <option value="2" <?= $usuario["nombre_perfil"]=="empleado" ? "selected":'' ?>>Empleado</option>
         </select>
 
         <button type="submit" name="guardar">Guardar cambios</button>

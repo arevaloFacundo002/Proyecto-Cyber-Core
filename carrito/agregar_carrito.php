@@ -1,6 +1,7 @@
 <?php
 session_start();
-include "../conexion.php";
+require_once "../conexion.php";
+$dao = new UserDao();
 
 // Validar ID
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -9,34 +10,20 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $id = intval($_GET['id']);
 
-// --------------------------------------
-// 1) SI NO ESTÁ LOGIN → redirigir
-// --------------------------------------
+# si no esta el login, redirigir
 if (!isset($_SESSION['usuario'])) {
     header("Location: ../login.php?msg=Debes iniciar sesión");
     exit;
 }
 
-// --------------------------------------
-// 2) CONSULTAR PRODUCTO Y STOCK
-// --------------------------------------
-$sql = "SELECT id_productos, nombre, precio, stock, imagen_url 
-        FROM productos 
-        WHERE id_productos = ?";
 
-$stmt = mysqli_prepare($conexion, $sql);
-mysqli_stmt_bind_param($stmt, "i", $id);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-
-$producto = mysqli_fetch_assoc($result);
+// consultar producto y stock
+$producto = $dao->consulta_producto_stock($id);
 if (!$producto) {
     die("Producto no encontrado.");
 }
 
-// --------------------------------------
-// 3) VALIDAR STOCK
-// --------------------------------------
+// validar stock
 if ($producto['stock'] <= 0) {
     header("Location: ../producto.php?id=$id&error=sin_stock");
     exit;

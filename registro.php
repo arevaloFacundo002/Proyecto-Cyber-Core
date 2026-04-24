@@ -13,7 +13,8 @@ if (isset($_POST['registrar'])) {
     $password = trim($_POST['password']);
     $password2 = trim($_POST['password2']);
     $fecha = date("Y-m-d");
-    $tipo_usuario = "usuario"; // por defecto usuario normal, todavia no es cliente
+    $rela_id_perfil = 2; // por defecto usuario normal, todavia no es cliente
+    $tipo_usuario = 'usuario';
 
     // === VALIDACIONES ===
 
@@ -36,7 +37,7 @@ if (isset($_POST['registrar'])) {
         } else {
 
             // === REGISTRAR ===
-            $nuevo_id = $dao->registrar_usuario($nombre,$correo,$password,$tipo_usuario,$fecha);
+            $nuevo_id = $dao->registrar_usuario($nombre,$correo,$password,$rela_id_perfil,$fecha);
 
 
             // === AUTOLOGIN ===

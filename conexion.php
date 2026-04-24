@@ -23,11 +23,14 @@ class UserDao{
     }
 
     function login($correo) {
-        $sql = "SELECT * FROM usuarios WHERE correo = ? ";
+        $sql = "SELECT u.*,p.nombre_perfil FROM usuarios u
+            join perfiles p
+            on u.rela_id_perfil = p.id_perfil
+            WHERE correo = ? ";
+
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param("s", $correo);
         $stmt->execute();
-
         $resultado = $stmt->get_result();
 
         if ($resultado ->num_rows == 1) {
@@ -72,15 +75,15 @@ class UserDao{
         
     }
 
-    function registrar_usuario($nombre,$correo,$password,$tipo_usuario,$fecha_registro) {
-        $sql = "INSERT INTO usuarios (nombre, correo, password, tipo_usuario, fecha_registro)
+    function registrar_usuario($nombre,$correo,$password,$rela_id_perfil,$fecha_registro) {
+        $sql = "INSERT INTO usuarios (nombre, correo, password, rela_id_perfil, fecha_registro)
             VALUES (?, ?, ?, ?, ?)";
 
         $stmt = $this->conexion->prepare($sql);
     
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmt->bind_param("sssss",$nombre,$correo,$password_hash,$tipo_usuario,$fecha_registro);
+        $stmt->bind_param("sssss",$nombre,$correo,$password_hash,$rela_id_perfil,$fecha_registro);
         $stmt->execute();
 
         return $this->conexion->insert_id;      # esta es una funcion que devuelve el ultimo id insertado.  
@@ -102,6 +105,22 @@ class UserDao{
         $resultado = $stmt->get_result();
 
         if ($producto = $resultado->fetch_assoc()) {
+            return $producto;
+        }
+        return null;
+    }
+
+    function consulta_producto_stock($id){
+        $sql = "SELECT id_producto, nombre, precio, stock, imagen_url 
+        FROM productos 
+        WHERE id_producto = ?";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+
+        if($producto = $resultado->fetch_assoc()){ 
             return $producto;
         }
         return null;
@@ -142,9 +161,11 @@ class UserDao{
 
         $sql = "SELECT 
             u.*, 
-            c.id_cliente 
+            c.id_cliente,
+            p.nombre_perfil
         FROM usuarios u
         LEFT JOIN clientes c ON c.rela_id_usuario = u.id_usuario
+        join perfiles p on u.rela_id_perfil = p.id_perfil
         WHERE 1=1"; // truco PRO
 
         $params = [];
@@ -152,7 +173,7 @@ class UserDao{
 
         // 🔍 BUSQUEDA
         if (!empty($busqueda)) {
-            $sql .= " AND (u.nombre LIKE ? OR u.correo LIKE ? OR u.tipo_usuario LIKE ?)";
+            $sql .= " AND (u.nombre LIKE ? OR u.correo LIKE ? OR p.nombre_perfil LIKE ?)";
             $param = "%$busqueda%";
             $params[] = $param;
             $params[] = $param;
@@ -191,13 +212,13 @@ class UserDao{
         return $usuarios;
     }
 
-    function agregar_usuario_panel($nombre,$password,$correo,$fecha,$tipo_usuario) {
-        $sql = "INSERT usuarios INTO (nombre, password, correo, fecha_registro, tipo_usuario)
-            VALUES (?, ?, ?, ?, ?, ?, ?)";
+    function agregar_usuario_panel($nombre,$password,$correo,$fecha,$rela_id_perfil) {
+        $sql = "INSERT INTO usuarios(nombre, password, correo, fecha_registro, rela_id_perfil)
+            VALUES (?, ?, ?, ?, ?)";
 
         $stmt = $this->conexion->prepare($sql);
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt->bind_param('sssss',$nombre,$password_hash,$correo,$fecha,$tipo_usuario);
+        $stmt->bind_param('ssssi',$nombre,$password_hash,$correo,$fecha,$rela_id_perfil);
         $stmt->execute();
 
         return $this->conexion->insert_id;
@@ -223,7 +244,11 @@ class UserDao{
     }
 
     function obtener_usuario($id) {
-        $sql = "SELECT * FROM usuarios WHERE id_usuario = ?";
+        $sql = "SELECT u.*, p.nombre_perfil FROM usuarios u
+            join perfiles p 
+            on p.id_perfil = u.rela_id_perfil
+            where u.id_usuario = ? ";
+
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param("i", $id);
         $stmt->execute();
@@ -232,12 +257,12 @@ class UserDao{
         return $usuario;
     }
 
-    function editar_usuario($nombre, $correo, $rol, $id){
-        $sql = "UPDATE usuarios SET nombre = ?, correo = ?, tipo_usuario = ?
+    function editar_usuario($nombre, $correo, $rela_id_perfil, $id){
+        $sql = "UPDATE usuarios SET nombre = ?, correo = ?, rela_id_perfil = ?
             WHERE id_usuario = ?";
 
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param("sssi",$nombre, $correo, $rol, $id);
+        $stmt->bind_param("ssii",$nombre, $correo, $rela_id_perfil, $id);
         return $stmt->execute();
     }
 

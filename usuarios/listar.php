@@ -226,7 +226,7 @@ tr:hover {
         $u_id = (int)$fila['id_usuario'];
         $u_name = htmlspecialchars($fila['nombre']);
         $u_email = htmlspecialchars($fila['correo']);
-        $u_rol = htmlspecialchars($fila['tipo_usuario']);
+        $u_rol = htmlspecialchars($fila['nombre_perfil']);
         $u_registro = htmlspecialchars($fila['fecha_registro']);
         $c_id = $fila['id_cliente'] ?? null;
         $u_estado = $fila['estado'] ?? null;

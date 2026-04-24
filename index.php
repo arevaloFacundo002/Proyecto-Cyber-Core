@@ -19,19 +19,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $_SESSION['usuario'] = $usuario['nombre'];
         $_SESSION['id_usuario'] = $usuario['id_usuario'];
-        $_SESSION['rol'] = $usuario['tipo_usuario'];
+        $_SESSION['rol'] = $usuario['nombre_perfil'];
         $_SESSION['correo'] = $usuario['correo'];
 
 
-        if ($usuario['tipo_usuario'] == 'administrador') {            
+        if ($usuario['nombre_perfil'] == 'administrador') {            
                 header('Location:inicio.php');
                 exit();
 
-        }elseif ($usuario['tipo_usuario'] == 'cliente' || $usuario['tipo_usuario'] == 'usuario') {
+        }elseif ($usuario['nombre_perfil'] == 'cliente' || $usuario['nombre_perfil'] == 'usuario') {
                 header('Location:home.php');
                 exit();
                 
-        }elseif ($usuario['tipo_usuario'] == 'empleado'){
+        }elseif ($usuario['nombre_perfil'] == 'empleado'){
                 header('Location:inicio.php');
                 exit();
        }else {

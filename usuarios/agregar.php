@@ -16,7 +16,7 @@ if (isset($_POST['guardar'])) {
     $nombre = $_POST['nombre'];
     $correo = $_POST['correo'];
     $password = $_POST['password'];
-    $tipo_usuario = $_POST['tipo_usuario'];
+    $rela_id_perfil = $_POST['rol'];
     $fecha = date("Y-m-d");
 
     // VALIDACIONES
@@ -32,8 +32,9 @@ if (isset($_POST['guardar'])) {
     elseif($dao->verificar_correo($correo)) {                       // verificar correo duplicado
         $error = "Ya existe una cuenta con este correo.";
     } else {
-        if ($dao->agregar_usuario_panel($nombre,$password,$correo,$fecha,$tipo_usuario)) {  //agregamos el usuario
-            header("Location: listar.php");
+
+        if ($dao->agregar_usuario_panel($nombre,$password,$correo,$fecha,$rela_id_perfil)) {  //agregamos el usuario
+            header("Location: listar.php");                    
             exit;
         }else {
            echo 'Error al insertar';
@@ -167,10 +168,11 @@ button:hover {
 
         <input type="password" name="password" placeholder="Contraseña" required>
 
-        <select name="tipo_usuario" required>
-            <option value="cliente">Cliente</option>
-            <option value="administrador">Administrador</option>
-            <option value="empleado">Empleado</option>
+        <select name="rol" required>
+            <option value="4">Usuario</option>
+            <option value="3">Cliente</option>
+            <option value="1">Administrador</option>
+            <option value="2">Empleado</option>
         </select>
 
         <button type="submit" name="guardar">Guardar usuario</button>

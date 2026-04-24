@@ -1,6 +1,6 @@
 <?php
 session_start();
-include "../conexion.php";
+require_once "../conexion.php";
 
 // Si no existe el carrito, crearlo vacío
 if (!isset($_SESSION['carrito'])) {
@@ -128,10 +128,17 @@ h2 {
 <header>
     <div class="logo">CYBERCORE</div>
     <nav>
-        <a href="../home.php">Inicio</a>
-        <a href="../login.php">Iniciar sesión</a>
-        <a href="../registro.php">Registrarse</a>
-        <a href="carrito.php">🛒 Carrito</a>
+        <?php if ($rol == 'administrador' || $rol == 'empleado') { ?>
+            <a href="inicio.php">Panel</a>
+
+        <?php }elseif($rol == 'usuario' || $rol == 'cliente'){ ?>
+            <a href="carrito/carrito.php">🛒 Carrito</a>
+            <a class="logout" href="logout.php">Cerrar sesión</a>
+            
+        <?php }else{ ?>
+            <a href="index.php">Iniciar sesión</a>
+            <a href="registro.php">Registrarse</a>
+        <?php } ?>
     </nav>
 </header>
 
