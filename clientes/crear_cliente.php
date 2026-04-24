@@ -40,6 +40,7 @@ if (isset($_POST['guardar'])) {
     $cuil = trim($_POST['cuil']);
     $localidad = trim($_POST['localidad']);
     $fecha = date("Y-m-d H:i:s");
+    $tipo_contacto = 1; //por defecto es celular
 
     // validaciones
     if (!is_numeric($cuil)) {
@@ -50,12 +51,15 @@ if (isset($_POST['guardar'])) {
     }
 
     //Insertar cliente
-    if($dao->insertar_cliente($nombre,$apellido,$direccion,$telefono,$cuil,$fecha,$localidad,$id_usuario)){
+    if($id_cliente = $dao->insertar_cliente($nombre,$apellido,$direccion,$cuil,$fecha,$localidad,$id_usuario)
+        and $dao->insertar_contacto_cliente($telefono,$tipo_contacto,$id_cliente)){
         header("Location: ../usuarios/listar.php");
         exit;
     }else{
         echo 'Error al insertar';
     }
+
+
 }
 ?>
 

@@ -42,9 +42,11 @@ if (isset($_POST['guardar'])) {
     $cuil = $_POST['cuil'];
     $direccion = $_POST['direccion'];
     $localidad = $_POST['localidad'];
+    $tipo_contacto = 1;
 
     // SIN PROVINCIA — ya no existe en la tabla clientes
-    if ($dao->actualizar_cliente($nombre, $apellido, $direccion, $telefono,$cuil, $localidad, $id_cliente)) {
+    if ($dao->actualizar_cliente($nombre, $apellido, $direccion,$cuil, $localidad, $id_cliente)
+        and $dao->actualizar_contacto_cliente($telefono,$tipo_contacto,$id_cliente)) {
         header("Location: ../usuarios/listar.php");
         exit;
     }else{

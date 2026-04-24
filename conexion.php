@@ -277,31 +277,40 @@ class UserDao{
         return $resultado->num_rows > 0;
     }
 
-    function insertar_cliente($nombre,$apellido,$direccion,$telefono,$cuil,$fecha,$localidad,$id_usuario){
-        $sql = "INSERT INTO clientes (nombre, apellido, direccion, telefono, 
+    function insertar_cliente($nombre,$apellido,$direccion,$cuil,$fecha,$localidad,$id_usuario){
+        $sql = "INSERT INTO clientes (nombre, apellido, direccion, 
             cuil_cuit, fecha_registro, rela_id_localidades, rela_id_usuario)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param("ssssssii",
+        $stmt->bind_param("sssssii",
             $nombre,
             $apellido,
             $direccion,
-            $telefono,
             $cuil,
             $fecha,
             $localidad,
             $id_usuario
         );
+        $stmt->execute();
+        return $this->conexion->insert_id;
+    }
+
+    function insertar_contacto_cliente($telefono,$tipo_contacto,$id_cliente){
+        $sql="INSERT INTO contactos (valor, rela_id_tipo_contacto, rela_id_cliente)
+            VALUES (?, ?, ?)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('sii',$telefono,$tipo_contacto,$id_cliente);
         return $stmt->execute();
     }
 
     // Obtener datos del cliente + provincia .editar_cliente.php
     function cliente_provincia($id_cliente){
-        $sql = "SELECT c.*, u.correo, l.rela_id_provincia
+        $sql = "SELECT c.*, u.correo, l.rela_id_provincia, co.valor as telefono
                 FROM clientes c
                 INNER JOIN usuarios u ON u.id_usuario = c.rela_id_usuario
                 INNER JOIN localidades l ON l.id_localidad = c.rela_id_localidades
+                INNER JOIN contactos co ON co.rela_id_cliente = c.id_cliente
                 WHERE c.id_cliente = ?";
 
         $stmt = $this->conexion->prepare($sql);
@@ -326,21 +335,30 @@ class UserDao{
         return $localidades;
     }
 
-    function actualizar_cliente($nombre, $apellido, $direccion, $telefono,$cuil, $localidad, $id_cliente){
+    function actualizar_cliente($nombre, $apellido, $direccion,$cuil, $localidad, $id_cliente){
         $update = "UPDATE clientes 
-            SET nombre=?, apellido=?, direccion=?, telefono=?, 
+            SET nombre=?, apellido=?, direccion=?, 
                 cuil_cuit=?, rela_id_localidades=?
             WHERE id_cliente=?";
 
         $stmt = $this->conexion->prepare($update);
         $stmt->bind_param(
-            "sssssii",
-            $nombre, $apellido, $direccion, $telefono,
+            "ssssii",
+            $nombre, $apellido, $direccion,
             $cuil, $localidad, $id_cliente
-        );
+        );  
 
         return $stmt->execute();
     }
+
+    function actualizar_contacto_cliente($telefono,$tipo_contacto,$id_cliente){
+        $update = "UPDATE contactos SET valor=?, rela_id_tipo_contacto=?, rela_id_cliente=?
+            WHERE rela_id_cliente=?";
+        $stmt = $this->conexion->prepare($update);
+        $stmt->bind_param('siii',$telefono,$tipo_contacto,$id_cliente,$id_cliente);
+        return $stmt->execute();
+    }
+     
 
     // PROVINCIAS Y LOCALIDADES:
         function obtener_provincias(){
