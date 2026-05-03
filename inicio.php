@@ -1,12 +1,6 @@
 <?php
-session_start();
-
-
 // Si NO hay usuario logueado → al login
-if (!isset($_SESSION['usuario'])) {
-    header("Location: index.php");
-    exit;
-}
+require_once "auth.php";
 
 // Si el usuario NO es admin ni empleado → a la tienda
 if ($_SESSION['rol'] != "administrador" && $_SESSION['rol'] != "empleado") {
@@ -20,6 +14,9 @@ if ($_SESSION['rol'] != "administrador" && $_SESSION['rol'] != "empleado") {
 <meta charset="UTF-8">
 <title>CyberCore - Panel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 
 <style>
 body {

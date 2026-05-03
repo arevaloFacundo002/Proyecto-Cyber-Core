@@ -1,8 +1,9 @@
 <?php
 require_once "conexion.php";
-session_start();
 $dao = new UserDao();
 
+//Si no esta logeado lo sacamos
+require_once 'auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $buscar = $_GET['buscar']?? "";
@@ -18,6 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+
 <title>CyberCore - Inicio</title>
 
 <style>

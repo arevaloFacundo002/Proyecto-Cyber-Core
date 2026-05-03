@@ -155,7 +155,7 @@ a:hover {
     </form>
 
     <p style="margin-top: 16px;">¿Ya tenés una cuenta? 
-        <a href="index.php">Iniciar sesión</a>
+        <a href="login.php">Iniciar sesión</a>
     </p>
 
 </div>

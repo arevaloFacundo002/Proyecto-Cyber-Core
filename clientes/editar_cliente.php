@@ -1,13 +1,9 @@
 <?php  
-session_start();
 require_once "../conexion.php";
 $dao = new UserDao();
 
 // Validar login
-if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
-    exit();
-}
+require_once "../auth.php";
 
 // Validar ID cliente
 if (!isset($_GET['id'])) {

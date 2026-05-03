@@ -1,14 +1,10 @@
 <?php
-session_start();
 require_once "../conexion.php";
 $dao = new UserDao();
 $error='';
 
 // Si no hay sesión fuera
-if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
-    exit;
-}
+require_once "../auth.php";
 
 //  PROCESAR FORMULARIO 
 if (isset($_POST['guardar'])) {

@@ -1,13 +1,9 @@
 <?php
-session_start();
 require_once "../conexion.php";
 $dao = new UserDao();
 
 // Si no hay sesión
-if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
-    exit;
-}
+require_once "../auth.php";
 
 if (!$_POST['id'] || !$_POST['estado']) {
     die('Datos invalidos');

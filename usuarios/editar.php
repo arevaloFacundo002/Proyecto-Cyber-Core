@@ -1,13 +1,9 @@
 <?php
-session_start();
 require_once "../conexion.php";
 $dao = new UserDao();
 
 // Si no hay sesión lo echamos
-if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
-    exit;
-}
+require_once "../auth.php";
 
 if (!isset($_GET['id'])) {
     die('Usuario invalido');

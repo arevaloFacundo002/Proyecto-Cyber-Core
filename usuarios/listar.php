@@ -1,13 +1,8 @@
 <?php
-session_start();
 require_once "../conexion.php";
 $dao = new UserDao();
 
-
-if (!isset($_SESSION['usuario'])) {
-    header("Location: ../index.php");
-    exit;
-}
+require_once "../auth.php";
 
 // Búsqueda y filtro
 $busqueda = $_GET['buscar'] ?? "";
@@ -20,6 +15,10 @@ $usuarios = $dao->listar_usuarios($busqueda,$estado);
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+
 <title>ABM Usuarios</title>
 
 <style>
