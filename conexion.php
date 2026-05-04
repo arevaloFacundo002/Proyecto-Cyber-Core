@@ -75,18 +75,35 @@ class UserDao{
         
     }
 
-    function registrar_usuario($nombre,$correo,$password,$rela_id_perfil,$fecha_registro) {
-        $sql = "INSERT INTO usuarios (nombre, correo, password, rela_id_perfil, fecha_registro)
-            VALUES (?, ?, ?, ?, ?)";
+    function registrar_usuario($nombre,$correo,$password,$rela_id_perfil,$fecha_registro,$token) {
+        $sql = "INSERT INTO usuarios (nombre,correo,password,rela_id_perfil,fecha_registro,token,validado)
+            VALUES (?, ?, ?, ?, ?, ?, 0)";
 
         $stmt = $this->conexion->prepare($sql);
     
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmt->bind_param("sssss",$nombre,$correo,$password_hash,$rela_id_perfil,$fecha_registro);
+        $stmt->bind_param("ssssss",$nombre,$correo,$password_hash,$rela_id_perfil,$fecha_registro,$token);
         $stmt->execute();
 
         return $this->conexion->insert_id;      # esta es una funcion que devuelve el ultimo id insertado.  
+    }
+
+    function buscar_por_token($token){
+        $sql = "SELECT * FROM usuarios WHERE token = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('s',$token);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+        return $resultado->fetch_assoc();
+    }
+
+    function validar_usuario($token){
+        $sql = "UPDATE usuarios SET validado = 1
+            WHERE token = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('s',$token);
+        return $stmt->execute();
     }
 
     function busqueda_de_producto($id){

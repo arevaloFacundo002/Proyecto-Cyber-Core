@@ -14,7 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($usuario && password_verify($password, $usuario['password'])) {
 
-        if ($usuario['estado'] == "bloqueado" || $usuario['estado'] == "inactivo") {
+        if($usuario['validado'] == 0){
+            $error = "Debes verificar tu correo antes de iniciar sesión";
+        }
+        elseif ($usuario['estado'] == "bloqueado" || $usuario['estado'] == "inactivo") {
             $error = "Tu cuenta está bloqueada o inactiva";
         } else{
 
@@ -23,16 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['rol'] = $usuario['nombre_perfil'];
             $_SESSION['correo'] = $usuario['correo'];
 
-            if ($usuario['nombre_perfil'] == 'administrador') {
+            if ($usuario['nombre_perfil'] == 'administrador' || $usuario['nombre_perfil'] == 'empleado') {
                 header('Location: inicio.php');
                 exit();
 
             } elseif ($usuario['nombre_perfil'] == 'cliente' || $usuario['nombre_perfil'] == 'usuario') {
                 header('Location: home.php');
-                exit();
-
-            } elseif ($usuario['nombre_perfil'] == 'empleado') {
-                header('Location: inicio.php');
                 exit();
 
             } else {

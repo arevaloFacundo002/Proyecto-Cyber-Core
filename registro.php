@@ -1,5 +1,6 @@
 <?php
 require_once "conexion.php";
+require_once 'config/mail.php';
 session_start();
 $dao = new UserDao();
 
@@ -13,11 +14,10 @@ if (isset($_POST['registrar'])) {
     $password = trim($_POST['password']);
     $password2 = trim($_POST['password2']);
     $fecha = date("Y-m-d");
-    $rela_id_perfil = 2; // por defecto usuario normal, todavia no es cliente
+    $rela_id_perfil = 4; // por defecto usuario normal, todavia no es cliente
     $tipo_usuario = 'usuario';
 
     // === VALIDACIONES ===
-
     if (strlen($nombre) < 3) {
         $error = "El nombre debe tener al menos 3 caracteres.";     #El largo del nombre
     }
@@ -36,18 +36,25 @@ if (isset($_POST['registrar'])) {
             $error = "Ya existe una cuenta con este correo.";
         } else {
 
-            // === REGISTRAR ===
-            $nuevo_id = $dao->registrar_usuario($nombre,$correo,$password,$rela_id_perfil,$fecha);
+            $token = bin2hex(random_bytes(32));
+            $base_url = "http://" . $_SERVER['HTTP_HOST'] . "/cyber_core/";     //link automatico segun servidor xampp o phpserver
+            $link = $base_url . "validar_cuenta.php?token=$token";
+            $mensajeHTML = "<h2>Hola! $nombre</h2>
+                <p>Gracias por registrarte en CYBER CORE</p>
+                <p>Hace click para validar tu cuenta: </p>
+                <p><a href='$link'>Validar Cuenta</a></p>";
 
 
-            // === AUTOLOGIN ===
-            $_SESSION['usuario'] = $nombre;
-            $_SESSION['id_usuario'] = $nuevo_id;
-            $_SESSION['correo'] = $correo;
-            $_SESSION['rol'] = $tipo_usuario;
+            //  REGISTRAR 
+            $nuevo_id = $dao->registrar_usuario($nombre,$correo,$password,$rela_id_perfil,$fecha,$token);
 
-            // Redirección inmediata al panel
-            header("Location: home.php");
+            enviar_mail($correo,$nombre,'Verificar Cuenta',$mensajeHTML);
+
+            // Mensaje + redirección a login.php 
+            echo "<script>
+                alert('Registro exitoso. Revisá tu correo para validar tu cuenta.');
+                window.location='login.php';
+            </script>";
             exit;
         }
     }
