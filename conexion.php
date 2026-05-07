@@ -99,10 +99,26 @@ class UserDao{
     }
 
     function validar_usuario($token){
-        $sql = "UPDATE usuarios SET validado = 1
+        $sql = "UPDATE usuarios SET validado = 1, token = NULL
             WHERE token = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('s',$token);
+        return $stmt->execute();
+    }
+
+    function actualizar_token($token, $correo){
+        $sql = 'UPDATE usuarios SET token = ? WHERE correo = ?';
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('ss',$token,$correo);
+        return $stmt->execute();
+    }
+
+    function actualizar_password($token, $password){
+        $sql = "UPDATE usuarios 
+                SET password = ?, token = NULL 
+                WHERE token = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param("ss", $password, $token);
         return $stmt->execute();
     }
 

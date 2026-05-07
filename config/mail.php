@@ -16,6 +16,7 @@ function enviar_mail($destino,$nombre,$asunto,$mensajeHTML){
         $email->Password = 'ompz zzof zkzc xddj';
         $email->Port = 587;
         $email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $email->CharSet = 'UTF-8';
 
         $email->setFrom('arevalofacundo304@gmail.com','Cyber Core');
         $email->addAddress($destino,$nombre);

@@ -16,6 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if($usuario['validado'] == 0){
             $error = "Debes verificar tu correo antes de iniciar sesión";
+
+            $_SESSION['reenviar_correo'] = $usuario['correo'];
         }
         elseif ($usuario['estado'] == "bloqueado" || $usuario['estado'] == "inactivo") {
             $error = "Tu cuenta está bloqueada o inactiva";
@@ -99,6 +101,23 @@ button {
     font-weight: bold;
     cursor: pointer;
 }
+
+.registro{
+    margin-top:8px;
+}
+.olvide{
+    margin-top:15px;
+}
+
+.olvide a{
+    color:#00eaff;
+    text-decoration:none;
+    font-size:14px;
+}
+
+.olvide a:hover{
+    text-decoration:underline;
+}
 </style>
 </head>
 
@@ -118,6 +137,20 @@ button {
     <div class="registro">
         ¿No tenés una cuenta? <a href="registro.php">Registrate aquí</a>
     </div>
+
+    <p class="olvide">
+        <a href="config/recuperar/olvide_password.php">
+            ¿Olvidaste tu contraseña?
+        </a>
+    </p>
+
+    <!--reenvia el correo si el usuario no verifico-->
+    <?php if (isset($_SESSION['reenviar_correo'])): ?>
+        <form action="config/reenviar_mail.php" method="POST">
+            <input type="hidden" name="correo" value="<?= $_SESSION['reenviar_correo'] ?>">
+            <button type="submit">Reenviar correo de verificación</button>
+        </form>
+    <?php endif; ?>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

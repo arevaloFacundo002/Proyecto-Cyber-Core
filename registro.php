@@ -6,6 +6,7 @@ $dao = new UserDao();
 
 // Variables para mensajes
 $error = "";
+$exito = "";
 
 if (isset($_POST['registrar'])) {
 
@@ -37,8 +38,9 @@ if (isset($_POST['registrar'])) {
         } else {
 
             $token = bin2hex(random_bytes(32));
-            $base_url = "http://" . $_SERVER['HTTP_HOST'] . "/cyber_core/";     //link automatico segun servidor xampp o phpserver
-            $link = $base_url . "validar_cuenta.php?token=$token";
+            $base_url = "http://" . $_SERVER['HTTP_HOST'];     //link automatico segun servidor xampp o phpserver
+            $link = $base_url . "/validar_cuenta.php?token=$token";
+            
             $mensajeHTML = "<h2>Hola! $nombre</h2>
                 <p>Gracias por registrarte en CYBER CORE</p>
                 <p>Hace click para validar tu cuenta: </p>
@@ -50,12 +52,7 @@ if (isset($_POST['registrar'])) {
 
             enviar_mail($correo,$nombre,'Verificar Cuenta',$mensajeHTML);
 
-            // Mensaje + redirección a login.php 
-            echo "<script>
-                alert('Registro exitoso. Revisá tu correo para validar tu cuenta.');
-                window.location='login.php';
-            </script>";
-            exit;
+            $exito = "Registro exitoso. Revisá tu correo para validar tu cuenta.";
         }
     }
 }
@@ -164,6 +161,21 @@ a:hover {
     <p style="margin-top: 16px;">¿Ya tenés una cuenta? 
         <a href="login.php">Iniciar sesión</a>
     </p>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <?php if (!empty($exito)): ?>
+        <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Registro exitoso',
+            text: '<?= $exito ?>',
+            confirmButtonText: 'Ir al login'
+        }).then(() => {
+            window.location = 'login.php';
+        });
+        </script>
+    <?php endif; ?>
 
 </div>
 
