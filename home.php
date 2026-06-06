@@ -1,6 +1,6 @@
 <?php
-require_once "conexion.php";
-$dao = new UserDao();
+require_once 'models/Producto.php';
+$pro = new Producto();
 
 //Si no esta logeado lo sacamos
 require_once 'auth.php';
@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $rol = $_SESSION['rol'];
 
     //busqueda de productos
-    $productos = $dao->listar_productos($buscar);
+    $productos = $pro->listar_productos($buscar);
 }
 
 ?>

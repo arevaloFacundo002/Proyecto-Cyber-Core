@@ -1,6 +1,6 @@
 <?php
-require_once '../../conexion.php';
-$dao = new UserDao();
+require_once '../../models/Usuario.php';
+$user = new Usuario();
 
 $error = '';
 $exito = '';
@@ -10,7 +10,7 @@ if (!isset($_GET['token'])) {
 }else{
 
     $token = $_GET['token'];
-    $usuario = $dao->buscar_por_token($token);
+    $usuario = $user->buscar_por_token($token);
 
     if (!$usuario) {
         $error = "Token inválido o expirado";
@@ -30,7 +30,7 @@ if (!isset($_GET['token'])) {
 
                 $hash = password_hash($pass1, PASSWORD_DEFAULT);
 
-                $dao->actualizar_password($token, $hash);
+                $user->actualizar_password($token, $hash);
 
                 $exito = "Contraseña actualizada correctamente";
             }

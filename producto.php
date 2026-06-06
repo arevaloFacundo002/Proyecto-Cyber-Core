@@ -1,7 +1,7 @@
 <?php
-require_once "conexion.php";
+require_once 'models/Producto.php';
+$pro = new Producto();
 session_start();
-$dao = new UserDao();
 
 // Validar ID
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -11,7 +11,7 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     $id = intval($_GET['id']);      # intval() obtiene el valor entero (integer) de una variable
 
     // Consulta del producto (agregado STOCK)
-    $producto = $dao->busqueda_de_producto($id);
+    $producto = $pro->busqueda_de_producto($id);
     if (!$producto) {
         die("Producto no encontrado.");
     }
@@ -225,7 +225,7 @@ nav a:hover {
 
     <?php
     // Consultar reseñas del producto actual (estructura REAL)
-    $reseñas = $dao->consultar_reseñas($id);
+    $reseñas = $pro->consultar_reseñas($id);
 
     ?>
 

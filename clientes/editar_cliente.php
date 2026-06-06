@@ -1,6 +1,10 @@
 <?php  
-require_once "../conexion.php";
-$dao = new UserDao();
+require_once "../models/Cliente.php";
+require_once "../models/Usuario.php";
+require_once "../models/Ubicacion.php";
+$cli = new Cliente();
+$ubic = new Ubicacion();
+$user = new Usuario();
 
 // Validar login
 require_once "../auth.php";
@@ -13,8 +17,8 @@ if (!isset($_GET['id'])) {
 
 $id_cliente = intval($_GET['id']);
 
-// Obtener datos del cliente + provincia actual
-$cliente = $dao->cliente_provincia($id_cliente);
+// Obtener datos del cliente + contacto + provincia + localidad + direccion
+$cliente = $cli->obtenerPerfilCompleto($id_cliente);
 
 if (!$cliente) {
     echo "Cliente no encontrado.";
@@ -23,26 +27,33 @@ if (!$cliente) {
 $rela_id_provincia = $cliente['rela_id_provincia'];
 
 // Obtener provincias
-$provincias = $dao->obtener_provincias();
+$provincias = $ubic->obtener_provincias();
 
 // Obtener localidades según la provincia actual del cliente
-$localidades = $dao->localidades_provincia_del_cliente($rela_id_provincia);
+$localidades = $ubic->obtenerLocalidadesPorProvincia($rela_id_provincia);
 
 
-// PROCESO POST
+// PROCESO POST del formulario
 if (isset($_POST['guardar'])) {
 
+    //datos personales
     $nombre = $_POST['nombre'];
     $apellido = $_POST['apellido'];
     $telefono = $_POST['telefono'];
     $cuil = $_POST['cuil'];
-    $direccion = $_POST['direccion'];
-    $localidad = $_POST['localidad'];
     $tipo_contacto = 1;
 
-    // SIN PROVINCIA — ya no existe en la tabla clientes
-    if ($dao->actualizar_cliente($nombre, $apellido, $direccion,$cuil, $localidad, $id_cliente)
-        and $dao->actualizar_contacto_cliente($telefono,$tipo_contacto,$id_cliente)) {
+    //direccion
+    $calle = trim($_POST['calle']);
+    $numero = trim($_POST['numero']);
+    $barrio = trim($_POST['barrio']) ?: null; // Si el barrio está vacío, se asigna null
+    $localidad = intval($_POST['localidad']);
+
+
+    // Actualizar cliente, dirección y contacto
+    if ($cli->actualizar_cliente($nombre, $apellido,$cuil, $id_cliente)
+        and $ubic->actualizar_direccion($cliente['id_direccion'], $calle, $numero, $barrio, $localidad)
+        and $cli->actualizar_contacto_cliente($telefono,$tipo_contacto,$id_cliente)) {
         header("Location: ../usuarios/listar.php");
         exit;
     }else{
@@ -125,19 +136,19 @@ button:hover { background:#009ebd; }
 </style>
 
 <script>
-// Cambio dinámico de localidades
-function cargarLocalidades(idProvincia) {
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", "obtener_localidades.php?provincia=" + idProvincia, true);
+    // Cambio dinámico de localidades
+    function cargarLocalidades(idProvincia) {
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", "obtener_localidades.php?provincia=" + idProvincia, true);
 
-    xhr.onload = function() {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            document.getElementById("localidad").innerHTML = xhr.responseText;
-        }
-    };
+        xhr.onload = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                document.getElementById("localidad").innerHTML = xhr.responseText;
+            }
+        };
 
-    xhr.send();
-}
+        xhr.send();
+    }
 </script>
 
 </head>
@@ -167,7 +178,9 @@ function cargarLocalidades(idProvincia) {
     <input type="text" name="cuil" value="<?= $cliente['cuil_cuit'] ?>" required>
 
     <label>Dirección</label>
-    <input type="text" name="direccion" value="<?= $cliente['direccion'] ?>" required>
+    <input type="text" name="calle" value="<?= $cliente['calle'] ?>" required>
+    <input type="text" name="numero" value="<?= $cliente['numero_exterior'] ?>" required>
+    <input type="text"name="barrio" value="<?= $cliente['barrio_colonia'] ?>">
 
     <label>Provincia</label>
     <select name="provincia" required onchange="cargarLocalidades(this.value)">
@@ -184,7 +197,7 @@ function cargarLocalidades(idProvincia) {
     <select name="localidad" id="localidad" required>
         <?php foreach($localidades as $localidad) { ?>
             <option value="<?= $localidad['id_localidad'] ?>"
-                <?= ($localidad['id_localidad'] == $cliente['rela_id_localidades']) ? "selected" : "" ?>>
+                <?= ($localidad['id_localidad'] == $cliente['id_localidad']) ? "selected" : "" ?>>
                 <?= $localidad['nombre_localidad'] ?>
             </option>
         <?php } ?>

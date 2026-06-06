@@ -1,6 +1,10 @@
 <?php
-require_once "../conexion.php";
-$dao = new UserDao();
+require_once "../models/Cliente.php";
+require_once "../models/Usuario.php";
+require_once "../models/Ubicacion.php";
+$cli = new Cliente();
+$ubic = new Ubicacion();
+$user = new Usuario();
 
 require_once "../auth.php";
 
@@ -13,30 +17,37 @@ if (!isset($_GET['id_user'])) {
 $id_usuario = intval($_GET['id_user']);
 
 // Obtener datos del usuario y validar que exista
-$usuario = $dao->obtener_usuario($id_usuario);
+$usuario = $user->obtener_usuario($id_usuario);
 if (!$usuario) {
     die('El Usuario no existe');
 }
 
 //verificar que no tenga un cliente asociado
-if($dao->existe_cliente($id_usuario)){
+if($cli->existe_cliente($id_usuario)){
     die('El usuario ya tiene un cliente asociado');
 }
 
 // Obtener provincias
-$provincias = $dao->obtener_provincias();
+$provincias = $ubic->obtener_provincias();
 
 
 // PROCESO POST
 if (isset($_POST['guardar'])) {
+    // Datos personales
     $nombre   = trim($_POST['nombre']);
     $apellido = trim($_POST['apellido']);
-    $direccion = trim($_POST['direccion']);
-    $telefono = trim($_POST['telefono']);
     $cuil = trim($_POST['cuil']);
+    $telefono = trim($_POST['telefono']);
+    $tipo_contacto = 1; //por defecto es celular
+
+    // Dirección
+    $calle = trim($_POST['calle']);
+    $numero = trim($_POST['numero']);
+    $barrio = trim($_POST['barrio']);
+    $piso = trim($_POST['piso']);
+    $referencia = trim($_POST['referencia']);
     $localidad = trim($_POST['localidad']);
     $fecha = date("Y-m-d H:i:s");
-    $tipo_contacto = 1; //por defecto es celular
 
     // validaciones
     if (!is_numeric($cuil)) {
@@ -46,9 +57,15 @@ if (isset($_POST['guardar'])) {
         die('Debe seleccionar una localidad valida');
     }
 
+
+    //insertar direccion
+    if (!$id_direccion = $ubic->insertar_direccion($calle,$numero,$barrio,$piso,$referencia,$localidad)) {
+        die('Error al insertar direccion');
+    }
+
     //Insertar cliente
-    if($id_cliente = $dao->insertar_cliente($nombre,$apellido,$direccion,$cuil,$fecha,$localidad,$id_usuario)
-        and $dao->insertar_contacto_cliente($telefono,$tipo_contacto,$id_cliente)){
+    if($id_cliente = $cli->insertar_cliente($nombre, $apellido, $cuil, $fecha, $id_direccion, $id_usuario)
+        and $cli->insertar_contacto_cliente($telefono,$tipo_contacto,$id_cliente)){
         header("Location: ../usuarios/listar.php");
         exit;
     }else{
@@ -164,11 +181,18 @@ button:hover {
 
     <form method="POST">
 
+        <label><b>Datos Personales:</b></label>
         <input type="text" name="nombre" placeholder="Nombre" required>
         <input type="text" name="apellido" placeholder="Apellido" required>
-        <input type="text" name="direccion" placeholder="Dirección" required>
         <input type="text" name="telefono" placeholder="Teléfono" required>
         <input type="text" name="cuil" placeholder="CUIL/CUIT" required>
+
+        <label ><b>Dirección:</b></label>
+        <input type="text" name="calle" placeholder="Calle" required>
+        <input type="text" name="numero" placeholder="Número" required>
+        <input type="text" name="barrio" placeholder="Barrio">
+        <input type="text" name="piso" placeholder="Piso / Departamento (OPCIONAL)">
+        <textarea name="referencia" placeholder=" Referencias (OPCIONAL)"></textarea>
 
         <!-- PROVINCIA -->
         <select id="provincia" name="provincia" required>

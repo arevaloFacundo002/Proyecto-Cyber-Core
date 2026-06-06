@@ -1,6 +1,6 @@
 <?php
-require_once "../conexion.php";
-$dao = new UserDao();
+require_once "../models/Usuario.php";
+$user = new Usuario();
 
 require_once "../auth.php";
 
@@ -8,7 +8,7 @@ require_once "../auth.php";
 $busqueda = $_GET['buscar'] ?? "";
 $estado   = $_GET['estado'] ?? "";
 
-$usuarios = $dao->listar_usuarios($busqueda,$estado);
+$usuarios = $user->listar_usuarios($busqueda,$estado);
 
 ?>
 <!DOCTYPE html>

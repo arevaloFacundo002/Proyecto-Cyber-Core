@@ -1,6 +1,7 @@
 <?php
-require_once "../conexion.php";
-$dao = new UserDao();
+require_once "../models/Usuario.php";
+$user = new Usuario();
+
 $error='';
 
 // Si no hay sesión fuera
@@ -25,11 +26,11 @@ if (isset($_POST['guardar'])) {
     elseif (strlen($password) < 6) {                                #El largo de la contrasenia
         $error = "La contraseña debe tener al menos 6 caracteres.";
     }
-    elseif($dao->verificar_correo($correo)) {                       // verificar correo duplicado
+    elseif($user->verificar_correo($correo)) {                       // verificar correo duplicado
         $error = "Ya existe una cuenta con este correo.";
     } else {
 
-        if ($dao->agregar_usuario_panel($nombre,$password,$correo,$fecha,$rela_id_perfil)) {  //agregamos el usuario
+        if ($user->agregar_usuario_panel($nombre,$password,$correo,$fecha,$rela_id_perfil)) {  //agregamos el usuario
             header("Location: listar.php");                    
             exit;
         }else {

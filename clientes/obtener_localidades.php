@@ -1,6 +1,6 @@
 <?php
-require_once "../conexion.php";
-$dao = new UserDao();
+require_once "../models/Ubicacion.php";
+$ubic = new Ubicacion();
 
 header('Content-Type: application/json');
 
@@ -11,7 +11,7 @@ if (!isset($_GET['provincia'])) {
 
 $id_provincia = intval($_GET['provincia']);
 
-$localidades = $dao->obtener_localidades($id_provincia);
+$localidades = $ubic->obtenerLocalidadesPorProvincia($id_provincia);
 
 // Devuelve JSON
 echo json_encode($localidades);

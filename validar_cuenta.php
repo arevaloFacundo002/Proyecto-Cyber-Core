@@ -1,6 +1,7 @@
 <?php
-require_once 'conexion.php';
-$dao = new UserDao();
+require_once 'models/Usuario.php';
+$user = new Usuario();
+
 $error = '';
 $exito = '';
 
@@ -9,7 +10,7 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
 }else {
     
     $token = $_GET['token'];
-    $usuario = $dao->buscar_por_token($token);
+    $usuario = $user->buscar_por_token($token);
 
     if (!$usuario) {
         $error = 'Token inválido o expirado';
@@ -18,7 +19,7 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
         $error = 'La cuenta ya fue validada.';
     } 
     else {
-        if ($dao->validar_usuario($token)) {
+        if ($user->validar_usuario($token)) {
             $exito = "Cuenta validada con éxito. Ya podés iniciar sesión.";
         } else {
             $error = "Error al validar la cuenta.";

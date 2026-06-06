@@ -1,6 +1,6 @@
 <?php
-require_once "../conexion.php";
-$dao = new UserDao();
+require_once "../models/Usuario.php";
+$user = new Usuario();
 
 // Si no hay sesión lo echamos
 require_once "../auth.php";
@@ -11,7 +11,7 @@ if (!isset($_GET['id'])) {
 
 $id = intval($_GET['id']);
 
-$usuario = $dao->obtener_usuario($id);
+$usuario = $user->obtener_usuario($id);
 
 // Si no existe → error
 if (!$usuario) {
@@ -31,7 +31,7 @@ if (isset($_POST['guardar'])) {
     }
 
 
-    if ($dao->editar_usuario($nombre, $correo, $rela_id_perfil, $id)) {
+    if ($user->editar_usuario($nombre, $correo, $rela_id_perfil, $id)) {
         header("Location: listar.php");
         exit;
     }else{
