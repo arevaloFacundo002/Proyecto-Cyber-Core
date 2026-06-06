@@ -1,6 +1,6 @@
 <?php
-require_once "../conexion.php";
-$dao = new UserDao();
+require_once "../models/Usuario.php";
+$user = new Usuario();
 
 // Si no hay sesión
 require_once "../auth.php";
@@ -14,12 +14,12 @@ $estado = $_POST['estado'];
 
 
 // Verificar que el usuario exista
-if(!$dao->existe_usuario($id)){
+if(!$user->existe_usuario($id)){
     echo "El usuario no existe.";
     exit;
 }
 
-if ($dao->cambiar_estado($id, $estado)) {
+if ($user->cambiar_estado($id, $estado)) {
     header("Location: listar.php");
     exit;
 }else {

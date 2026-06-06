@@ -5,7 +5,7 @@ use PHPMailer\PHPMailer\Exception;
 
 require_once __DIR__.'/../vendor/autoload.php';
 
-function enviar_mail($destino,$nombre,$asunto,$mensajeHTML){
+function enviar_mail(string $destino,string $nombre,string $asunto,string $mensajeHTML){
     $email = new PHPMailer(true);
     
     try {

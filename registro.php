@@ -1,8 +1,8 @@
 <?php
-require_once "conexion.php";
+require_once "models/Usuario.php";
 require_once 'config/mail.php';
 session_start();
-$dao = new UserDao();
+$user = new Usuario();
 
 // Variables para mensajes
 $error = "";
@@ -33,7 +33,7 @@ if (isset($_POST['registrar'])) {
     }
     else {
         // verificar correo duplicado
-        if ($dao->verificar_correo($correo)) {
+        if ($user->verificar_correo($correo)) {
             $error = "Ya existe una cuenta con este correo.";
         } else {
 
@@ -48,7 +48,7 @@ if (isset($_POST['registrar'])) {
 
 
             //  REGISTRAR 
-            $nuevo_id = $dao->registrar_usuario($nombre,$correo,$password,$rela_id_perfil,$fecha,$token);
+            $nuevo_id = $user->registrar_usuario($nombre,$correo,$password,$rela_id_perfil,$fecha,$token);
 
             enviar_mail($correo,$nombre,'Verificar Cuenta',$mensajeHTML);
 

@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once 'conexion.php';
-$dao = new UserDao();
+require_once 'models/Producto.php';
+$pro = new Producto();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     #verificar usuario
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
 
-    if ($dao->insertar_resenias($comentario, $calificacion,$id_producto)) {
+    if ($pro->insertar_resenias($comentario, $calificacion,$id_producto)) {
         header('Location:producto.php?id='.$id_producto);
         exit();
     }

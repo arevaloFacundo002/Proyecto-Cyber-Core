@@ -1,7 +1,8 @@
 <?php
-require_once '../conexion.php';
+require_once '../models/Usuario.php';
 require_once 'mail.php';
-$dao = new UserDao();
+$user = new Usuario();
+
 $error = '';
 $exito = '';
 
@@ -10,7 +11,7 @@ if (!isset($_POST['correo'])) {
 } else {
 
     $correo = $_POST['correo'];
-    $usuario = $dao->login($correo);
+    $usuario = $user->login($correo);
 
     if (!$usuario) {
         $error = 'No se encontró al usuario.';
@@ -20,7 +21,7 @@ if (!isset($_POST['correo'])) {
     } 
     else {
         $token = bin2hex(random_bytes(32));
-        $dao->actualizar_token($token,$correo);
+        $user->actualizar_token($token,$correo);
 
         $base_url = "http://" . $_SERVER['HTTP_HOST'];
         $link = $base_url . "/validar_cuenta.php?token=$token";

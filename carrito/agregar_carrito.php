@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once "../conexion.php";
-$dao = new UserDao();
+require_once "../models/Producto.php";
+$pro = new Producto();
 
 // Validar ID
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -18,7 +18,7 @@ if (!isset($_SESSION['usuario'])) {
 
 
 // consultar producto y stock
-$producto = $dao->consulta_producto_stock($id);
+$producto = $pro->consulta_producto_stock($id);
 if (!$producto) {
     die("Producto no encontrado.");
 }

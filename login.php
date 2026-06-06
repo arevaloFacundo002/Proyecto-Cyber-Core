@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once "conexion.php";
-$dao = new UserDao();
+require_once 'models/Usuario.php';
+$user = new Usuario();
 
 $error = "";
 
@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $correo = $_POST['correo'] ?? null;
     $password = $_POST['password'] ?? null;
 
-    $usuario = $dao->login($correo);
+    $usuario = $user->login($correo);
 
     if ($usuario && password_verify($password, $usuario['password'])) {
 

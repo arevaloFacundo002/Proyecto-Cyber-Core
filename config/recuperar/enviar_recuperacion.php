@@ -1,8 +1,8 @@
 <?php
-require_once '../../conexion.php';
+require_once '../../models/Usuario.php';
 require_once '../mail.php';
+$user = new Usuario();
 
-$dao = new UserDao();
 $error = '';
 $exito = '';
 
@@ -11,7 +11,7 @@ if (!isset($_POST['correo'])) {
 }else{
 
     $correo = $_POST['correo'];
-    $usuario = $dao->login($correo);
+    $usuario = $user->login($correo);
 
     if (!$usuario) {
         $error = "No existe una cuenta con ese correo";
@@ -21,7 +21,7 @@ if (!isset($_POST['correo'])) {
         $token = bin2hex(random_bytes(32));
 
         // guardar token
-        $dao->actualizar_token($token,$correo);
+        $user->actualizar_token($token,$correo);
 
         // link
         $base_url = "http://" . $_SERVER['HTTP_HOST'];
