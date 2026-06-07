@@ -1,6 +1,6 @@
 <?php
 //este modelo se encarga de las responsabilides relacionadas con productos y resenias
-require_once 'database.php';
+require_once __DIR__ . '/Database.php';
 
 class Producto {
     private mysqli $conexion;  

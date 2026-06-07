@@ -1,6 +1,6 @@
 <?php
 //este modelo se encarga de las responsabilidades relacionadas con provincias, localidades y direcciones
-require_once 'database.php';
+require_once __DIR__ . '/Database.php';
 
 class Ubicacion{
     private mysqli $conexion;
