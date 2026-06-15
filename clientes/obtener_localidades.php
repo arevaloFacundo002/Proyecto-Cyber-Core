@@ -1,5 +1,5 @@
 <?php
-require_once "../models/Ubicacion.php";
+require_once "../models/tablas_maestras/Ubicacion.php";
 $ubic = new Ubicacion();
 
 header('Content-Type: application/json');

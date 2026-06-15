@@ -138,11 +138,17 @@ h1 {
     <h1>Panel del Administrador</h1>
 
     <div class="grid">
-
+        
         <div class="card">
             <h2>ABM Usuarios</h2>
             <p>Alta, baja y modificación del sistema.</p>
             <a href="usuarios/listar.php">Gestionar</a>
+        </div>
+
+        <div class="card">
+            <h2>Tablas maestras</h2>
+            <p>Altas, bajas y modificaciones.</p>
+            <a href="views/panel_tablas.php">Gestionar</a>
         </div>
 
         <div class="card">
