@@ -1,7 +1,7 @@
 <?php  
 require_once "../models/Cliente.php";
 require_once "../models/Usuario.php";
-require_once "../models/Ubicacion.php";
+require_once "../models/tablas_maestras/Ubicacion.php";
 $cli = new Cliente();
 $ubic = new Ubicacion();
 $user = new Usuario();
