@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth/auth.php';
 require_once '../../../models/tablas_maestras/CondicionIva.php';
 $con = new CondicionIva();
 

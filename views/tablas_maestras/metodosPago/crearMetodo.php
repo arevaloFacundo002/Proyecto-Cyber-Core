@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth/auth.php';
 
 $opciones_autorizacion = [1 => 'SI',0 => 'NO'];
 ?>

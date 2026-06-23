@@ -7,7 +7,7 @@ $ubic = new Ubicacion();
 $user = new Usuario();
 
 // Validar login
-require_once "../auth.php";
+require_once "../auth/auth.php";
 
 // Validar ID cliente
 if (!isset($_GET['id'])) {

@@ -3,7 +3,7 @@ require_once 'models/Producto.php';
 $pro = new Producto();
 
 //Si no esta logeado lo sacamos
-require_once 'auth.php';
+require_once 'auth/auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $buscar = $_GET['buscar']?? "";

@@ -1,6 +1,6 @@
 <?php
 // Si NO hay usuario logueado → al login
-require_once "auth.php";
+require_once "auth/auth.php";
 
 // Si el usuario NO es admin ni empleado → a la tienda
 if ($_SESSION['rol'] != "administrador" && $_SESSION['rol'] != "empleado") {

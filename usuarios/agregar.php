@@ -5,7 +5,7 @@ $user = new Usuario();
 $error='';
 
 // Si no hay sesión fuera
-require_once "../auth.php";
+require_once "../auth/auth.php";
 
 //  PROCESAR FORMULARIO 
 if (isset($_POST['guardar'])) {

@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth/auth.php';
 require_once "../../../models/tablas_maestras/Perfil.php";
 
 $perfil = new Perfil();

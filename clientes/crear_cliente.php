@@ -6,7 +6,7 @@ $cli = new Cliente();
 $ubic = new Ubicacion();
 $user = new Usuario();
 
-require_once "../auth.php";
+require_once "../auth/auth.php";
 
 // Validar ID de usuario
 if (!isset($_GET['id_user'])) {

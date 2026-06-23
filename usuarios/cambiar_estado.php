@@ -3,7 +3,7 @@ require_once "../models/Usuario.php";
 $user = new Usuario();
 
 // Si no hay sesión
-require_once "../auth.php";
+require_once "../auth/auth.php";
 
 if (!$_POST['id'] || !$_POST['estado']) {
     die('Datos invalidos');
