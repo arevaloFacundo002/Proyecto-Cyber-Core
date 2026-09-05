@@ -45,7 +45,7 @@ $conceptos = $con->listar();
                     <tr>
                         <th>ID</th>
                         <th>Descripcion</th>
-                        <th>Tipo-Movimiento <br> (Entrada-Salida-Ajuste)</th>
+                        <th>Tipo-Movimiento <br> (Entrada-Salida)</th>
                         <th width="220">Acciones</th>
                     </tr>
                 </thead>

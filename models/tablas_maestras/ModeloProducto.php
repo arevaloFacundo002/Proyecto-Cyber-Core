@@ -9,6 +9,7 @@ class ModeloProducto{
         $this->conexion = $db->getConexion();
     }
 
+
     public function listar(){
         $sql = "SELECT * FROM modelos_producto WHERE es_activo = 1";
         $stmt = $this->conexion->prepare($sql);
@@ -22,6 +23,34 @@ class ModeloProducto{
         }
         return $modelos;
     }
+
+
+    // LISTAR MODELOS DE UNA MARCA ESPECÍFICA
+    public function listarPorMarca(int $id_marca)
+    {
+        $sql = "SELECT *
+                FROM modelos_producto
+                WHERE rela_id_marca = ?
+                AND es_activo = 1
+                ORDER BY nombre_modelo ASC";
+
+        $stmt = $this->conexion->prepare($sql);
+
+        $stmt->bind_param("i", $id_marca);
+
+        $stmt->execute();
+
+        $resultado = $stmt->get_result();
+
+        $modelos = [];
+
+        while ($fila = $resultado->fetch_assoc()) {
+            $modelos[] = $fila;
+        }
+
+        return $modelos;
+    }
+
 
     public function obtenerPorId(int $id){
         $sql = "SELECT * FROM modelos_producto WHERE id_modelo_producto = ?";
