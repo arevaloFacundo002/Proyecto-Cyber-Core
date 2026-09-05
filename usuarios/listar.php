@@ -2,7 +2,7 @@
 require_once "../models/Usuario.php";
 $user = new Usuario();
 
-require_once "../auth.php";
+require_once "../auth/auth.php";
 
 // Búsqueda y filtro
 $busqueda = $_GET['buscar'] ?? "";
@@ -195,7 +195,7 @@ tr:hover {
     <form method="GET" style="display:flex; justify-content:center; gap:10px;">
 
         <input type="text" name="buscar" placeholder="Buscar por usuario, nombre, correo, rol..."
-               value="<?php echo htmlspecialchars($busqueda) ?>">
+            value="<?php echo htmlspecialchars($busqueda) ?>">
 
         <select name="estado">
             <option value="">Estado Usuario (Todos)</option>

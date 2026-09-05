@@ -1,6 +1,6 @@
 <?php
 // Si NO hay usuario logueado → al login
-require_once "auth.php";
+require_once "auth/auth.php";
 
 // Si el usuario NO es admin ni empleado → a la tienda
 if ($_SESSION['rol'] != "administrador" && $_SESSION['rol'] != "empleado") {
@@ -152,6 +152,18 @@ h1 {
         </div>
 
         <div class="card">
+            <h2>Productos y Proveedores</h2>
+            <p>Entradas del sistema.</p>
+            <a href="views/panel_inputs.php">Gestionar</a>
+        </div>
+
+        <div class="card">
+            <h2>Movimientos</h2>
+            <p>Historial de movimientos de productos.</p>
+            <a href="views/movimientos/listarMovimiento.php">Ver</a>
+        </div>
+
+        <div class="card">
             <h2>Consultas</h2>
             <p>Consultas SQL del sistema.</p>
             <a href="consultas/menu_consultas.php">Ver consultas</a>
@@ -168,6 +180,7 @@ h1 {
             <p>Ir al catálogo de productos.</p>
             <a href="home.php">Ir</a>
         </div>
+
 
     </div>
 </div>

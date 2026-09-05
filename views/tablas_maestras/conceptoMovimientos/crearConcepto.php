@@ -1,4 +1,5 @@
 <?php
+require_once '../../../auth/auth.php';
 require_once '../../../models/tablas_maestras/ConceptoMovimiento.php';
 $con = new ConceptoMovimiento();
 
@@ -94,7 +95,6 @@ $conceptos = $con->listar();
                     <select name="tipo_movimiento" class='form-select'>
                         <option value="E">E (entrada)</option>
                         <option value="S">S (salida)</option>
-                        <option value="A">A (ajuste)</option>
                     </select>
                 </div>
 

@@ -1,3 +1,7 @@
+<?php
+require_once '../auth/auth.php';
+
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>

@@ -1,5 +1,6 @@
 <?php
 require_once 'models/Producto.php';
+require_once 'auth/auth.php';
 $pro = new Producto();
 session_start();
 
