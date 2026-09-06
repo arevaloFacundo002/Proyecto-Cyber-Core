@@ -36,12 +36,16 @@ if (isset($_POST['registrar'])) {
         if ($user->verificar_correo($correo)) {
             $error = "Ya existe una cuenta con este correo.";
         } else {
+          
+        $token = bin2hex(random_bytes(32));
 
-            $token = bin2hex(random_bytes(32));
-            $base_url = "http://" . $_SERVER['HTTP_HOST'];     //link automatico segun servidor xampp o phpserver
-            $link = $base_url . "/validar_cuenta.php?token=$token";
-            
-            $mensajeHTML = "<h2>Hola! $nombre</h2>
+// Detecta automáticamente el protocolo y la carpeta donde corre el proyecto
+$scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+$path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+
+$base_url = $scheme . "://" . $_SERVER['HTTP_HOST'] . $path;
+$link = $base_url . "/validar_cuenta.php?token=$token";
+          $mensajeHTML = "<h2>Hola! $nombre</h2>
                 <p>Gracias por registrarte en CYBER CORE</p>
                 <p>Hace click para validar tu cuenta: </p>
                 <p><a href='$link'>Validar Cuenta</a></p>";
