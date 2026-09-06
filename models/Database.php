@@ -3,7 +3,7 @@ class DataBase{
     private mysqli $conexion;
     private $servidor = 'localhost';
     private $usuario = 'root';
-    private $password = 'jfa46064810';
+    private $password = '';
     private $data_base = 'cyber_core';
 
     public function __construct() {
