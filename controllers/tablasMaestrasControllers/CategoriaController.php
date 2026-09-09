@@ -1,5 +1,5 @@
 <?php
-require_once 'C:\Users\areva\.vscode\cyber_core\models/tablas_maestras/Categoria.php';
+require_once __DIR__ . '/../../models/tablas_maestras/Categoria.php';
 
 class CategoriaController{
     private Categoria $categoria;

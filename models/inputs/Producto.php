@@ -1,7 +1,7 @@
 <?php
 
-require_once 'C:\Users\areva\.vscode\cyber_core\models/Database.php';
-
+ require_once __DIR__ . '/../Database.php';
+ 
 class Producto
 {
     private mysqli $conexion;

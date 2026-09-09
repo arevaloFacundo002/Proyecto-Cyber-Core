@@ -1,5 +1,6 @@
 <?php 
-require_once 'C:\Users\areva\.vscode\cyber_core\models/tablas_maestras/MetodoPago.php';
+ 
+require_once __DIR__ . '/../../models/tablas_maestras/MetodoPago.php';
 
 class MetodoController{
     private MetodoPago $metodo; 

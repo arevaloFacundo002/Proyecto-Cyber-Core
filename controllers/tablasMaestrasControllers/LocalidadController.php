@@ -1,6 +1,5 @@
 <?php
-require_once 'C:\Users\areva\.vscode\cyber_core\models/tablas_maestras/Ubicacion.php';
-
+require_once __DIR__ . '/../../models/tablas_maestras/Ubicacion.php';
 class LocalidadController{
     private Ubicacion $ubicacion;
 

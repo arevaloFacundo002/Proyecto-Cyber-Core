@@ -1,7 +1,7 @@
 <?php
 
-require_once 'C:\Users\areva\.vscode\cyber_core\models/inputs/Proveedor.php';
-
+ require_once __DIR__ . '/../../models/inputs/Proveedor.php'; 
+ 
 class ProveedorController
 {
     private Proveedor $proveedor;
