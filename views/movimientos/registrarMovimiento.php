@@ -122,12 +122,12 @@ $conceptos = $conceptoModel->listar();
                             <?php foreach ($conceptos as $c): ?>
 
                                 <option
-                                    value="<?= $c['id_concepto'] ?>">
+                                  value="<?= $c['id_conceptos'] ?>">
 
-                                    <?= htmlspecialchars($c['descripcion']) ?>
+                                  <?= htmlspecialchars($c['descripcion']) ?>
 
                                 </option>
-
+                                 
                             <?php endforeach; ?>
 
                         </select>

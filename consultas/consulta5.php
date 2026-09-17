@@ -1,13 +1,13 @@
-<?php
+ <?php
 include "../conexion.php";
 
 $sql = "
 SELECT 
     m.nombre_marca,
-    COUNT(p.id_productos) AS total_productos
+    COUNT(p.id_producto) AS total_productos
 FROM marcas m
-LEFT JOIN productos p ON p.rela_id_marcas = m.id_marcas
-GROUP BY m.id_marcas, m.nombre_marca
+LEFT JOIN productos p ON p.rela_id_marca = m.id_marca
+GROUP BY m.id_marca, m.nombre_marca
 ORDER BY total_productos DESC;
 ";
 

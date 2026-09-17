@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once '../../auth/auth.php';
 require_once '../../models/inputs/Proveedor.php';
 
@@ -84,7 +84,7 @@ if (!$proveedor) {
         <div class="card-body p-4">
 
             <form
-                action="../../../controllers/inputsControllers/ProveedorController.php?accion=editar"
+                action="../../controllers/inputsControllers/ProveedorController.php?accion=editar"
                 method="POST">
 
 
@@ -93,7 +93,7 @@ if (!$proveedor) {
                 <input
                     type="hidden"
                     name="id_proveedor"
-                    value="<?= $proveedor['id_proveedor'] ?>">
+                    value="<?= $proveedor['id_proveedores'] ?>">
 
 
                 <div class="row">
@@ -112,7 +112,7 @@ if (!$proveedor) {
                             type="text"
                             name="razon_social"
                             class="form-control"
-                            value="<?= htmlspecialchars($proveedor['razon_social']) ?>"
+                            value="<?= htmlspecialchars($proveedor['nombre_apellido'] ?? '') ?>"
                             placeholder="Ingrese la razón social"
                             required>
 
@@ -133,7 +133,7 @@ if (!$proveedor) {
                             type="text"
                             name="persona_contacto"
                             class="form-control"
-                            value="<?= htmlspecialchars($proveedor['persona_contacto']) ?>"
+                            value="<?= htmlspecialchars($proveedor['contacto'] ?? '') ?>"
                             placeholder="Ingrese el nombre del contacto">
 
                     </div>
@@ -152,7 +152,7 @@ if (!$proveedor) {
                             type="email"
                             name="email"
                             class="form-control"
-                            value="<?= htmlspecialchars($proveedor['email']) ?>"
+                            value="<?= htmlspecialchars($proveedor['email'] ?? '') ?>"
                             placeholder="ejemplo@empresa.com">
 
                     </div>
@@ -171,7 +171,7 @@ if (!$proveedor) {
                             type="text"
                             name="telefono"
                             class="form-control"
-                            value="<?= htmlspecialchars($proveedor['telefono']) ?>"
+                            value="<?= htmlspecialchars($proveedor['telefono'] ?? '') ?>"
                             placeholder="Ingrese el teléfono">
 
                     </div>
@@ -191,7 +191,7 @@ if (!$proveedor) {
                             type="text"
                             name="direccion"
                             class="form-control"
-                            value="<?= htmlspecialchars($proveedor['direccion']) ?>"
+                            value="<?= htmlspecialchars($proveedor['direccion'] ?? '') ?>"
                             placeholder="Ingrese la dirección">
 
                     </div>

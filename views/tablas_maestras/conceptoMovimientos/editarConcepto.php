@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once '../../../auth/auth.php';
 require_once '../../../models/tablas_maestras/ConceptoMovimiento.php';
 $con = new ConceptoMovimiento();
@@ -84,7 +84,7 @@ $tipos = ['A','S','E'];
                 <input
                     type="hidden"
                     name="id_concepto"
-                    value="<?= $conceptos['id_concepto'] ?>">
+                    value="<?= $conceptos['id_conceptos'] ?>">
 
                 <div class="mb-3">
                     <label class="form-label fw-bold">
@@ -108,7 +108,7 @@ $tipos = ['A','S','E'];
 
                             <option
                                 value="<?= $tipo ?>"
-                                <?= ($tipo == $conceptos['tipo_movimiento']) ? 'selected' : '' ?>>
+                                <?= ($tipo == $conceptos['tipo_accion']) ? 'selected' : '' ?>>
 
                                 <?= $tipo ?>
                             </option>

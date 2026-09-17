@@ -1,4 +1,4 @@
-<?php
+ <?php
 include "../conexion.php";
 
 $sql = "
@@ -7,9 +7,9 @@ SELECT
     m.nombre_marca AS marca,
     SUM(dp.cantidad) AS total_vendido
 FROM detalle_pedidos dp
-INNER JOIN productos p ON p.id_productos = dp.rela_id_productos
-INNER JOIN marcas m ON m.id_marcas = p.rela_id_marcas
-GROUP BY p.id_productos, p.nombre, m.nombre_marca
+INNER JOIN productos p ON p.id_producto = dp.rela_id_productos
+INNER JOIN marcas m ON m.id_marca = p.rela_id_marca
+GROUP BY p.id_producto, p.nombre, m.nombre_marca
 ORDER BY total_vendido DESC
 LIMIT 5;
 ";

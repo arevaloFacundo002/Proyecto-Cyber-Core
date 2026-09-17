@@ -128,7 +128,7 @@ button {
     <div class="logo">CYBERCORE</div>
     <h2>Iniciar sesión</h2>
 
-    <form action="login_proceso.php" method="POST">
+  <form action="login.php" method="POST">
         <input type="email" name="correo" placeholder="Correo electrónico" required>
         <input type="password" name="password" placeholder="Contraseña" required>
         <button type="submit">Ingresar</button>

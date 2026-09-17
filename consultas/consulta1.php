@@ -1,4 +1,4 @@
-<?php
+ <?php
 include "../conexion.php";
 
 // Productos + Proveedor + Último precio de compra
@@ -10,15 +10,15 @@ SELECT
     dc.precio AS ultimo_precio_compra,
     cp.fecha_compra
 FROM productos p
-INNER JOIN marcas m ON p.rela_id_marcas = m.id_marcas
-LEFT JOIN detalle_compras dc ON dc.rela_id_productos = p.id_productos
+INNER JOIN marcas m ON p.rela_id_marca = m.id_marca
+LEFT JOIN detalle_compras dc ON dc.rela_id_productos = p.id_producto
 LEFT JOIN compras cp ON cp.id_compras = dc.rela_id_compras
 LEFT JOIN proveedores pr ON cp.rela_id_proveedores = pr.id_proveedores
 WHERE cp.fecha_compra = (
     SELECT MAX(c2.fecha_compra)
     FROM detalle_compras dc2
     INNER JOIN compras c2 ON c2.id_compras = dc2.rela_id_compras
-    WHERE dc2.rela_id_productos = p.id_productos
+    WHERE dc2.rela_id_productos = p.id_producto
 )
 ORDER BY cp.fecha_compra DESC
 ";

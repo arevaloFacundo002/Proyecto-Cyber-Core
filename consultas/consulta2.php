@@ -1,4 +1,4 @@
-<?php 
+ <?php 
 include "../conexion.php";
 
 // ======= RANGO (solo para mostrar, NO modifica la consulta) =======
@@ -19,7 +19,7 @@ SELECT
 FROM pedidos pd
 INNER JOIN clientes c ON pd.rela_id_cliente = c.id_cliente
 INNER JOIN detalle_pedidos dp ON dp.rela_id_pedidos = pd.id_pedidos
-INNER JOIN productos p ON p.id_productos = dp.rela_id_productos
+INNER JOIN productos p ON p.id_producto = dp.rela_id_productos
 LEFT JOIN envios e ON e.rela_id_pedidos = pd.id_pedidos
 ORDER BY pd.id_pedidos DESC
 ";

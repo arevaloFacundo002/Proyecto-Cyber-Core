@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once __DIR__ . '/../Database.php';
 
 class Marca{
@@ -9,9 +9,23 @@ class Marca{
         $this->conexion = $db->getConexion();
     }
 
-    public function listar(){
-        $sql = "SELECT * FROM marcas WHERE es_activo =1";
+    public function listar(string $busqueda = '', string $estado = 'activos'){
+        if ($estado === 'activos') {
+            $condicionEstado = "es_activo = 1";
+        } elseif ($estado === 'inactivos') {
+            $condicionEstado = "es_activo = 0";
+        } else {
+            $condicionEstado = "1=1";
+        }
+
+        $sql = "SELECT * FROM marcas
+                WHERE $condicionEstado
+                AND (nombre_marca LIKE ? OR nombre_corto LIKE ?)
+                ORDER BY id_marca DESC";
+
         $stmt = $this->conexion->prepare($sql);
+        $termino = "%" . $busqueda . "%";
+        $stmt->bind_param('ss', $termino, $termino);
         $stmt->execute();
         $resultado = $stmt->get_result();
 
@@ -33,7 +47,7 @@ class Marca{
     }
 
     public function crear(string $nombre,string $nombre_corto,?string $logo_url,string $sitio_web){
-        $sql = "INSERT INTO marcas (nombre_marca, nombre_corto,logo_url,sitio_web) VALUES (?,?,?,?)";
+        $sql = "INSERT INTO marcas (nombre_marca, nombre_corto, logo_url, sitio_web, es_activo) VALUES (?,?,?,?,1)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('ssss',$nombre,$nombre_corto,$logo_url,$sitio_web);
         return $stmt->execute();
@@ -52,5 +66,12 @@ class Marca{
         $stmt->bind_param('i',$id_marca);
         return $stmt->execute();
     }
-    
+
+    public function activar(int $id_marca){
+        $sql = "UPDATE marcas SET es_activo = 1 WHERE id_marca = ?";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param('i',$id_marca);
+        return $stmt->execute();
+    }
+
 }

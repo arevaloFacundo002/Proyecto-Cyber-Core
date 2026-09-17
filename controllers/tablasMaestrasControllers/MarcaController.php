@@ -1,4 +1,4 @@
-<?php
+  <?php
 require_once __DIR__ . '/../../models/tablas_maestras/Marca.php';
 
 class MarcaController{
@@ -11,7 +11,7 @@ class MarcaController{
     public function crear(){
         $nombre_marca = $_POST['nombre_marca'];
         $nombre_corto = $_POST['nombre_corto'];
-        $logo = $_FILES['logo_url'];
+        $logo = $_FILES['logo_url'] ?? null;
         $sitio_web = $_POST['sitio_web'];
 
         $resultado = $this->marca->crear($nombre_marca,$nombre_corto,$logo,$sitio_web);
@@ -28,7 +28,7 @@ class MarcaController{
         $id_marca = $_POST['id_marca'];
         $nombre_marca = $_POST['nombre_marca'];
         $nombre_corto = $_POST['nombre_corto'];
-        $logo = $_FILES['logo_url'];
+        $logo = $_FILES['logo_url'] ?? null;
         $sitio_web = $_POST['sitio_web'];
 
         $resultado = $this->marca->editar($nombre_marca,$nombre_corto,$logo,$sitio_web,$id_marca);
@@ -54,6 +54,19 @@ class MarcaController{
         exit();
 
     }
+
+    public function activar(){
+        $id_marca = $_GET['id'];
+
+        $resultado = $this->marca->activar($id_marca);
+
+        if($resultado){
+            header('Location: ../../views/tablas_maestras/marcas/listarMarca.php?mensaje=activado');
+        }else{
+            header('Location: ../../views/tablas_maestras/marcas/listarMarca.php?error=1');
+        }
+        exit();
+    }
 }
 
 $marcaController = new MarcaController();
@@ -69,6 +82,9 @@ switch($accion){
         break;
     case 'eliminar':
         $marcaController->eliminar();
+        break;
+    case 'activar':
+        $marcaController->activar();
         break;
     default:
         header('Location: ../../views/tablas_maestras/marcas/listarMarca.php');

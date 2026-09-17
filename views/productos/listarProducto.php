@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 require_once '../../auth/auth.php';
 require_once '../../models/inputs/Producto.php';
@@ -495,7 +495,7 @@ $error = $_GET['error'] ?? '';
 
                             <td>
 
-                                <?php if ($prod['es_activo'] == 1): ?>
+                                <?php if ($prod['es_descontinuado'] == 0): ?>
 
                                     <span class="badge bg-success">
 
@@ -534,7 +534,7 @@ $error = $_GET['error'] ?? '';
                                     </a>
 
 
-                                    <?php if ($prod['es_activo'] == 1): ?>
+                                    <?php if ($prod['es_descontinuado'] == 0): ?>
 
 
                                         <!-- BAJA -->

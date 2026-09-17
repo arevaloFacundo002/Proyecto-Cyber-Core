@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 require_once __DIR__ . '/../Database.php';
 
@@ -29,9 +29,9 @@ class MovimientoStock
         * correspondiente al concepto seleccionado.
         */
 
-        $sqlConcepto = "SELECT tipo_movimiento
-                        FROM conceptos_movimiento
-                        WHERE id_concepto = ?
+        $sqlConcepto = "SELECT tipo_accion
+                        FROM cat_conceptos_movimiento
+                        WHERE id_conceptos = ?
                         AND es_activo = 1";
 
         $stmtConcepto = $this->conexion->prepare($sqlConcepto);
@@ -48,7 +48,7 @@ class MovimientoStock
 
         $concepto = $resultadoConcepto->fetch_assoc();
 
-        $tipo = $concepto['tipo_movimiento'];
+        $tipo = $concepto['tipo_accion'];
 
         /*
         * La cantidad que ingresa el usuario siempre
@@ -78,13 +78,6 @@ class MovimientoStock
         }
 
         /*
-        * Obtener la hora exacta en la que se registra
-        * el movimiento.
-        */
-
-        $hora_movimiento = date('H:i:s');
-
-        /*
         * Iniciamos una transacción.
         *
         * Esto hace que el registro del movimiento y la
@@ -100,7 +93,7 @@ class MovimientoStock
             $sqlProducto = "SELECT stock
                             FROM productos
                             WHERE id_producto = ?
-                            AND es_activo = 1
+                            AND es_descontinuado = 0
                             FOR UPDATE";
 
             $stmtProducto = $this->conexion->prepare($sqlProducto);
@@ -152,28 +145,24 @@ class MovimientoStock
             $sqlMovimiento = "INSERT INTO historial_movimientos
                             (
                                 fecha_movimiento,
-                                hora_movimiento,
                                 cantidad,
                                 referencia_ext,
                                 comentario,
                                 rela_id_productos,
-                                rela_id_conceptos,
-                                rela_id_usuario
+                                rela_id_conceptos
                             )
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                            VALUES (?, ?, ?, ?, ?, ?)";
 
             $stmtMovimiento = $this->conexion->prepare($sqlMovimiento);
 
             $stmtMovimiento->bind_param(
-                "ssissiii",
+                "sissii",
                 $fecha_movimiento,
-                $hora_movimiento,
                 $cantidadMovimiento,
                 $referencia_ext,
                 $comentario,
                 $id_producto,
-                $id_concepto,
-                $id_usuario
+                $id_concepto
             );
 
             if (!$stmtMovimiento->execute()) {
@@ -206,19 +195,12 @@ class MovimientoStock
                     p.nombre AS nombre_producto,
                     p.codigo,
                     cm.descripcion AS concepto,
-                    cm.tipo_movimiento,
-                    u.nombre AS nombre_usuario,
-                    u.correo AS correo_usuario,
-                    pf.nombre_perfil AS rol_usuario
+                    cm.tipo_accion
                 FROM historial_movimientos hm
                 INNER JOIN productos p
                     ON hm.rela_id_productos = p.id_producto
-                INNER JOIN conceptos_movimiento cm
-                    ON hm.rela_id_conceptos = cm.id_concepto
-                LEFT JOIN usuarios u
-                    ON hm.rela_id_usuario = u.id_usuario
-                LEFT JOIN perfiles pf
-                    ON u.rela_id_perfil = pf.id_perfil
+                INNER JOIN cat_conceptos_movimiento cm
+                    ON hm.rela_id_conceptos = cm.id_conceptos
                 WHERE hm.id_movimientos = ?";
 
         $stmt = $this->conexion->prepare($sql);
@@ -279,7 +261,7 @@ class MovimientoStock
         */
         if ($tipo === "E" || $tipo === "S") {
 
-            $condiciones[] = "cm.tipo_movimiento = ?";
+            $condiciones[] = "cm.tipo_accion = ?";
 
             $parametros[] = $tipo;
             $tipos .= "s";
@@ -347,15 +329,15 @@ class MovimientoStock
                     p.nombre AS nombre_producto,
 
                     cm.descripcion AS concepto,
-                    cm.tipo_movimiento
+                    cm.tipo_accion
 
                 FROM historial_movimientos hm
 
                 INNER JOIN productos p
                     ON hm.rela_id_productos = p.id_producto
 
-                INNER JOIN conceptos_movimiento cm
-                    ON hm.rela_id_conceptos = cm.id_concepto
+                INNER JOIN cat_conceptos_movimiento cm
+                    ON hm.rela_id_conceptos = cm.id_conceptos
 
                 $where
 
@@ -449,7 +431,7 @@ class MovimientoStock
         */
         if ($tipo === "E" || $tipo === "S") {
 
-            $condiciones[] = "cm.tipo_movimiento = ?";
+            $condiciones[] = "cm.tipo_accion = ?";
 
             $parametros[] = $tipo;
             $tipos .= "s";
@@ -507,8 +489,8 @@ class MovimientoStock
                 INNER JOIN productos p
                     ON hm.rela_id_productos = p.id_producto
 
-                INNER JOIN conceptos_movimiento cm
-                    ON hm.rela_id_conceptos = cm.id_concepto
+                INNER JOIN cat_conceptos_movimiento cm
+                    ON hm.rela_id_conceptos = cm.id_conceptos
 
                 $where";
 

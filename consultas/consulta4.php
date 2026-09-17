@@ -1,15 +1,16 @@
-<?php
+ <?php
 include "../conexion.php";
 
 $sql = "
 SELECT 
     c.nombre,
     c.apellido,
-    c.correo,
+    u.correo,
     COUNT(p.id_pedidos) AS cantidad_pedidos
 FROM pedidos p
 INNER JOIN clientes c ON p.rela_id_cliente = c.id_cliente
-GROUP BY c.id_cliente, c.nombre, c.apellido, c.correo
+LEFT JOIN usuarios u ON c.rela_id_usuario = u.id_usuario
+GROUP BY c.id_cliente, c.nombre, c.apellido, u.correo
 ORDER BY cantidad_pedidos DESC;
 ";
 
@@ -74,7 +75,7 @@ $res = mysqli_query($conexion, $sql);
         <?php while ($f = mysqli_fetch_assoc($res)) { ?>
         <tr>
             <td><?= $f['nombre'] . " " . $f['apellido'] ?></td>
-            <td><?= $f['correo'] ?></td>
+            <td><?= $f['correo'] ?? 'N/A' ?></td>
             <td><?= $f['cantidad_pedidos'] ?></td>
         </tr>
         <?php } ?>

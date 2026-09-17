@@ -1,4 +1,4 @@
-<?php
+  <?php
 //este modelo se encarga de las responsabilidades relacionadas con provincias, localidades y direcciones
 require_once __DIR__ . '/../Database.php';
 
@@ -84,7 +84,7 @@ class Ubicacion{
 
     //ABM LOCALIDADES
     public function listarLocalidades(){
-        $sql = "SELECT * FROM localidades WHERE es_activo = 1";
+        $sql = "SELECT * FROM localidades WHERE es_activo = 1 ORDER BY nombre_localidad ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $resultado = $stmt->get_result();
@@ -128,7 +128,7 @@ class Ubicacion{
 
     //ABM PROVINCIAS
     public function listarProvincias(){
-        $sql = "SELECT * FROM provincias WHERE es_activo = 1";
+        $sql = "SELECT * FROM provincias WHERE es_activo = 1 ORDER BY nombre_provincia ASC";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $resultado = $stmt->get_result();
@@ -170,11 +170,6 @@ class Ubicacion{
         $stmt->bind_param('i',$id_provincia);
         return $stmt->execute();    
     }
-
-
-
-
-    
 
 
 }

@@ -2,8 +2,8 @@
 session_start();
 
 // Solo admin y empleados pueden ver consultas
-if (!isset($_SESSION['usuario']) || 
-   ($_SESSION['rol'] != "admin" && $_SESSION['rol'] != "empleado")) {
+ if (!isset($_SESSION['usuario']) || 
+   ($_SESSION['rol'] != "administrador" && $_SESSION['rol'] != "empleado")) {
     header("Location: ../home.php");
     exit;
 }

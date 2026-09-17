@@ -96,7 +96,7 @@ require_once '../../auth/auth.php';
         <div class="card-body p-4">
 
             <form
-                action="../../../controllers/inputsControllers/ProveedorController.php?accion=crear"
+                action="../../controllers/inputsControllers/ProveedorController.php?accion=crear"
                 method="POST">
 
 

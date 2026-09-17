@@ -1,4 +1,4 @@
-<?php
+ <?php
 
  require_once __DIR__ . '/../Database.php';
  
@@ -22,9 +22,9 @@ class Producto
         $condicionEstado = "";
 
         if ($estado === "activos") {
-            $condicionEstado = "p.es_activo = 1";
+            $condicionEstado = "p.es_descontinuado = 0";
         } elseif ($estado === "inactivos") {
-            $condicionEstado = "p.es_activo = 0";
+            $condicionEstado = "p.es_descontinuado = 1";
         } else {
             $condicionEstado = "1=1";
         }
@@ -202,7 +202,7 @@ class Producto
     public function eliminar(int $id_producto)
     {
         $sql = "UPDATE productos
-                SET es_activo = 0
+                SET es_descontinuado = 1
                 WHERE id_producto = ?";
 
         $stmt = $this->conexion->prepare($sql);
@@ -217,7 +217,7 @@ class Producto
     public function activar(int $id_producto)
     {
         $sql = "UPDATE productos
-                SET es_activo = 1
+                SET es_descontinuado = 0
                 WHERE id_producto = ?";
 
         $stmt = $this->conexion->prepare($sql);
@@ -234,9 +234,9 @@ class Producto
         string $estado = "activos"
     ) {
         if ($estado === "activos") {
-            $condicionEstado = "p.es_activo = 1";
+            $condicionEstado = "p.es_descontinuado = 0";
         } elseif ($estado === "inactivos") {
-            $condicionEstado = "p.es_activo = 0";
+            $condicionEstado = "p.es_descontinuado = 1";
         } else {
             $condicionEstado = "1=1";
         }
