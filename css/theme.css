@@ -1,0 +1,264 @@
+ /* =========================================================
+   CYBER CORE - TEMA UNIFICADO (claro / oscuro)
+   Incluir con:
+   <link href="../../css/theme.css" rel="stylesheet">
+   (ajustar la cantidad de ../ segun la profundidad del archivo)
+
+   El modo se controla agregando el atributo
+   data-theme="dark" o data-theme="light" al <html>.
+   Esto lo maneja automaticamente js/theme-toggle.js
+   ========================================================= */
+
+/* ===== MODO OSCURO (por defecto) - Azul marino ===== */
+:root,
+:root[data-theme="dark"] {
+    --cc-primario: #00EAFF;
+    --cc-primario-hover: #33F0FF;
+    --cc-fondo: #000521;
+    --cc-superficie: #020C47;
+    --cc-superficie-2: #011F65;
+    --cc-borde: #142759;
+    --cc-texto: #E8EDF2;
+    --cc-texto-secundario: #7C8DB5;
+    --cc-exito: #22C55E;
+    --cc-peligro: #EF4444;
+    --cc-advertencia: #F59E0B;
+    --cc-texto-sobre-primario: #041014;
+}
+
+/* ===== MODO CLARO ===== */
+:root[data-theme="light"] {
+    --cc-primario: #0E4EB2;
+    --cc-primario-hover: #2078CF;
+    --cc-fondo: #F4F7FB;
+    --cc-superficie: #FFFFFF;
+    --cc-superficie-2: #EAF0FA;
+    --cc-borde: #DCE3EE;
+    --cc-texto: #0B1220;
+    --cc-texto-secundario: #5B6B85;
+    --cc-exito: #16A34A;
+    --cc-peligro: #DC2626;
+    --cc-advertencia: #D97706;
+    --cc-texto-sobre-primario: #FFFFFF;
+}
+
+
+/* ===== BASE ===== */
+
+body {
+    background: radial-gradient(ellipse at top, var(--cc-superficie-2) 0%, var(--cc-fondo) 65%) !important;
+    background-attachment: fixed !important;
+    color: var(--cc-texto) !important;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+a {
+    color: var(--cc-primario);
+}
+
+a:hover {
+    color: var(--cc-primario-hover);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--cc-texto);
+}
+
+.text-muted {
+    color: var(--cc-texto-secundario) !important;
+}
+
+
+/* ===== TARJETAS (cards) ===== */
+
+.card {
+    background-color: var(--cc-superficie) !important;
+    border: 1px solid var(--cc-borde) !important;
+    color: var(--cc-texto);
+}
+
+.card-header {
+    background-color: rgba(0, 234, 255, 0.08) !important;
+    border-bottom: 1px solid var(--cc-borde) !important;
+    color: var(--cc-primario) !important;
+}
+
+.card-header.bg-info {
+    background-color: rgba(0, 234, 255, 0.15) !important;
+    color: var(--cc-primario) !important;
+}
+
+
+/* ===== BOTONES ===== */
+
+.btn-info {
+    background-color: var(--cc-primario) !important;
+    border-color: var(--cc-primario) !important;
+    color: var(--cc-texto-sobre-primario) !important;
+    font-weight: bold;
+}
+
+.btn-info:hover {
+    background-color: var(--cc-primario-hover) !important;
+    border-color: var(--cc-primario-hover) !important;
+}
+
+.btn-success {
+    background-color: var(--cc-exito) !important;
+    border-color: var(--cc-exito) !important;
+}
+
+.btn-danger {
+    background-color: var(--cc-peligro) !important;
+    border-color: var(--cc-peligro) !important;
+}
+
+.btn-warning {
+    background-color: var(--cc-advertencia) !important;
+    border-color: var(--cc-advertencia) !important;
+    color: #1a1400 !important;
+}
+
+.btn-secondary {
+    background-color: var(--cc-superficie-2) !important;
+    border-color: var(--cc-borde) !important;
+    color: var(--cc-texto) !important;
+}
+
+.btn-secondary:hover {
+    filter: brightness(1.15);
+}
+
+
+/* ===== FORMULARIOS ===== */
+
+.form-control,
+.form-select {
+    background-color: var(--cc-superficie) !important;
+    border: 1px solid var(--cc-borde) !important;
+    color: var(--cc-texto) !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--cc-superficie) !important;
+    border-color: var(--cc-primario) !important;
+    color: var(--cc-texto) !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 234, 255, 0.25) !important;
+}
+
+.form-control::placeholder {
+    color: var(--cc-texto-secundario) !important;
+}
+
+.form-label {
+    color: var(--cc-texto) !important;
+}
+
+
+/* ===== TABLAS ===== */
+
+.table {
+    color: var(--cc-texto) !important;
+    border-color: var(--cc-borde) !important;
+}
+
+.table thead,
+.table-info {
+    background-color: rgba(0, 234, 255, 0.12) !important;
+    color: var(--cc-primario) !important;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 234, 255, 0.08) !important;
+    color: var(--cc-texto) !important;
+}
+
+.table td, .table th {
+    border-color: var(--cc-borde) !important;
+}
+
+
+/* ===== BADGES ===== */
+
+.badge.bg-secondary {
+    background-color: var(--cc-superficie-2) !important;
+    color: var(--cc-texto) !important;
+}
+
+.badge.bg-success {
+    background-color: var(--cc-exito) !important;
+}
+
+.badge.bg-danger {
+    background-color: var(--cc-peligro) !important;
+}
+
+
+/* ===== ALERTAS ===== */
+
+.alert-success {
+    background-color: rgba(34, 197, 94, 0.15) !important;
+    border-color: var(--cc-exito) !important;
+    color: var(--cc-texto) !important;
+}
+
+.alert-danger {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    border-color: var(--cc-peligro) !important;
+    color: var(--cc-texto) !important;
+}
+
+.alert-warning {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    border-color: var(--cc-advertencia) !important;
+    color: var(--cc-texto) !important;
+}
+
+
+/* ===== PAGINACION ===== */
+
+.page-link {
+    background-color: var(--cc-superficie) !important;
+    border-color: var(--cc-borde) !important;
+    color: var(--cc-texto) !important;
+}
+
+.page-item.active .page-link {
+    background-color: var(--cc-primario) !important;
+    border-color: var(--cc-primario) !important;
+    color: var(--cc-texto-sobre-primario) !important;
+}
+
+.page-item.disabled .page-link {
+    background-color: var(--cc-fondo) !important;
+    color: var(--cc-texto-secundario) !important;
+}
+
+
+/* ===== BOTON FLOTANTE DE MODO CLARO/OSCURO ===== */
+/* (el JS crea el boton, este CSS solo lo estiliza) */
+
+#cc-theme-toggle {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background-color: var(--cc-superficie);
+    border: 1px solid var(--cc-borde);
+    color: var(--cc-primario);
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+    transition: transform 0.2s ease, background-color 0.25s ease;
+}
+
+#cc-theme-toggle:hover {
+    transform: scale(1.08);
+}

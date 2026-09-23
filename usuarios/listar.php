@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once "../models/Usuario.php";
 $user = new Usuario();
 
@@ -25,7 +25,8 @@ $usuarios = $user->listar_usuarios($busqueda,$estado);
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #f4f4f4;
+    background: #0A0E12;
+    color: #E8EDF2;
 }
 
 /* HEADER */
@@ -36,6 +37,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid #1F2937;
 }
 
 header a {
@@ -49,7 +51,7 @@ h2 {
     text-align: center;
     margin-top: 25px;
     font-size: 28px;
-    color: #222;
+    color: #E8EDF2;
 }
 
 /* BUSCADOR */
@@ -62,7 +64,9 @@ h2 {
 .search-box select {
     padding: 12px;
     border-radius: 20px;
-    border: 1px solid #aaa;
+    border: 1px solid #1F2937;
+    background: #12171D;
+    color: #E8EDF2;
 }
 
 .search-box input {
@@ -87,15 +91,16 @@ table {
     width: 90%;
     margin: 30px auto;
     border-collapse: collapse;
-    background: white;
+    background: #12171D;
+    border: 1px solid #1F2937;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    box-shadow: 0 0 10px rgba(0,0,0,0.35);
 }
 
 th {
     background: #00b1cc;
-    color: white;
+    color: black;
     padding: 12px;
     text-transform: uppercase;
 }
@@ -103,11 +108,12 @@ th {
 td {
     padding: 12px;
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #1F2937;
+    color: #E8EDF2;
 }
 
 tr:hover {
-    background: #f5ffff;
+    background: rgba(0, 234, 255, 0.07);
 }
 
 /* BOTONES */
@@ -171,7 +177,7 @@ tr:hover {
 }
 
 .link-cliente {
-    color: blue;
+    color: #00eaff;
     font-weight: bold;
     text-decoration: underline;
 }
@@ -240,12 +246,12 @@ tr:hover {
         <td>
             <?php 
                 $color_map = [
-                    'activo' => 'green',
-                    'inactivo' => 'orange',
-                    'bloqueado' => 'red'
+                    'activo' => '#22C55E',
+                    'inactivo' => '#F59E0B',
+                    'bloqueado' => '#EF4444'
                 ];
 
-                $color = $color_map[$u_estado] ?? 'black';
+                $color = $color_map[$u_estado] ?? '#E8EDF2';
             ?>
 
             <strong style="color:<?php echo $color ?>">
@@ -279,7 +285,7 @@ tr:hover {
 
                     <select name="estado"
                             class="form-select"
-                            style="color: <?= $color ?>; font-weight: bold; border-color: <?= $color ?>;">
+                            style="color: <?= $color ?>; font-weight: bold; border-color: <?= $color ?>; background:#12171D;">
 
                         <option value="activo" <?= $u_estado == 'activo' ? 'selected' : '' ?>>
                             🟢 Activo

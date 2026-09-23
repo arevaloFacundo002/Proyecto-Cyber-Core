@@ -1,4 +1,4 @@
- <?php
+<?php
 require_once '../../auth/auth.php';
 require_once "../../models/inputs/Proveedor.php";
 
@@ -49,6 +49,8 @@ $error = $_GET['error'] ?? '';
     <title>Gestión de Proveedores</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../css/theme.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -236,5 +238,6 @@ $error = $_GET['error'] ?? '';
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/theme-toggle.js"></script>
 </body>
 </html>

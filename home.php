@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once 'models/Producto.php';
 $pro = new Producto();
 
@@ -29,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #f5f5f5;
+    background: #0A0E12;
+    color: #E8EDF2;
 }
 
 /* HEADER */
@@ -43,6 +44,7 @@ header {
     position: sticky;
     top: 0;
     z-index: 100;
+    border-bottom: 1px solid #1F2937;
 }
 
 .logo {
@@ -162,7 +164,7 @@ nav a:hover {
     text-align: center;
     margin-top: 40px;
     font-size: 28px;
-    color: #111;
+    color: #E8EDF2;
     font-weight: bold;
 }
 
@@ -174,36 +176,42 @@ nav a:hover {
 }
 
 .card {
-    background: white;
+    background: #12171D;
+    border: 1px solid #1F2937;
     border-radius: 14px;
     padding: 18px;
     text-align: center;
-    box-shadow: 0 0 10px rgba(0,0,0,0.12);
+    color: #E8EDF2;
+    box-shadow: 0 0 10px rgba(0,0,0,0.35);
     transition: 0.3s;
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 0 15px rgba(0,255,255,0.4);
+    border-color: #00eaff;
+    box-shadow: 0 0 15px rgba(0,234,255,0.35);
 }
 
 .card img {
     width: 100%;
     height: 170px;
     object-fit: contain;
+    background: #0D1216;
+    border-radius: 8px;
 }
 
 .card h3 {
     margin: 12px 0 4px 0;
+    color: #E8EDF2;
 }
 
 .card small {
-    color: #777;
+    color: #8B95A1;
 }
 
 .price {
     font-size: 22px;
-    color: #00b1cc;
+    color: #00eaff;
     margin-top: 10px;
     font-weight: bold;
 }

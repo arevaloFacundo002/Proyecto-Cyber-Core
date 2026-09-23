@@ -1,8 +1,7 @@
 <?php
-require_once 'models/Producto.php';
+ require_once 'models/Producto.php';
 require_once 'auth/auth.php';
 $pro = new Producto();
-session_start();
 
 // Validar ID
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
