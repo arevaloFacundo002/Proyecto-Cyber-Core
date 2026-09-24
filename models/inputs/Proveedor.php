@@ -1,108 +1,239 @@
-  <?php
-require_once __DIR__ . '/../Database.php';
+ <?php
 
-class Proveedor {
-    private $db;
+ require_once '../../auth/auth.php';
+ require_once '../../config/Database.php';
+class Proveedor
+{
+    private mysqli $conexion;
 
-    public function __construct() {
-        $this->db = (new Database())->getConexion();
+    public function __construct()
+    {
+        $db = new Database();
+        $this->conexion = $db->getConexion();
     }
 
-    public function listar($busqueda = '', $estado = 'todos', $limite = 6, $offset = 0) {
-        $sql = "SELECT * FROM proveedores WHERE 1=1";
-        $params = [];
-        $types = "";
 
-        if (!empty($busqueda)) {
-            $sql .= " AND (nombre_apellido LIKE ? OR contacto LIKE ? OR email LIKE ? OR telefono LIKE ?)";
-            $term = "%" . $busqueda . "%";
-            $params[] = $term;
-            $params[] = $term;
-            $params[] = $term;
-            $params[] = $term;
-            $types .= "ssss";
+    // LISTAR y paginado
+    public function listar(
+        string $busqueda = "",
+        string $estado = "activo",
+        int $limite = 6,
+        int $offset = 0
+    ) {
+
+        $sql = "SELECT *
+                FROM proveedores
+                WHERE (
+                    razon_social LIKE ?
+                    OR persona_contacto LIKE ?
+                    OR email LIKE ?
+                    OR telefono LIKE ?
+                )";
+
+        // FILTRO DE ESTADO
+        if ($estado === "activo") {
+            $sql .= " AND es_activo = 1";
+        } elseif ($estado === "inactivo") {
+            $sql .= " AND es_activo = 0";
         }
+        // Si es "todos", no agregamos ninguna condición
 
-        $sql .= " ORDER BY id_proveedores DESC LIMIT ? OFFSET ?";
-        $params[] = (int)$limite;
-        $params[] = (int)$offset;
-        $types .= "ii";
+        $sql .= " ORDER BY id_proveedor DESC
+                LIMIT ? OFFSET ?";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conexion->prepare($sql);
 
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
+        $busqueda = "%" . $busqueda . "%";
+
+        $stmt->bind_param(
+            "ssssii",
+            $busqueda,
+            $busqueda,
+            $busqueda,
+            $busqueda,
+            $limite,
+            $offset
+        );
 
         $stmt->execute();
+
         $resultado = $stmt->get_result();
 
-        return $resultado->fetch_all(MYSQLI_ASSOC);
+        $proveedores = [];
+
+        while ($fila = $resultado->fetch_assoc()) {
+            $proveedores[] = $fila;
+        }
+
+        return $proveedores;
     }
 
-    public function contar($busqueda = '', $estado = 'todos') {
-        $sql = "SELECT COUNT(*) as total FROM proveedores WHERE 1=1";
-        $params = [];
-        $types = "";
 
-        if (!empty($busqueda)) {
-            $sql .= " AND (nombre_apellido LIKE ? OR contacto LIKE ? OR email LIKE ? OR telefono LIKE ?)";
-            $term = "%" . $busqueda . "%";
-            $params[] = $term;
-            $params[] = $term;
-            $params[] = $term;
-            $params[] = $term;
-            $types .= "ssss";
-        }
+    // OBTENER POR ID
+    public function obtenerPorId(int $id_proveedor)
+    {
+        $sql = "SELECT *
+                FROM proveedores
+                WHERE id_proveedor = ?";
 
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->conexion->prepare($sql);
 
-        if (!empty($params)) {
-            $stmt->bind_param($types, ...$params);
-        }
+        $stmt->bind_param("i", $id_proveedor);
 
         $stmt->execute();
-        $resultado = $stmt->get_result();
-        $row = $resultado->fetch_assoc();
 
-        return $row['total'] ?? 0;
+        $resultado = $stmt->get_result();
+
+        if ($resultado->num_rows > 0) {
+            return $resultado->fetch_assoc();
+        }
+
+        return null;
     }
 
-    public function crear($razon_social, $persona_contacto, $email, $direccion, $telefono) {
-        $sql = "INSERT INTO proveedores (nombre_apellido, contacto, email, direccion, telefono) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param("sssss", $razon_social, $persona_contacto, $email, $direccion, $telefono);
+
+    // CREAR
+    public function crear(
+        string $razon_social,
+        string $persona_contacto,
+        string $email,
+        string $direccion,
+        string $telefono
+    ) {
+
+        $sql = "INSERT INTO proveedores
+                (
+                    razon_social,
+                    persona_contacto,
+                    email,
+                    direccion,
+                    telefono,
+                )
+                VALUES (?, ?, ?, ?, ?)";
+
+        $stmt = $this->conexion->prepare($sql);
+
+        $stmt->bind_param(
+            "sssss",
+            $razon_social,
+            $persona_contacto,
+            $email,
+            $direccion,
+            $telefono,
+        );
+
         return $stmt->execute();
     }
 
-    public function eliminar($id_proveedor) {
-        $sql = "DELETE FROM proveedores WHERE id_proveedores = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param("i", $id_proveedor);
 
-        try {
-            return $stmt->execute();
-        } catch (mysqli_sql_exception $e) {
-            if ($e->getCode() == 1451) {
-                return 'tiene_relacion';
-            }
-            throw $e;
-        }
-    }
+    // EDITAR
+    public function editar(
+        string $razon_social,
+        string $persona_contacto,
+        string $email,
+        string $direccion,
+        string $telefono,
+        int $id_proveedor
+    ) {
 
-    public function editar($razon_social, $persona_contacto, $email, $direccion, $telefono, $id_proveedor) {
-        $sql = "UPDATE proveedores SET nombre_apellido = ?, contacto = ?, email = ?, direccion = ?, telefono = ? WHERE id_proveedores = ?";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bind_param("sssssi", $razon_social, $persona_contacto, $email, $direccion, $telefono, $id_proveedor);
+        $sql = "UPDATE proveedores
+                SET
+                    razon_social = ?,
+                    persona_contacto = ?,
+                    email = ?,
+                    direccion = ?,
+                    telefono = ?
+                WHERE id_proveedor = ?";
+
+        $stmt = $this->conexion->prepare($sql);
+
+        $stmt->bind_param(
+            "sssssi",
+            $razon_social,
+            $persona_contacto,
+            $email,
+            $direccion,
+            $telefono,
+            $id_proveedor
+        );
+
         return $stmt->execute();
     }
 
-    public function obtenerPorId($id_proveedor) {
-        $sql = "SELECT * FROM proveedores WHERE id_proveedores = ?";
-        $stmt = $this->db->prepare($sql);
+
+    // BAJA LÓGICA
+    public function eliminar(int $id_proveedor)
+    {
+        $sql = "UPDATE proveedores
+                SET es_activo = 0
+                WHERE id_proveedor = ?";
+
+        $stmt = $this->conexion->prepare($sql);
+
         $stmt->bind_param("i", $id_proveedor);
-        $stmt->execute();
-        $resultado = $stmt->get_result();
-        return $resultado->fetch_assoc();
+
+        return $stmt->execute();
     }
+
+
+        // ACTIVAR PROVEEDOR
+    public function activar(int $id_proveedor)
+    {
+        $sql = "UPDATE proveedores
+                SET es_activo = 1
+                WHERE id_proveedor = ?";
+
+        $stmt = $this->conexion->prepare($sql);
+
+        $stmt->bind_param(
+            "i",
+            $id_proveedor
+        );
+
+        return $stmt->execute();
+    }
+
+
+    //El metodo para contar los registros y saber cuantas paginas hay
+    public function contar(
+        string $busqueda = "",
+        string $estado = "activo"
+    ) {
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM proveedores
+                WHERE (
+                    razon_social LIKE ?
+                    OR persona_contacto LIKE ?  
+                    OR email LIKE ?
+                    OR telefono LIKE ?
+                )";
+
+        if ($estado === "activo") {
+            $sql .= " AND es_activo = 1";
+        } elseif ($estado === "inactivo") {
+            $sql .= " AND es_activo = 0";
+        }
+
+        $stmt = $this->conexion->prepare($sql);
+
+        $busqueda = "%" . $busqueda . "%";
+
+        $stmt->bind_param(
+            "ssss",
+            $busqueda,
+            $busqueda,
+            $busqueda,
+            $busqueda
+        );
+
+        $stmt->execute();
+
+        $resultado = $stmt->get_result();
+
+        $fila = $resultado->fetch_assoc();
+
+        return $fila['total'];
+    }
+
 }

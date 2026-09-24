@@ -24,7 +24,13 @@
 
         var boton = document.getElementById("cc-theme-toggle");
         if (boton) {
-            boton.innerHTML = tema === "dark" ? "&#9789;" : "&#9788;";
+            var icono = tema === "dark" ? "&#127769;" : "&#9728;&#65039;";
+            var texto = tema === "dark" ? "Modo oscuro" : "Modo claro";
+
+            boton.innerHTML =
+                '<span class="cc-icono">' + icono + '</span>' +
+                '<span class="cc-texto-modo">' + texto + '</span>';
+
             boton.title = tema === "dark"
                 ? "Cambiar a modo claro"
                 : "Cambiar a modo oscuro";
@@ -39,6 +45,9 @@
     }
 
     function crearBoton() {
+        if (document.getElementById("cc-theme-toggle")) {
+            return;
+        }
         var boton = document.createElement("button");
         boton.id = "cc-theme-toggle";
         boton.type = "button";
@@ -49,7 +58,7 @@
 
     // Tema inicial: el guardado, o "dark" por defecto.
     var temaInicial = obtenerTemaGuardado() || "dark";
-    aplicarTema(temaInicial);
+    document.documentElement.setAttribute("data-theme", temaInicial);
 
     document.addEventListener("DOMContentLoaded", function () {
         crearBoton();

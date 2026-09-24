@@ -68,6 +68,21 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--cc-texto-secundario) !important;
 }
 
+/* Bootstrap usa .text-dark para texto oscuro sobre tarjetas claras.
+   Como ahora las tarjetas son oscuras, ese texto quedaba invisible.
+   Lo pasamos al color de texto normal del tema... */
+.text-dark {
+    color: var(--cc-texto) !important;
+}
+
+/* ...EXCEPTO cuando esta sobre un boton cyan (btn-info), donde
+   el texto oscuro es necesario para que se lea sobre el fondo claro
+   del boton. Esta regla tiene mas especificidad y gana. */
+.btn-info.text-dark,
+.btn.text-dark.btn-info {
+    color: var(--cc-texto-sobre-primario) !important;
+}
+
 
 /* ===== TARJETAS (cards) ===== */
 
@@ -161,6 +176,7 @@ h1, h2, h3, h4, h5, h6 {
 .table {
     color: var(--cc-texto) !important;
     border-color: var(--cc-borde) !important;
+    --bs-table-bg: transparent;
 }
 
 .table thead,
@@ -176,6 +192,30 @@ h1, h2, h3, h4, h5, h6 {
 
 .table td, .table th {
     border-color: var(--cc-borde) !important;
+}
+
+/* Filas con clases de color de Bootstrap (evita que queden blancas) */
+.table-light,
+.table-light > * {
+    --bs-table-bg: var(--cc-superficie-2) !important;
+    --bs-table-color: var(--cc-texto) !important;
+    background-color: var(--cc-superficie-2) !important;
+    color: var(--cc-texto) !important;
+}
+
+.table-secondary,
+.table-secondary > * {
+    --bs-table-bg: var(--cc-superficie-2) !important;
+    --bs-table-color: var(--cc-texto) !important;
+    background-color: var(--cc-superficie-2) !important;
+    color: var(--cc-texto) !important;
+}
+
+.table-active,
+.table-active > * {
+    --bs-table-bg: rgba(0, 234, 255, 0.1) !important;
+    background-color: rgba(0, 234, 255, 0.1) !important;
+    color: var(--cc-texto) !important;
 }
 
 
@@ -243,16 +283,18 @@ h1, h2, h3, h4, h5, h6 {
     position: fixed;
     bottom: 22px;
     right: 22px;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
+    height: 48px;
+    padding: 0 18px;
+    border-radius: 24px;
     background-color: var(--cc-superficie);
     border: 1px solid var(--cc-borde);
-    color: var(--cc-primario);
-    font-size: 22px;
+    color: var(--cc-texto);
+    font-size: 15px;
+    font-weight: bold;
+    font-family: 'Segoe UI', sans-serif;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
     cursor: pointer;
     z-index: 9999;
     box-shadow: 0 2px 12px rgba(0,0,0,0.35);
@@ -260,5 +302,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 #cc-theme-toggle:hover {
-    transform: scale(1.08);
+    transform: scale(1.05);
+    border-color: var(--cc-primario);
+}
+
+#cc-theme-toggle .cc-icono {
+    font-size: 18px;
+    color: var(--cc-primario);
 }

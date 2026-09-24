@@ -1,4 +1,4 @@
-<?php
+ <?php
 // Si NO hay usuario logueado → al login
 require_once "auth/auth.php";
 
@@ -18,40 +18,40 @@ if ($_SESSION['rol'] != "administrador" && $_SESSION['rol'] != "empleado") {
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 
+<link href="css/theme.css" rel="stylesheet">
+
 <style>
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #0a0a0a, #0f1a20);
-    color: white;
 }
 
 /* HEADER */
 header {
-    background: #000;
+    background: var(--cc-superficie-2);
     padding: 20px 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #00eaff55;
-    box-shadow: 0 0 15px #00eaff44;
+    border-bottom: 2px solid rgba(0, 234, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 234, 255, 0.2);
 }
 
 .logo {
     font-size: 28px;
     font-weight: bold;
-    color: #00eaff;
+    color: var(--cc-primario);
     letter-spacing: 2px;
-    text-shadow: 0 0 8px #00eaff;
+    text-shadow: 0 0 8px rgba(0, 234, 255, 0.6);
 }
 
 .user {
     font-size: 18px;
-    color: #fff;
+    color: var(--cc-texto);
 }
 
 .logout {
-    color: #ff4b4b;
+    color: var(--cc-peligro);
     margin-left: 10px;
     text-decoration: none;
     font-weight: bold;
@@ -68,8 +68,8 @@ header {
 h1 {
     text-align: center;
     margin-bottom: 40px;
-    color: #00eaff;
-    text-shadow: 0 0 12px #00eaffaa;
+    color: var(--cc-primario);
+    text-shadow: 0 0 12px rgba(0, 234, 255, 0.5);
 }
 
 /* GRID */
@@ -81,29 +81,32 @@ h1 {
 }
 
 .card {
-    background: #111;
+    background: var(--cc-superficie);
+    border: 1px solid var(--cc-borde);
     padding: 25px;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 0 15px #000;
-    border: 1px solid #00eaff33;
+    box-shadow: 0 0 15px rgba(0,0,0,0.35);
     transition: 0.3s;
+    color: var(--cc-texto);
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 0 20px #00eaff66;
+    box-shadow: 0 0 20px rgba(0, 234, 255, 0.35);
+    border-color: var(--cc-primario);
 }
 
 .card h2 {
     margin-bottom: 15px;
+    color: var(--cc-texto);
 }
 
 .card a {
-    background: #00eaff;
+    background: var(--cc-primario);
+    color: var(--cc-texto-sobre-primario);
     padding: 12px 20px;
     border-radius: 20px;
-    color: black;
     font-weight: bold;
     text-decoration: none;
     display: inline-block;
@@ -112,7 +115,7 @@ h1 {
 }
 
 .card a:hover {
-    background: #009ac0;
+    background: var(--cc-primario-hover);
 }
 
 /* RESPONSIVE */
@@ -184,6 +187,8 @@ h1 {
 
     </div>
 </div>
+
+<script src="js/theme-toggle.js"></script>
 
 </body>
 </html>
