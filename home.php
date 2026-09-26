@@ -1,17 +1,20 @@
  <?php
-require_once 'models/Producto.php';
-$pro = new Producto();
 
-//Si no esta logeado lo sacamos
-require_once 'auth/auth.php';
-
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $buscar = $_GET['buscar']?? "";
-    $rol = $_SESSION['rol'];
-
-    //busqueda de productos
-    $productos = $pro->listar_productos($buscar);
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
+
+require_once 'models/Producto.php';   // Incluye la clase
+
+$pro = new Producto();                // Instancia de la clase
+
+$rol = $_SESSION['rol'] ?? null;
+
+// Búsqueda (opcional, vía ?buscar=...)
+$buscar = trim($_GET['buscar'] ?? '');
+
+// Traer productos para la grilla
+$productos = $pro->listar($buscar);
 
 ?>
 <!DOCTYPE html>
@@ -25,37 +28,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 <title>CyberCore - Inicio</title>
 
+<link href="css/theme.css" rel="stylesheet">
+
 <style>
     body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #0A0E12;
-    color: #E8EDF2;
 }
 
 /* HEADER */
 header {
-    background: #0a0a0a;
+    background: var(--cc-superficie-2);
     padding: 18px 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: white;
+    color: var(--cc-texto);
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid #1F2937;
+    border-bottom: 1px solid var(--cc-borde);
 }
 
 .logo {
     font-size: 28px;
     font-weight: bold;
     letter-spacing: 1px;
-    color: #00eaff;
+    color: var(--cc-primario);
 }
 
 nav a {
-    color: white;
+    color: var(--cc-texto);
     margin: 0 15px;
     text-decoration: none;
     font-weight: 500;
@@ -63,11 +66,11 @@ nav a {
 }
 
 nav a:hover {
-    color: #00eaff;
+    color: var(--cc-primario);
 }
 
 .logout {
-    color: #ff4b4b;
+    color: var(--cc-peligro);
     margin-left: 10px;
     text-decoration: none;
     font-weight: bold;
@@ -91,7 +94,7 @@ nav a:hover {
     position: absolute;
     width: 100%;
     height: 100%;
-    background: rgba(10, 10, 10, 0.55);
+    background: rgba(0, 5, 33, 0.6);
 }
 
 .hero-text {
@@ -105,7 +108,7 @@ nav a:hover {
     font-size: 48px;
     font-weight: bold;
     margin-bottom: 15px;
-    text-shadow: 0 0 10px #00eaff;
+    text-shadow: 0 0 10px var(--cc-primario);
 }
 
 .hero-text p {
@@ -116,8 +119,8 @@ nav a:hover {
 
 .hero-text .btn {
     padding: 12px 25px;
-    background: #00eaff;
-    color: black;
+    background: var(--cc-primario);
+    color: var(--cc-texto-sobre-primario);
     font-weight: bold;
     border-radius: 25px;
     text-decoration: none;
@@ -125,28 +128,31 @@ nav a:hover {
 }
 
 .hero-text .btn:hover {
-    background: #009ac0;
+    background: var(--cc-primario-hover);
 }
 
 /* SEARCH BAR */
 .search-container {
     padding: 40px;
     text-align: center;
-    background: linear-gradient(90deg, #0f0f0f, #1a1a1a);
+    background: var(--cc-superficie-2);
 }
 
 .search-container input {
     width: 45%;
     padding: 15px;
     border-radius: 30px;
-    border: none;
+    border: 1px solid var(--cc-borde);
     outline: none;
     font-size: 16px;
+    background: var(--cc-superficie);
+    color: var(--cc-texto);
 }
 
 .search-container button {
     padding: 15px 22px;
-    background: #00eaff;
+    background: var(--cc-primario);
+    color: var(--cc-texto-sobre-primario);
     border: none;
     border-radius: 30px;
     font-size: 16px;
@@ -156,7 +162,7 @@ nav a:hover {
 }
 
 .search-container button:hover {
-    background: #00b1cc;
+    background: var(--cc-primario-hover);
 }
 
 /* PRODUCT GRID */
@@ -164,7 +170,7 @@ nav a:hover {
     text-align: center;
     margin-top: 40px;
     font-size: 28px;
-    color: #E8EDF2;
+    color: var(--cc-texto);
     font-weight: bold;
 }
 
@@ -176,19 +182,19 @@ nav a:hover {
 }
 
 .card {
-    background: #12171D;
-    border: 1px solid #1F2937;
+    background: var(--cc-superficie);
+    border: 1px solid var(--cc-borde);
     border-radius: 14px;
     padding: 18px;
     text-align: center;
-    color: #E8EDF2;
+    color: var(--cc-texto);
     box-shadow: 0 0 10px rgba(0,0,0,0.35);
     transition: 0.3s;
 }
 
 .card:hover {
     transform: translateY(-5px);
-    border-color: #00eaff;
+    border-color: var(--cc-primario);
     box-shadow: 0 0 15px rgba(0,234,255,0.35);
 }
 
@@ -196,22 +202,22 @@ nav a:hover {
     width: 100%;
     height: 170px;
     object-fit: contain;
-    background: #0D1216;
+    background: var(--cc-superficie-2);
     border-radius: 8px;
 }
 
 .card h3 {
     margin: 12px 0 4px 0;
-    color: #E8EDF2;
+    color: var(--cc-texto);
 }
 
 .card small {
-    color: #8B95A1;
+    color: var(--cc-texto-secundario);
 }
 
 .price {
     font-size: 22px;
-    color: #00eaff;
+    color: var(--cc-primario);
     margin-top: 10px;
     font-weight: bold;
 }
@@ -220,16 +226,16 @@ nav a:hover {
     margin-top: 12px;
     display: inline-block;
     padding: 10px 18px;
-    background: #00eaff;
+    background: var(--cc-primario);
     border-radius: 20px;
     text-decoration: none;
-    color: black;
+    color: var(--cc-texto-sobre-primario);
     font-weight: bold;
     transition: 0.3s;
 }
 
 .btn-ver:hover {
-    background: #00b1cc;
+    background: var(--cc-primario-hover);
 }
 </style>
 
@@ -285,6 +291,14 @@ nav a:hover {
 <!-- PRODUCTOS -->
 <div class="grid">
 
+<?php if (empty($productos)): ?>
+
+    <p style="grid-column: 1 / -1; text-align:center; color: var(--cc-texto-secundario);">
+        No se encontraron productos.
+    </p>
+
+<?php else: ?>
+
 <?php foreach($productos as $p) { ?>
     <div class="card">
 
@@ -299,16 +313,16 @@ nav a:hover {
         <!-- STOCK -->
 <?php if ($p['stock'] == 0): ?>
 
-    <p style="color:red; font-weight:bold; margin-top:8px;">
+    <p style="color:var(--cc-peligro); font-weight:bold; margin-top:8px;">
         ❌ SIN STOCK
     </p>
-    <a class="btn-ver" style="background:#888; pointer-events:none; cursor:not-allowed;">
+    <a class="btn-ver" style="background:var(--cc-texto-secundario); pointer-events:none; cursor:not-allowed;">
         No disponible
     </a>
 
 <?php elseif ($p['stock'] <= 2): ?>
 
-    <p style="color:#ff4444; font-weight:bold; margin-top:8px;">
+    <p style="color:var(--cc-peligro); font-weight:bold; margin-top:8px;">
         🔥 Últimas unidades disponibles
     </p>
     <a class="btn-ver" href="producto.php?id=<?php echo $p['id_producto']; ?>">
@@ -317,7 +331,7 @@ nav a:hover {
 
 <?php elseif ($p['stock'] <= 4): ?>
 
-    <p style="color:orange; font-weight:bold; margin-top:8px;">
+    <p style="color:var(--cc-advertencia); font-weight:bold; margin-top:8px;">
         ⚠️ Pocas unidades en stock
     </p>
     <a class="btn-ver" href="producto.php?id=<?php echo $p['id_producto']; ?>">
@@ -337,8 +351,11 @@ nav a:hover {
     </div>
 <?php } ?>
 
+<?php endif; ?>
 
 </div>
+
+<script src="js/theme-toggle.js"></script>
 
 </body>
 </html>

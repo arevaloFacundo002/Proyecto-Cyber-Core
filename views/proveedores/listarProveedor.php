@@ -1,12 +1,18 @@
-<?php
+ <?php
 require_once '../../auth/auth.php';
 require_once "../../models/inputs/Proveedor.php";
 
 $prov = new Proveedor();
 
-// BÚSQUEDA Y PAGINACIÓN
+// BÚSQUEDA, FILTRO DE ESTADO Y PAGINACIÓN
 $busqueda = $_GET['buscar'] ?? '';
 $porPagina = 6;
+
+// Filtro de estado: activo | inactivo | todos
+$estado = $_GET['estado'] ?? 'todos';
+if (!in_array($estado, ['activo', 'inactivo', 'todos'])) {
+    $estado = 'todos';
+}
 
 $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 if ($pagina < 1) {
@@ -18,7 +24,7 @@ $offset = ($pagina - 1) * $porPagina;
 // OBTENER PROVEEDORES
 $proveedores = $prov->listar(
     $busqueda,
-    "todos",
+    $estado,
     $porPagina,
     $offset
 );
@@ -26,7 +32,7 @@ $proveedores = $prov->listar(
 // CONTAR PROVEEDORES
 $totalProveedores = $prov->contar(
     $busqueda,
-    "todos"
+    $estado
 );
 
 $totalPaginas = ceil($totalProveedores / $porPagina);
@@ -108,11 +114,20 @@ $error = $_GET['error'] ?? '';
     <div class="card shadow border-0 mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-9">
+                <div class="col-md-6">
                     <label class="form-label fw-bold">Buscar proveedor</label>
                     <input type="text" name="buscar" class="form-control"
                            placeholder="Nombre, contacto, email o teléfono..."
                            value="<?= htmlspecialchars($busqueda) ?>">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Estado</label>
+                    <select name="estado" class="form-select">
+                        <option value="todos"    <?= $estado === 'todos'    ? 'selected' : '' ?>>Todos</option>
+                        <option value="activo"   <?= $estado === 'activo'   ? 'selected' : '' ?>>Activos</option>
+                        <option value="inactivo" <?= $estado === 'inactivo' ? 'selected' : '' ?>>Inactivos</option>
+                    </select>
                 </div>
 
                 <div class="col-md-3">
@@ -149,7 +164,8 @@ $error = $_GET['error'] ?? '';
                             <th>Contacto</th>
                             <th>Email</th>
                             <th>Teléfono</th>
-                            <th width="200">Acciones</th>
+                            <th>Estado</th>
+                            <th width="220">Acciones</th>
                         </tr>
                     </thead>
 
@@ -176,6 +192,15 @@ $error = $_GET['error'] ?? '';
                                 <!-- TELÉFONO -->
                                 <td><?= htmlspecialchars($proveedor['telefono'] ?? '') ?></td>
 
+                                <!-- ESTADO -->
+                                <td>
+                                    <?php if ((int)$proveedor['es_activo'] === 1) { ?>
+                                        <span class="badge bg-success">Activo</span>
+                                    <?php } else { ?>
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    <?php } ?>
+                                </td>
+
                                 <!-- ACCIONES -->
                                 <td>
                                     <div class="d-flex gap-2">
@@ -185,19 +210,28 @@ $error = $_GET['error'] ?? '';
                                             Editar
                                         </a>
 
-                                        <!-- ELIMINAR -->
-                                        <a href="../../controllers/inputsControllers/ProveedorController.php?accion=eliminar&id=<?= $proveedor['id_proveedores'] ?>"
-                                           class="btn btn-danger btn-sm fw-bold"
-                                           onclick="return confirm('¿Está seguro de querer eliminar este proveedor?')">
-                                            Eliminar
-                                        </a>
+                                        <?php if ((int)$proveedor['es_activo'] === 1) { ?>
+                                            <!-- ELIMINAR (baja lógica) -->
+                                            <a href="../../controllers/inputsControllers/ProveedorController.php?accion=eliminar&id=<?= $proveedor['id_proveedores'] ?>"
+                                               class="btn btn-danger btn-sm fw-bold"
+                                               onclick="return confirm('¿Está seguro de querer dar de baja este proveedor?')">
+                                                Eliminar
+                                            </a>
+                                        <?php } else { ?>
+                                            <!-- REACTIVAR -->
+                                            <a href="../../controllers/inputsControllers/ProveedorController.php?accion=activar&id=<?= $proveedor['id_proveedores'] ?>"
+                                               class="btn btn-success btn-sm fw-bold"
+                                               onclick="return confirm('¿Reactivar este proveedor?')">
+                                                Reactivar
+                                            </a>
+                                        <?php } ?>
                                     </div>
                                 </td>
                             </tr>
                         <?php } ?>
                     <?php } else { ?>
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">
+                            <td colspan="7" class="text-center py-4 text-muted">
                                 No se encontraron proveedores.
                             </td>
                         </tr>
@@ -213,21 +247,21 @@ $error = $_GET['error'] ?? '';
         <nav class="mt-4">
             <ul class="pagination justify-content-center">
                 <li class="page-item <?= $pagina <= 1 ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?buscar=<?= urlencode($busqueda) ?>&pagina=<?= $pagina - 1 ?>">
+                    <a class="page-link" href="?buscar=<?= urlencode($busqueda) ?>&estado=<?= urlencode($estado) ?>&pagina=<?= $pagina - 1 ?>">
                         ← Anterior
                     </a>
                 </li>
 
                 <?php for ($i = 1; $i <= $totalPaginas; $i++) { ?>
                     <li class="page-item <?= $i == $pagina ? 'active' : '' ?>">
-                        <a class="page-link" href="?buscar=<?= urlencode($busqueda) ?>&pagina=<?= $i ?>">
+                        <a class="page-link" href="?buscar=<?= urlencode($busqueda) ?>&estado=<?= urlencode($estado) ?>&pagina=<?= $i ?>">
                             <?= $i ?>
                         </a>
                     </li>
                 <?php } ?>
 
                 <li class="page-item <?= $pagina >= $totalPaginas ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?buscar=<?= urlencode($busqueda) ?>&pagina=<?= $pagina + 1 ?>">
+                    <a class="page-link" href="?buscar=<?= urlencode($busqueda) ?>&estado=<?= urlencode($estado) ?>&pagina=<?= $pagina + 1 ?>">
                         Siguiente →
                     </a>
                 </li>

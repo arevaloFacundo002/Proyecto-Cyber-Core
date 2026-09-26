@@ -1,7 +1,6 @@
  <?php
 
- require_once '../../auth/auth.php';
- require_once '../../config/Database.php';
+require_once __DIR__ . '/../Database.php'; 
 class Proveedor
 {
     private mysqli $conexion;
@@ -24,8 +23,8 @@ class Proveedor
         $sql = "SELECT *
                 FROM proveedores
                 WHERE (
-                    razon_social LIKE ?
-                    OR persona_contacto LIKE ?
+                    nombre_apellido LIKE ?
+                    OR contacto LIKE ?
                     OR email LIKE ?
                     OR telefono LIKE ?
                 )";
@@ -38,7 +37,7 @@ class Proveedor
         }
         // Si es "todos", no agregamos ninguna condición
 
-        $sql .= " ORDER BY id_proveedor DESC
+        $sql .= " ORDER BY id_proveedores DESC
                 LIMIT ? OFFSET ?";
 
         $stmt = $this->conexion->prepare($sql);
@@ -74,7 +73,7 @@ class Proveedor
     {
         $sql = "SELECT *
                 FROM proveedores
-                WHERE id_proveedor = ?";
+                WHERE id_proveedores = ?";
 
         $stmt = $this->conexion->prepare($sql);
 
@@ -103,11 +102,11 @@ class Proveedor
 
         $sql = "INSERT INTO proveedores
                 (
-                    razon_social,
-                    persona_contacto,
+                    nombre_apellido,
+                    contacto,
                     email,
                     direccion,
-                    telefono,
+                    telefono
                 )
                 VALUES (?, ?, ?, ?, ?)";
 
@@ -119,7 +118,7 @@ class Proveedor
             $persona_contacto,
             $email,
             $direccion,
-            $telefono,
+            $telefono
         );
 
         return $stmt->execute();
@@ -138,12 +137,12 @@ class Proveedor
 
         $sql = "UPDATE proveedores
                 SET
-                    razon_social = ?,
-                    persona_contacto = ?,
+                    nombre_apellido = ?,
+                    contacto = ?,
                     email = ?,
                     direccion = ?,
                     telefono = ?
-                WHERE id_proveedor = ?";
+                WHERE id_proveedores = ?";
 
         $stmt = $this->conexion->prepare($sql);
 
@@ -166,7 +165,7 @@ class Proveedor
     {
         $sql = "UPDATE proveedores
                 SET es_activo = 0
-                WHERE id_proveedor = ?";
+                WHERE id_proveedores = ?";
 
         $stmt = $this->conexion->prepare($sql);
 
@@ -181,7 +180,7 @@ class Proveedor
     {
         $sql = "UPDATE proveedores
                 SET es_activo = 1
-                WHERE id_proveedor = ?";
+                WHERE id_proveedores = ?";
 
         $stmt = $this->conexion->prepare($sql);
 
@@ -203,8 +202,8 @@ class Proveedor
         $sql = "SELECT COUNT(*) AS total
                 FROM proveedores
                 WHERE (
-                    razon_social LIKE ?
-                    OR persona_contacto LIKE ?  
+                    nombre_apellido LIKE ?
+                    OR contacto LIKE ?  
                     OR email LIKE ?
                     OR telefono LIKE ?
                 )";

@@ -10,7 +10,7 @@ class ConceptoMovimiento{
     }
 
     public function listar(){
-        $sql = "SELECT * FROM cat_conceptos_movimiento WHERE es_activo = 1";
+        $sql = "SELECT * FROM conceptos_movimiento";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $resultado = $stmt->get_result();
@@ -23,7 +23,7 @@ class ConceptoMovimiento{
     }
 
     public function obtenerPorId(int $id){
-        $sql = "SELECT * FROM cat_conceptos_movimiento WHERE id_conceptos = ?";
+        $sql = "SELECT * FROM conceptos_movimiento WHERE id_concepto = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('i',$id);
         $stmt->execute();
@@ -32,21 +32,21 @@ class ConceptoMovimiento{
     }
 
     public function crear(string $descripcion, string $tipo_movimiento){
-        $sql = "INSERT INTO cat_conceptos_movimiento (descripcion, tipo_accion) VALUES (?,?)";
+        $sql = "INSERT INTO conceptos_movimiento (descripcion, tipo_movimiento) VALUES (?,?)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('ss',$descripcion,$tipo_movimiento);
         return $stmt->execute();
     }
 
     public function editar(string $descripcion, string $tipo_movimiento, int $id_concepto){
-        $sql = "UPDATE cat_conceptos_movimiento SET descripcion = ?, tipo_accion = ? WHERE id_conceptos = ?";
+        $sql = "UPDATE conceptos_movimiento SET descripcion = ?, tipo_movimiento = ? WHERE id_concepto = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('ssi',$descripcion,$tipo_movimiento,$id_concepto);
         return $stmt->execute();
     }
 
     public function eliminar(int $id_concepto){
-        $sql = "UPDATE cat_conceptos_movimiento SET es_activo = 0 WHERE id_conceptos = ?";
+        $sql = "UPDATE conceptos_movimiento SET es_activo = 0 WHERE id_concepto = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('i',$id_concepto);
         return $stmt->execute();

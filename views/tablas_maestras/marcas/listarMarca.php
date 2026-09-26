@@ -197,5 +197,6 @@ $error = $_GET['error'] ?? '';
     </div>
 </div>
     
+<script src="../../../js/theme-toggle.js"></script>
 </body>
 </html> 

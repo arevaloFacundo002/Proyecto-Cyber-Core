@@ -1,8 +1,10 @@
-<?php
-session_start();
+ <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Solo admin y empleados pueden ver consultas
- if (!isset($_SESSION['usuario']) || 
+if (!isset($_SESSION['usuario']) ||
    ($_SESSION['rol'] != "administrador" && $_SESSION['rol'] != "empleado")) {
     header("Location: ../home.php");
     exit;
@@ -12,44 +14,45 @@ session_start();
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Consultas SQL - CyberCore</title>
+
+<link href="../css/theme.css" rel="stylesheet">
 
 <style>
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #0a0a0a, #0f1a20);
-    color: white;
 }
 
 header {
-    background: #000;
+    background: var(--cc-superficie-2);
     padding: 20px 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #00eaff55;
-    box-shadow: 0 0 15px #00eaff44;
+    border-bottom: 1px solid var(--cc-borde);
 }
 
 .logo {
     font-size: 28px;
     font-weight: bold;
-    color: #00eaff;
-    text-shadow: 0 0 8px #00eaff;
+    color: var(--cc-primario);
+    text-shadow: 0 0 8px rgba(0, 234, 255, 0.5);
 }
 
 .back {
-    background: #00eaff;
+    background: var(--cc-primario);
     padding: 10px 18px;
     border-radius: 20px;
-    color: black;
+    color: var(--cc-texto-sobre-primario);
     font-weight: bold;
     text-decoration: none;
+    transition: 0.2s;
 }
 
 .back:hover {
-    background: #009ac0;
+    background: var(--cc-primario-hover);
 }
 
 .container {
@@ -58,8 +61,8 @@ header {
 
 h1 {
     text-align: center;
-    color: #00eaff;
-    text-shadow: 0 0 12px #00eaffaa;
+    color: var(--cc-primario);
+    text-shadow: 0 0 12px rgba(0, 234, 255, 0.4);
 }
 
 .grid {
@@ -70,38 +73,44 @@ h1 {
 }
 
 .card {
-    background: #111;
+    background: var(--cc-superficie);
     padding: 25px;
     border-radius: 12px;
     text-align: center;
-    border: 1px solid #00eaff33;
+    border: 1px solid var(--cc-borde);
     transition: 0.3s;
-    box-shadow: 0 0 15px #000;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 0 20px #00eaff66;
+    border-color: var(--cc-primario);
+    box-shadow: 0 0 20px rgba(0, 234, 255, 0.35);
 }
 
 .card h2 {
     margin-bottom: 12px;
-    color: #00eaff;
+    color: var(--cc-primario);
+}
+
+.card p {
+    color: var(--cc-texto-secundario);
 }
 
 .card a {
-    background: #00eaff;
+    background: var(--cc-primario);
     padding: 12px 20px;
     border-radius: 20px;
-    color: black;
+    color: var(--cc-texto-sobre-primario);
     font-weight: bold;
     text-decoration: none;
     display: inline-block;
     margin-top: 15px;
+    transition: 0.2s;
 }
 
 .card a:hover {
-    background: #009ac0;
+    background: var(--cc-primario-hover);
 }
 
 @media (max-width: 900px) {
@@ -157,7 +166,7 @@ h1 {
     </div>
 </div>
 
+<script src="../js/theme-toggle.js"></script>
+
 </body>
 </html>
-
-

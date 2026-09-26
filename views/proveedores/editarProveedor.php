@@ -36,11 +36,12 @@ if (!$proveedor) {
         rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
         crossorigin="anonymous">
+
     <link href="../../css/theme.css" rel="stylesheet">
 
 </head>
 
-<body class="bg-light">
+<body>
 
 <div class="container mt-4 mb-5">
 
@@ -85,7 +86,7 @@ if (!$proveedor) {
         <div class="card-body p-4">
 
             <form
-                action="../../controllers/inputsControllers/ProveedorController.php?accion=editar"
+                action="../../../controllers/inputsControllers/ProveedorController.php?accion=editar"
                 method="POST">
 
 
@@ -94,7 +95,7 @@ if (!$proveedor) {
                 <input
                     type="hidden"
                     name="id_proveedor"
-                    value="<?= $proveedor['id_proveedores'] ?>">
+                    value="<?= $proveedor['id_proveedor'] ?>">
 
 
                 <div class="row">
@@ -113,7 +114,7 @@ if (!$proveedor) {
                             type="text"
                             name="razon_social"
                             class="form-control"
-                            value="<?= htmlspecialchars($proveedor['nombre_apellido'] ?? '') ?>"
+                            value="<?= htmlspecialchars($proveedor['razon_social']) ?>"
                             placeholder="Ingrese la razón social"
                             required>
 
@@ -134,7 +135,7 @@ if (!$proveedor) {
                             type="text"
                             name="persona_contacto"
                             class="form-control"
-                            value="<?= htmlspecialchars($proveedor['contacto'] ?? '') ?>"
+                            value="<?= htmlspecialchars($proveedor['persona_contacto']) ?>"
                             placeholder="Ingrese el nombre del contacto">
 
                     </div>
@@ -153,7 +154,7 @@ if (!$proveedor) {
                             type="email"
                             name="email"
                             class="form-control"
-                            value="<?= htmlspecialchars($proveedor['email'] ?? '') ?>"
+                            value="<?= htmlspecialchars($proveedor['email']) ?>"
                             placeholder="ejemplo@empresa.com">
 
                     </div>
@@ -172,7 +173,7 @@ if (!$proveedor) {
                             type="text"
                             name="telefono"
                             class="form-control"
-                            value="<?= htmlspecialchars($proveedor['telefono'] ?? '') ?>"
+                            value="<?= htmlspecialchars($proveedor['telefono']) ?>"
                             placeholder="Ingrese el teléfono">
 
                     </div>
@@ -192,7 +193,7 @@ if (!$proveedor) {
                             type="text"
                             name="direccion"
                             class="form-control"
-                            value="<?= htmlspecialchars($proveedor['direccion'] ?? '') ?>"
+                            value="<?= htmlspecialchars($proveedor['direccion']) ?>"
                             placeholder="Ingrese la dirección">
 
                     </div>
@@ -237,6 +238,8 @@ if (!$proveedor) {
     integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
     crossorigin="anonymous">
 </script>
+
+<script src="../../js/theme-toggle.js"></script>
 
 </body>
 </html>

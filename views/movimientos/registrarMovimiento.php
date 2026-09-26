@@ -123,7 +123,7 @@ $conceptos = $conceptoModel->listar();
                             <?php foreach ($conceptos as $c): ?>
 
                                 <option
-                                  value="<?= $c['id_conceptos'] ?>">
+                                  value="<?= $c['id_concepto'] ?>">
 
                                   <?= htmlspecialchars($c['descripcion']) ?>
 
@@ -248,6 +248,7 @@ $conceptos = $conceptoModel->listar();
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
 </script>
 
+<script src="../../js/theme-toggle.js"></script>
 </body>
 
 </html>

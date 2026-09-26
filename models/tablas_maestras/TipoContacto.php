@@ -10,7 +10,7 @@ class TipoContacto{
     }
 
     public function listar(){
-        $sql = "SELECT * FROM tipo_contacto WHERE es_activo = 1";
+        $sql = "SELECT * FROM tipos_contacto WHERE es_activo = 1";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $resultado = $stmt->get_result();
@@ -24,7 +24,7 @@ class TipoContacto{
     }
 
     public function obtenerPorId(int $id){
-        $sql = "SELECT * FROM tipo_contacto WHERE id_tipo_contacto = ?";
+        $sql = "SELECT * FROM tipos_contacto WHERE id_tipo_contacto = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('i',$id);
         $stmt->execute();
@@ -34,21 +34,21 @@ class TipoContacto{
 
 
     public function crear(string $descripcion){
-        $sql = "INSERT INTO tipo_contacto (descripcion) VALUES (?)";
+        $sql = "INSERT INTO tipos_contacto (descripcion) VALUES (?)";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('s',$descripcion);
         return $stmt->execute();
     }
 
     public function editar(string $descripcion, int $id_tipo_contacto){
-        $sql = "UPDATE tipo_contacto SET descripcion = ? WHERE id_tipo_contacto = ?";
+        $sql = "UPDATE tipos_contacto SET descripcion = ? WHERE id_tipo_contacto = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('si',$descripcion,$id_tipo_contacto);
         return $stmt->execute();
     }
 
     public function eliminar(int $id_tipo_contacto){
-        $sql = "UPDATE tipo_contacto SET es_activo = 0 WHERE id_tipo_contacto = ?";
+        $sql = "UPDATE tipos_contacto SET es_activo = 0 WHERE id_tipo_contacto = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('i',$id_tipo_contacto);
         return $stmt->execute();

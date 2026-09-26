@@ -367,6 +367,7 @@ document.getElementById('marca').addEventListener('change', function () {
 });
 </script>
 
+<script src="../../js/theme-toggle.js"></script>
 </body>
 
 </html>

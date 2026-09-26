@@ -1,4 +1,13 @@
- <?php 
+ <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['usuario']) ||
+   ($_SESSION['rol'] != "administrador" && $_SESSION['rol'] != "empleado")) {
+    header("Location: ../home.php");
+    exit;
+}
+
 include "../conexion.php";
 
 // ======= RANGO (solo para mostrar, NO modifica la consulta) =======
@@ -30,76 +39,74 @@ $res = mysqli_query($conexion, $sql);
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Consulta 2 - Pedidos detallados</title>
 
-<!-- ESTILO ESTÁNDAR -->
+<link href="../css/theme.css" rel="stylesheet">
+
 <style>
     body {
         margin: 0;
         font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #0a0a0a, #0f1a20);
-        color: #e6e6e6;
     }
     .container {
         width: 90%;
         max-width: 1100px;
         margin: 40px auto;
-        background: #111;
+        background: var(--cc-superficie);
         padding: 30px;
         border-radius: 12px;
-        border: 1px solid #00eaff33;
-        box-shadow: 0 0 15px #000;
+        border: 1px solid var(--cc-borde);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
     }
     h1 {
         text-align: center;
-        color: #00eaff;
-        text-shadow: 0 0 12px #00eaffaa;
+        color: var(--cc-primario);
+        text-shadow: 0 0 12px rgba(0, 234, 255, 0.4);
         margin-bottom: 8px;
     }
     .subtitulo {
         text-align: center;
-        color: #cfefff;
+        color: var(--cc-texto-secundario);
         margin-bottom: 18px;
         font-size: 14px;
     }
     table {
         width: 100%;
         border-collapse: collapse;
-        background: #0d0d0d;
-        border-radius: 10px;
-        overflow: hidden;
         margin-top: 20px;
     }
     th {
-        background: #00eaff33;
-        color: #00eaff;
+        background: rgba(0, 234, 255, 0.12);
+        color: var(--cc-primario);
         padding: 12px;
         text-align: left;
-        border-bottom: 1px solid #00eaff44;
+        border-bottom: 1px solid var(--cc-borde);
     }
     td {
         padding: 12px;
-        border-bottom: 1px solid #1f1f1f;
+        border-bottom: 1px solid var(--cc-borde);
+        color: var(--cc-texto);
     }
     tr:hover {
-        background-color: #00eaff11;
+        background-color: rgba(0, 234, 255, 0.07);
     }
     .volver {
         display: inline-block;
         margin-top: 30px;
-        background: #00eaff;
+        background: var(--cc-primario);
         padding: 12px 20px;
-        color: black;
+        color: var(--cc-texto-sobre-primario);
         font-weight: bold;
         text-decoration: none;
         border-radius: 10px;
-        transition: .3s;
+        transition: .2s;
     }
-    .volver:hover { background: #009ac0; }
+    .volver:hover { background: var(--cc-primario-hover); }
     .empty {
-        text-align:center;
-        padding:18px;
-        color:#ccc;
+        text-align: center;
+        padding: 18px;
+        color: var(--cc-texto-secundario);
     }
 </style>
 </head>
@@ -107,7 +114,6 @@ $res = mysqli_query($conexion, $sql);
 <div class="container">
     <h1>Consulta 2 — Pedidos y detalle de envío</h1>
 
-    <!-- === RANGO VISUAL === -->
     <div class="subtitulo">
         <?php if ($desde && $hasta): ?>
             Consulta desde <strong><?= htmlspecialchars($desde) ?></strong> hasta <strong><?= htmlspecialchars($hasta) ?></strong>
@@ -145,5 +151,8 @@ $res = mysqli_query($conexion, $sql);
 
     <a href="menu_consultas.php" class="volver">⬅ Volver a Consultas</a>
 </div>
+
+<script src="../js/theme-toggle.js"></script>
+
 </body>
 </html>

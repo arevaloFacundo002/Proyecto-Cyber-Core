@@ -1,7 +1,9 @@
+ <?php
 
+require_once '../auth/auth.php';
 
-<?php
 $desde = isset($_GET["desde"]) ? $_GET["desde"] : null;
+
 // Si NO se enviaron fechas → mostrar formulario y salir
 if (!isset($_GET["desde"]) || !isset($_GET["hasta"])) {
 ?>
@@ -9,32 +11,61 @@ if (!isset($_GET["desde"]) || !isset($_GET["hasta"])) {
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Generar Reporte de Usuarios</title>
+
+<link href="../css/theme.css" rel="stylesheet">
 
 <style>
     body {
         margin: 0;
         padding: 0;
-        background: #0a0a0a;
         font-family: 'Segoe UI', sans-serif;
-        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+
+    .volver {
+        position: fixed;
+        top: 22px;
+        left: 22px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 18px;
+        border-radius: 20px;
+        background: var(--cc-superficie);
+        border: 1px solid var(--cc-borde);
+        color: var(--cc-texto);
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+    .volver:hover {
+        border-color: var(--cc-primario);
+        color: var(--cc-primario);
     }
 
     .container {
         max-width: 550px;
-        margin: 80px auto;
-        background: #111;
+        width: 90%;
+        margin: 40px auto;
+        background: var(--cc-superficie);
         padding: 40px;
         border-radius: 18px;
-        box-shadow: 0 0 20px rgba(0,189,255,0.25);
-        border: 1px solid #00bdff33;
+        box-shadow: 0 0 20px rgba(0, 234, 255, 0.15);
+        border: 1px solid var(--cc-borde);
         text-align: center;
     }
 
     h1 {
         margin-bottom: 25px;
-        color: #00bdff;
-        text-shadow: 0 0 8px #00bdff;
+        font-size: 26px;
+        color: var(--cc-primario);
+        text-shadow: 0 0 8px rgba(0, 234, 255, 0.4);
     }
 
     label {
@@ -42,22 +73,22 @@ if (!isset($_GET["desde"]) || !isset($_GET["hasta"])) {
         text-align: left;
         margin-top: 18px;
         font-weight: bold;
-        color: #ccefff;
+        color: var(--cc-texto);
     }
 
     input[type="date"] {
         width: 100%;
+        box-sizing: border-box;
         padding: 12px;
         border-radius: 10px;
-        border: 1px solid #00bdff55;
-        background: #0d0d0d;
-        color: white;
+        border: 1px solid var(--cc-borde);
+        background: var(--cc-fondo);
+        color: var(--cc-texto);
         margin-top: 6px;
         font-size: 15px;
         cursor: pointer;
     }
 
-    /* Icono de calendario personalizado */
     input[type="date"]::-webkit-calendar-picker-indicator {
         filter: invert(80%) sepia(50%) saturate(200%) hue-rotate(160deg);
         cursor: pointer;
@@ -65,8 +96,8 @@ if (!isset($_GET["desde"]) || !isset($_GET["hasta"])) {
 
     input[type="date"]:focus {
         outline: none;
-        border-color: #00bdff;
-        box-shadow: 0 0 6px #00bdff;
+        border-color: var(--cc-primario);
+        box-shadow: 0 0 6px rgba(0, 234, 255, 0.5);
     }
 
     button {
@@ -74,26 +105,28 @@ if (!isset($_GET["desde"]) || !isset($_GET["hasta"])) {
         width: 100%;
         padding: 15px;
         font-size: 17px;
-        background: #00bdff;
+        background: var(--cc-primario);
         border: none;
         border-radius: 12px;
         font-weight: bold;
         cursor: pointer;
-        color: #000;
+        color: var(--cc-texto-sobre-primario);
         transition: 0.25s;
     }
 
     button:hover {
-        background: #009ac7;
-        box-shadow: 0 0 10px #00bdff;
+        background: var(--cc-primario-hover);
+        box-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
     }
 </style>
 
 </head>
 <body>
 
+<a href="../inicio.php" class="volver">← Volver a Módulos</a>
+
 <div class="container">
-    <h1>Reporte de Usuarios y Clientes</h1>
+    <h1>📊 Reporte de Usuarios y Clientes</h1>
 
     <form method="GET" action="reporte_usuarios.php" target="_blank">
 
@@ -106,6 +139,8 @@ if (!isset($_GET["desde"]) || !isset($_GET["hasta"])) {
         <button type="submit">📄 Generar Reporte / Descargar PDF</button>
     </form>
 </div>
+
+<script src="../js/theme-toggle.js"></script>
 
 </body>
 </html>
@@ -155,24 +190,31 @@ $usuarios_con_cliente = $conexion->query("
 
 $usuarios_sin_cliente = $usuarios_total - $usuarios_con_cliente;
 
-// Roles
+// Roles (usuarios.rela_id_perfil -> perfiles.nombre_perfil)
 $roles = [];
-$q = $conexion->query("SELECT tipo_usuario, COUNT(*) AS c FROM usuarios GROUP BY tipo_usuario");
-while ($r = $q->fetch_assoc()) $roles[$r['tipo_usuario']] = $r['c'];
+$q = $conexion->query("
+    SELECT p.nombre_perfil AS rol, COUNT(*) AS c
+    FROM usuarios u
+    INNER JOIN perfiles p ON p.id_perfil = u.rela_id_perfil
+    GROUP BY p.nombre_perfil
+");
+while ($r = $q->fetch_assoc()) $roles[$r['rol']] = $r['c'];
 
-// Estados cliente
+// Usuarios por estado (usuarios.estado: activo / inactivo / bloqueado)
 $estados = [];
-$q = $conexion->query("SELECT cliente_estado, COUNT(*) AS c FROM clientes GROUP BY cliente_estado");
-while ($e = $q->fetch_assoc()) $estados[$e['cliente_estado']] = $e['c'];
+$q = $conexion->query("SELECT estado, COUNT(*) AS c FROM usuarios GROUP BY estado");
+while ($e = $q->fetch_assoc()) $estados[$e['estado']] = $e['c'];
 
 // Top 5 provincias con clientes
+// clientes -> direcciones (rela_id_direccion) -> localidades (rela_id_localidad) -> provincias (rela_id_provincia)
 $top_provincias = [];
 $q = $conexion->query("
     SELECT p.nombre_provincia AS provincia, COUNT(*) AS total
     FROM clientes c
-    JOIN localidades l ON l.id_localidades = c.rela_id_localidades
-    JOIN provincias p ON p.id_provincias = l.rela_id_provincias
-    GROUP BY p.id_provincias
+    INNER JOIN direcciones d ON d.id_direccion = c.rela_id_direccion
+    INNER JOIN localidades l ON l.id_localidad = d.rela_id_localidad
+    INNER JOIN provincias p ON p.id_provincia = l.rela_id_provincia
+    GROUP BY p.id_provincia
     ORDER BY total DESC
     LIMIT 5
 ");
@@ -237,7 +279,7 @@ $chart_topprov    = __DIR__ . "/provincias.png";
 $chart_clientemes = __DIR__ . "/clientes_mes.png";
 
 crearGrafico($roles, "Usuarios por Rol", $chart_roles);
-crearGrafico($estados, "Clientes por Estado", $chart_estados);
+crearGrafico($estados, "Usuarios por Estado", $chart_estados);
 crearGrafico($top_provincias, "Top 5 Provincias con Clientes", $chart_topprov);
 crearGrafico($clientes_mes, "Crecimiento de Clientes por Mes", $chart_clientemes);
 
@@ -299,7 +341,7 @@ $pdf->Image($chart_roles, 15, $pdf->GetY(), 180);
 $pdf->Ln(120);
 
 // Gráfico estados
-$pdf->titulo("Clientes por Estado");
+$pdf->titulo("Usuarios por Estado");
 $pdf->Image($chart_estados, 15, $pdf->GetY(), 180);
 $pdf->Ln(120);
 

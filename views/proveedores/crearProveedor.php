@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 require_once '../../auth/auth.php';
 
@@ -23,6 +23,7 @@ require_once '../../auth/auth.php';
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
+
     <link href="../../css/theme.css" rel="stylesheet">
 
     <style>
@@ -97,7 +98,7 @@ require_once '../../auth/auth.php';
         <div class="card-body p-4">
 
             <form
-                action="../../controllers/inputsControllers/ProveedorController.php?accion=crear"
+                action="../../../controllers/inputsControllers/ProveedorController.php?accion=crear"
                 method="POST">
 
 
@@ -240,6 +241,8 @@ require_once '../../auth/auth.php';
 <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
 </script>
+
+<script src="../../js/theme-toggle.js"></script>
 
 
 </body>

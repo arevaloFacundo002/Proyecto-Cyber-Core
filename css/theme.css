@@ -194,6 +194,10 @@ h1, h2, h3, h4, h5, h6 {
     border-color: var(--cc-borde) !important;
 }
 
+.table td {
+    color: var(--cc-texto) !important;
+}
+
 /* Filas con clases de color de Bootstrap (evita que queden blancas) */
 .table-light,
 .table-light > * {

@@ -29,9 +29,9 @@ class MovimientoStock
         * correspondiente al concepto seleccionado.
         */
 
-        $sqlConcepto = "SELECT tipo_accion
-                        FROM cat_conceptos_movimiento
-                        WHERE id_conceptos = ?
+        $sqlConcepto = "SELECT tipo_movimiento
+                        FROM conceptos_movimiento
+                        WHERE id_concepto = ?
                         AND es_activo = 1";
 
         $stmtConcepto = $this->conexion->prepare($sqlConcepto);
@@ -48,7 +48,7 @@ class MovimientoStock
 
         $concepto = $resultadoConcepto->fetch_assoc();
 
-        $tipo = $concepto['tipo_accion'];
+        $tipo = $concepto['tipo_movimiento'];
 
         /*
         * La cantidad que ingresa el usuario siempre
@@ -195,12 +195,12 @@ class MovimientoStock
                     p.nombre AS nombre_producto,
                     p.codigo,
                     cm.descripcion AS concepto,
-                    cm.tipo_accion
+                    cm.tipo_movimiento
                 FROM historial_movimientos hm
                 INNER JOIN productos p
                     ON hm.rela_id_productos = p.id_producto
-                INNER JOIN cat_conceptos_movimiento cm
-                    ON hm.rela_id_conceptos = cm.id_conceptos
+                INNER JOIN conceptos_movimiento cm
+                    ON hm.rela_id_conceptos = cm.id_concepto
                 WHERE hm.id_movimientos = ?";
 
         $stmt = $this->conexion->prepare($sql);
@@ -261,7 +261,7 @@ class MovimientoStock
         */
         if ($tipo === "E" || $tipo === "S") {
 
-            $condiciones[] = "cm.tipo_accion = ?";
+            $condiciones[] = "cm.tipo_movimiento = ?";
 
             $parametros[] = $tipo;
             $tipos .= "s";
@@ -329,15 +329,15 @@ class MovimientoStock
                     p.nombre AS nombre_producto,
 
                     cm.descripcion AS concepto,
-                    cm.tipo_accion
+                    cm.tipo_movimiento
 
                 FROM historial_movimientos hm
 
                 INNER JOIN productos p
                     ON hm.rela_id_productos = p.id_producto
 
-                INNER JOIN cat_conceptos_movimiento cm
-                    ON hm.rela_id_conceptos = cm.id_conceptos
+                INNER JOIN conceptos_movimiento cm
+                    ON hm.rela_id_conceptos = cm.id_concepto
 
                 $where
 
@@ -431,7 +431,7 @@ class MovimientoStock
         */
         if ($tipo === "E" || $tipo === "S") {
 
-            $condiciones[] = "cm.tipo_accion = ?";
+            $condiciones[] = "cm.tipo_movimiento = ?";
 
             $parametros[] = $tipo;
             $tipos .= "s";
@@ -489,8 +489,8 @@ class MovimientoStock
                 INNER JOIN productos p
                     ON hm.rela_id_productos = p.id_producto
 
-                INNER JOIN cat_conceptos_movimiento cm
-                    ON hm.rela_id_conceptos = cm.id_conceptos
+                INNER JOIN conceptos_movimiento cm
+                    ON hm.rela_id_conceptos = cm.id_concepto
 
                 $where";
 
