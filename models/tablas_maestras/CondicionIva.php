@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once __DIR__ . '/../Database.php';
 
 class CondicionIva{
@@ -35,14 +35,14 @@ class CondicionIva{
     public function crear(string $nombre, string $descripcion, float $porcentaje_iva){
         $sql = "INSERT INTO condiciones_iva (nombre, descripcion, porcentaje_iva) VALUES (?,?,?)";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param('ssi',$nombre,$descripcion,$porcentaje_iva);
+        $stmt->bind_param('ssd',$nombre,$descripcion,$porcentaje_iva);
         return $stmt->execute();
     }
 
     public function editar(string $nombre, string $descripcion, float $porcentaje_iva, int $id_condicion_iva){
         $sql = "UPDATE condiciones_iva SET nombre = ?, descripcion = ?, porcentaje_iva = ? WHERE id_condicion_iva = ?";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param('ssii',$nombre,$descripcion,$porcentaje_iva,$id_condicion_iva);
+        $stmt->bind_param('ssdi',$nombre,$descripcion,$porcentaje_iva,$id_condicion_iva);
         return $stmt->execute();
     }
 

@@ -1,4 +1,4 @@
-  <?php
+ <?php
 //este modelo se encarga de las responsabilidades relacionadas con provincias, localidades y direcciones
 require_once __DIR__ . '/../Database.php';
 
@@ -105,17 +105,17 @@ class Ubicacion{
         return $resultado->fetch_assoc();
     }
 
-    public function crearLocalidades(string $nombre_localidad, int $codigo_postal,string $tipo_zona, int $rela_id_provincia){
+    public function crearLocalidades(string $nombre_localidad, string $codigo_postal,string $tipo_zona, int $rela_id_provincia){
         $sql = "INSERT INTO localidades (nombre_localidad, codigo_postal, tipo_zona, rela_id_provincia) VALUES (?,?,?,?)";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param('sisi',$nombre_localidad,$codigo_postal,$tipo_zona,$rela_id_provincia);
+        $stmt->bind_param('sssi',$nombre_localidad,$codigo_postal,$tipo_zona,$rela_id_provincia);
         return $stmt->execute();
     }
 
-    public function editarLocalidades(string $nombre_localidad, int $codigo_postal,string $tipo_zona, int $rela_id_provincia, int $id_localidad){
+    public function editarLocalidades(string $nombre_localidad, string $codigo_postal,string $tipo_zona, int $rela_id_provincia, int $id_localidad){
         $sql = "UPDATE localidades SET nombre_localidad = ?, codigo_postal = ?, tipo_zona = ?, rela_id_provincia = ? WHERE id_localidad = ?";
         $stmt = $this->conexion->prepare($sql);
-        $stmt->bind_param('sisii',$nombre_localidad,$codigo_postal,$tipo_zona,$rela_id_provincia,$id_localidad);
+        $stmt->bind_param('sssii',$nombre_localidad,$codigo_postal,$tipo_zona,$rela_id_provincia,$id_localidad);
         return $stmt->execute();
     }
 

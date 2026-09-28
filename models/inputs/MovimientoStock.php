@@ -29,7 +29,7 @@ class MovimientoStock
         * correspondiente al concepto seleccionado.
         */
 
-        $sqlConcepto = "SELECT tipo_movimiento
+        $sqlConcepto = "SELECT tipo_movimiento AS tipo_accion
                         FROM conceptos_movimiento
                         WHERE id_concepto = ?
                         AND es_activo = 1";
@@ -48,7 +48,7 @@ class MovimientoStock
 
         $concepto = $resultadoConcepto->fetch_assoc();
 
-        $tipo = $concepto['tipo_movimiento'];
+        $tipo = $concepto['tipo_accion'];
 
         /*
         * La cantidad que ingresa el usuario siempre
@@ -195,7 +195,7 @@ class MovimientoStock
                     p.nombre AS nombre_producto,
                     p.codigo,
                     cm.descripcion AS concepto,
-                    cm.tipo_movimiento
+                    cm.tipo_movimiento AS tipo_accion
                 FROM historial_movimientos hm
                 INNER JOIN productos p
                     ON hm.rela_id_productos = p.id_producto
@@ -329,7 +329,7 @@ class MovimientoStock
                     p.nombre AS nombre_producto,
 
                     cm.descripcion AS concepto,
-                    cm.tipo_movimiento
+                    cm.tipo_movimiento AS tipo_accion
 
                 FROM historial_movimientos hm
 

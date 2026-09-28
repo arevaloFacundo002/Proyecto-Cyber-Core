@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once '../../models/Usuario.php';
 $user = new Usuario();
 
@@ -39,60 +39,81 @@ if (!isset($_GET['token'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cambiar </title>
-</head>
+    <title>Nueva contraseña - CyberCore</title>
+<link href="../../css/theme.css" rel="stylesheet">
 <style>
     body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #0a0a0a, #090e13ff);
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
     }
 
     .login-box {
-        background: #111;
+        background: var(--cc-superficie);
         padding: 40px;
         width: 380px;
         border-radius: 15px;
-        box-shadow: 0 0 25px #00eaff44;
+        box-shadow: 0 0 25px rgba(0, 234, 255, 0.25);
+        border: 1px solid var(--cc-borde);
         text-align: center;
+        color: var(--cc-texto);
     }
 
     .logo {
         font-size: 32px;
-        color: #00eaff;
+        color: var(--cc-primario);
         font-weight: bold;
         margin-bottom: 25px;
     }
 
     input {
         width: 90%;
+        box-sizing: border-box;
         padding: 14px;
         margin: 10px 0;
         border-radius: 8px;
-        border: none;
-        background: #1c1c1c;
-        color: white;
+        border: 1px solid var(--cc-borde);
+        background: var(--cc-fondo);
+        color: var(--cc-texto);
     }
 
     button {
         width: 95%;
         padding: 14px;
         margin-top: 15px;
-        background: #00eaff;
+        background: var(--cc-primario);
+        color: var(--cc-texto-sobre-primario);
+        border: none;
         border-radius: 25px;
         font-weight: bold;
         cursor: pointer;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        background: var(--cc-primario-hover);
+    }
+
+    .volver-login {
+        display: inline-block;
+        margin-top: 18px;
+        color: var(--cc-primario);
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .volver-login:hover {
+        text-decoration: underline;
     }
 </style>
+</head>
 <body>
 
 <div class="login-box">
@@ -104,6 +125,8 @@ if (!isset($_GET['token'])) {
         <input type="password" name="password2" placeholder="Repetir contraseña" required>
         <button name="guardar">Guardar</button>
     </form>
+
+    <a class="volver-login" href="../../login.php">← Volver al login</a>
 
 </div>
 
@@ -130,5 +153,6 @@ if (!isset($_GET['token'])) {
     });
     </script>
     <?php endif; ?>
+<script src="../../js/theme-toggle.js"></script>
 </body>
 </html>

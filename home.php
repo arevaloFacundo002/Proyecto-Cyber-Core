@@ -254,7 +254,7 @@ nav a:hover {
             <a class="logout" href="logout.php">Cerrar sesión</a>
             
         <?php }else{ ?>
-            <a href="index.php">Iniciar sesión</a>
+            <a href="login.php">Iniciar sesión</a>
             <a href="registro.php">Registrarse</a>
         <?php } ?>
     </nav>

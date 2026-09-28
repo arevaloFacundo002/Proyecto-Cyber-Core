@@ -49,7 +49,7 @@ class Producto
         return $productos;
     }
 
-    // BUSCA UN PRODUCTO POR ID PARA LA PÁGINA DE DETALLE (home.php / producto.php)
+    // BUSCA UN PRODUCTO POR ID PARA LA PÁGINA DE DETALLE
     public function busqueda_de_producto(int $id_producto)
     {
         $sql = "SELECT
@@ -71,6 +71,26 @@ class Producto
 
         if ($resultado->num_rows > 0) {
             return $resultado->fetch_assoc();
+        }
+
+        return null;
+    }
+
+    // DATOS MÍNIMOS DE UN PRODUCTO PARA EL CARRITO
+    public function consulta_producto_stock(int $id_producto)
+    {
+        $sql = "SELECT id_producto, nombre, precio, stock, imagen_url
+                FROM productos
+                WHERE id_producto = ?";
+
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param("i", $id_producto);
+        $stmt->execute();
+
+        $resultado = $stmt->get_result();
+
+        if ($producto = $resultado->fetch_assoc()) {
+            return $producto;
         }
 
         return null;
@@ -98,7 +118,7 @@ class Producto
         return $reseñas;
     }
 
-    // INSERTA UNA NUEVA RESEÑA (guardar_resena.php)
+    // INSERTA UNA NUEVA RESEÑA
     public function insertar_resenias(string $comentario, int $calificacion, int $id_producto)
     {
         $sql = "INSERT INTO reseñas (comentario, calificacion, rela_id_producto)
