@@ -44,7 +44,7 @@
         color: var(--cc-texto);
     }
 
-    button {
+    .login-box button {
         width: 95%;
         padding: 14px;
         margin-top: 15px;
@@ -57,7 +57,7 @@
         transition: 0.2s;
     }
 
-    button:hover {
+    .login-box button:hover {
         background: var(--cc-primario-hover);
     }
 

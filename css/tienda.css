@@ -1,0 +1,198 @@
+ /* Estilos compartidos de las páginas de compra (checkout / confirmación).
+   Usa las variables de theme.css, así respeta el modo claro/oscuro. */
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.tienda-header {
+    background: var(--cc-superficie-2);
+    padding: 18px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--cc-borde);
+}
+
+.tienda-header .logo {
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: var(--cc-primario);
+}
+
+.tienda-header nav a {
+    color: var(--cc-texto);
+    margin: 0 15px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.tienda-header nav a:hover {
+    color: var(--cc-primario);
+}
+
+.tienda-header .logout {
+    color: var(--cc-peligro);
+}
+
+.tienda-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: var(--cc-texto);
+}
+
+.tienda-container h1 {
+    text-align: center;
+    color: var(--cc-primario);
+    margin-bottom: 30px;
+}
+
+.caja {
+    background: var(--cc-superficie);
+    border: 1px solid var(--cc-borde);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 22px;
+    box-shadow: 0 0 15px rgba(0, 234, 255, 0.10);
+}
+
+.caja h2 {
+    margin-top: 0;
+    color: var(--cc-primario);
+    font-size: 20px;
+}
+
+.tabla-compra {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-compra th {
+    color: var(--cc-primario);
+    background: rgba(0, 234, 255, 0.10);
+    padding: 12px;
+    text-align: left;
+}
+
+.tabla-compra td {
+    padding: 12px;
+    border-bottom: 1px solid var(--cc-borde);
+    color: var(--cc-texto);
+}
+
+.tabla-compra .num {
+    text-align: right;
+}
+
+.tabla-compra img {
+    width: 50px;
+    vertical-align: middle;
+    margin-right: 10px;
+    border-radius: 6px;
+}
+
+.fila-total td {
+    border-bottom: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--cc-primario);
+}
+
+.texto-suave {
+    color: var(--cc-texto-secundario);
+}
+
+.opcion-pago {
+    display: block;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--cc-borde);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+    color: var(--cc-texto);
+}
+
+.opcion-pago:hover {
+    border-color: var(--cc-primario);
+}
+
+.opcion-pago input {
+    margin-right: 10px;
+    accent-color: var(--cc-primario);
+}
+
+.opcion-pago small {
+    display: block;
+    margin-left: 26px;
+    color: var(--cc-texto-secundario);
+}
+
+.aviso {
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid var(--cc-peligro);
+    background: rgba(255, 59, 59, 0.10);
+    color: var(--cc-texto);
+}
+
+.aviso-ok {
+    border-color: var(--cc-exito);
+    background: rgba(40, 199, 111, 0.12);
+}
+
+.btn-principal {
+    display: inline-block;
+    padding: 14px 32px;
+    background: var(--cc-primario);
+    color: var(--cc-texto-sobre-primario);
+    font-weight: bold;
+    font-size: 17px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.btn-principal:hover {
+    background: var(--cc-primario-hover);
+}
+
+.btn-principal[disabled] {
+    background: var(--cc-texto-secundario);
+    cursor: not-allowed;
+}
+
+.btn-secundario {
+    display: inline-block;
+    padding: 12px 24px;
+    color: var(--cc-texto);
+    border: 1px solid var(--cc-borde);
+    border-radius: 25px;
+    text-decoration: none;
+    margin-right: 10px;
+    transition: 0.2s;
+}
+
+.btn-secundario:hover {
+    border-color: var(--cc-primario);
+    color: var(--cc-primario);
+}
+
+.acciones {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.centrado {
+    text-align: center;
+}

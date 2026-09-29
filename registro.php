@@ -112,7 +112,7 @@ input:focus {
     border-color: var(--cc-primario);
 }
 
-button {
+.container button {
     width: 100%;
     padding: 14px;
     background: var(--cc-primario);
@@ -125,7 +125,7 @@ button {
     transition: 0.3s;
 }
 
-button:hover {
+.container button:hover {
     background: var(--cc-primario-hover);
 }
 

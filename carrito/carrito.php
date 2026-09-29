@@ -250,7 +250,7 @@ h2 {
     Total: $<?php echo number_format($total, 2); ?>
 </div>
 
-<a class="btn-finalizar" href="#">Finalizar compra</a>
+<a class="btn-finalizar" href="checkout.php">Finalizar compra</a>
 
 <?php endif; ?>
 

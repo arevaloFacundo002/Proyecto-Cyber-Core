@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once "../models/Cliente.php";
 require_once "../models/Usuario.php";
 require_once "../models/tablas_maestras/Ubicacion.php";
@@ -80,85 +80,98 @@ if (isset($_POST['guardar'])) {
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Crear Cliente</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crear Cliente - CyberCore</title>
+
+<link href="../css/theme.css" rel="stylesheet">
 
 <style>
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #f4f4f4;
 }
 
-/* HEADER */
 header {
-    background: #0a0a0a;
+    background: var(--cc-superficie-2);
     padding: 18px 40px;
-    color: white;
+    color: var(--cc-texto);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid var(--cc-borde);
 }
 
 header a {
-    color: #00eaff;
+    color: var(--cc-primario);
     text-decoration: none;
     font-weight: bold;
 }
 
-/* CARD */
 .form-container {
     width: 480px;
+    max-width: 90%;
     margin: 40px auto;
-    background: white;
+    background: var(--cc-superficie);
     padding: 30px;
     border-radius: 16px;
-    box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    box-shadow: 0 0 15px rgba(0, 234, 255, 0.15);
+    border: 1px solid var(--cc-borde);
+    box-sizing: border-box;
 }
 
 h2 {
     text-align: center;
-    color: #111;
+    color: var(--cc-primario);
     margin-bottom: 15px;
 }
 
 .info-user {
-    background: #00eaff22;
+    background: rgba(0, 234, 255, 0.10);
     padding: 12px;
     border-radius: 10px;
     font-size: 14px;
     margin-bottom: 20px;
-    border-left: 4px solid #00eaff;
+    border-left: 4px solid var(--cc-primario);
+    color: var(--cc-texto);
 }
 
-/* Campos */
-input, select {
+label {
+    color: var(--cc-texto);
+}
+
+input, select, textarea {
     width: 100%;
+    box-sizing: border-box;
     padding: 13px;
     margin: 10px 0;
-    border: 1px solid #aaa;
+    border: 1px solid var(--cc-borde);
     border-radius: 10px;
     outline: none;
+    background: var(--cc-fondo);
+    color: var(--cc-texto);
+    font-family: inherit;
 }
 
-input:focus, select:focus {
-    border-color: #00b1cc;
+input:focus, select:focus, textarea:focus {
+    border-color: var(--cc-primario);
 }
 
-/* Botón */
-button {
+.form-container button {
     width: 100%;
     padding: 14px;
-    background: #00eaff;
+    background: var(--cc-primario);
+    color: var(--cc-texto-sobre-primario);
     border: none;
     border-radius: 20px;
     font-size: 16px;
     font-weight: bold;
     margin-top: 10px;
     cursor: pointer;
+    transition: 0.2s;
 }
 
-button:hover {
-    background: #009ebd;
+.form-container button:hover {
+    background: var(--cc-primario-hover);
 }
 </style>
 </head>
@@ -175,7 +188,7 @@ button:hover {
     <h2>Crear Cliente</h2>
 
     <div class="info-user">
-        <strong>Usuario:</strong> <?= $usuario['nombre'] ?> (<?= $usuario['correo'] ?>)<br>
+        <strong>Usuario:</strong> <?= htmlspecialchars($usuario['nombre']) ?> (<?= htmlspecialchars($usuario['correo']) ?>)<br>
         Este cliente quedará asociado al usuario <strong>#<?= $id_usuario ?></strong>.
     </div>
 
@@ -252,6 +265,8 @@ document.getElementById("provincia").addEventListener("change", function() {
         });
 });
 </script>
+
+<script src="../js/theme-toggle.js"></script>
 
 </body>
 </html>

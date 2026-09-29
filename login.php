@@ -1,4 +1,4 @@
-<?php
+ <?php
 session_start();
 require_once 'models/Usuario.php';
 $user = new Usuario();
@@ -95,7 +95,7 @@ input {
     color: var(--cc-texto);
 }
 
-button {
+.login-box button {
     width: 95%;
     padding: 14px;
     margin-top: 15px;
@@ -108,7 +108,7 @@ button {
     transition: 0.2s;
 }
 
-button:hover {
+.login-box button:hover {
     background: var(--cc-primario-hover);
 }
 
@@ -183,4 +183,4 @@ Swal.fire({
 <?php endif; ?>
 
 </body>
-</html> 
+</html>

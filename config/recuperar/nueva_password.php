@@ -1,4 +1,4 @@
- <?php
+<?php
 require_once '../../models/Usuario.php';
 $user = new Usuario();
 
@@ -84,7 +84,7 @@ if (!isset($_GET['token'])) {
         color: var(--cc-texto);
     }
 
-    button {
+    .login-box button {
         width: 95%;
         padding: 14px;
         margin-top: 15px;
@@ -97,7 +97,7 @@ if (!isset($_GET['token'])) {
         transition: 0.2s;
     }
 
-    button:hover {
+    .login-box button:hover {
         background: var(--cc-primario-hover);
     }
 
