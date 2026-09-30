@@ -340,3 +340,64 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 18px;
     color: var(--cc-primario);
 }
+/* ===================================================================
+   HEADER ESTÁNDAR DEL PANEL DE ADMINISTRADOR (includes/header_admin.php)
+   Se agrega acá para que todos los módulos del admin luzcan igual sin
+   tener que repetir el mismo CSS en cada archivo.
+   =================================================================== */
+.cc-header-admin {
+    background: var(--cc-superficie-2);
+    padding: 20px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(0, 234, 255, 0.3);
+    box-shadow: 0 0 15px rgba(0, 234, 255, 0.2);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.cc-header-admin .cc-logo {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--cc-primario);
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px rgba(0, 234, 255, 0.6);
+}
+
+.cc-header-admin .cc-user {
+    font-size: 18px;
+    color: var(--cc-texto);
+    display: flex;
+    align-items: center;
+}
+
+.cc-header-admin .cc-logout {
+    color: var(--cc-peligro);
+    margin-left: 10px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.cc-header-admin .cc-logout:hover {
+    text-decoration: underline;
+}
+
+.cc-header-admin .cc-ir-tienda {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 18px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: var(--cc-superficie);
+    border: 1px solid var(--cc-borde);
+    color: var(--cc-texto);
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.cc-header-admin .cc-ir-tienda:hover {
+    border-color: var(--cc-primario);
+    color: var(--cc-primario);
+}
