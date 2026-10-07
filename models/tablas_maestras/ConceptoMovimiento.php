@@ -1,5 +1,5 @@
-<?php
-require_once 'C:\Users\areva\.vscode\cyber_core\models/Database.php';
+ <?php
+require_once __DIR__ . '/../Database.php';
 
 class ConceptoMovimiento{
     private mysqli $conexion;
@@ -9,8 +9,15 @@ class ConceptoMovimiento{
         $this->conexion = $db->getConexion();
     }
 
+    // Se usan alias (id_conceptos / tipo_accion) para que las vistas existentes sigan funcionando
+    // con los nombres reales de la tabla: conceptos_movimiento(id_concepto, descripcion, tipo_movimiento, es_activo)
     public function listar(){
-        $sql = "SELECT * FROM conceptos_movimiento WHERE es_activo = 1";
+        $sql = "SELECT id_concepto AS id_conceptos,
+                       descripcion,
+                       tipo_movimiento AS tipo_accion,
+                       es_activo
+                FROM conceptos_movimiento
+                WHERE es_activo = 1";
         $stmt = $this->conexion->prepare($sql);
         $stmt->execute();
         $resultado = $stmt->get_result();
@@ -23,7 +30,12 @@ class ConceptoMovimiento{
     }
 
     public function obtenerPorId(int $id){
-        $sql = "SELECT * FROM conceptos_movimiento WHERE id_concepto = ?";
+        $sql = "SELECT id_concepto AS id_conceptos,
+                       descripcion,
+                       tipo_movimiento AS tipo_accion,
+                       es_activo
+                FROM conceptos_movimiento
+                WHERE id_concepto = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('i',$id);
         $stmt->execute();

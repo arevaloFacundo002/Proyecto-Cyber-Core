@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['usuario'])) {
-    header("Location: /login.php");
+ header("Location: /DESARROLLO%20CYBER%20CORE/Proyecto-Cyber-Core/login.php");
     exit();
 }
 

@@ -1,4 +1,4 @@
-<?php
+ <?php
 session_start();
 require_once "../models/Producto.php";
 $pro = new Producto();
@@ -52,7 +52,7 @@ if (isset($_SESSION['carrito'][$id])) {
     // 6) AGREGAR NUEVO PRODUCTO AL CARRITO
     // --------------------------------------
     $_SESSION['carrito'][$id] = [
-        'id' => $producto['id_productos'],
+        'id' => $producto['id_producto'],
         'nombre' => $producto['nombre'],
         'precio' => $producto['precio'],
         'imagen' => $producto['imagen_url'],

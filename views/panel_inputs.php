@@ -1,148 +1,161 @@
-<?php
+ <?php
 require_once '../auth/auth.php';
 
+$ruta_raiz = '../';
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Entradas</title>
+    <title>Panel de Gestión de Entradas - CyberCore</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-        rel="stylesheet">
+    <link href="../css/theme.css" rel="stylesheet">
 
     <style>
-
-        body{
-            background-color:#f4f4f4;
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
         }
 
-        .titulo-panel{
-            background:#16c5d8;
-            color:white;
-            padding:20px;
-            border-radius:12px;
-            margin-bottom:30px;
+        .subheader {
+            background: var(--cc-superficie-2);
+            padding: 16px 50px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            border-bottom: 1px solid var(--cc-borde);
         }
 
-        .card-maestra{
-            border:none;
-            border-radius:15px;
-            transition:0.3s;
+        .subheader a {
+            background: var(--cc-primario);
+            padding: 10px 18px;
+            border-radius: 20px;
+            color: var(--cc-texto-sobre-primario);
+            font-weight: bold;
+            text-decoration: none;
+            transition: 0.2s;
         }
 
-        .card-maestra:hover{
-            transform:translateY(-5px);
+        .subheader a:hover {
+            background: var(--cc-primario-hover);
         }
 
-        .btn-maestra{
-            background:#16c5d8;
-            color:white;
-            font-weight:bold;
-            border:none;
+        .container {
+            padding: 40px 50px;
         }
 
-        .btn-maestra:hover{
-            background:#11b1c2;
-            color:white;
+        h1 {
+            text-align: center;
+            color: var(--cc-primario);
+            text-shadow: 0 0 12px rgba(0, 234, 255, 0.4);
+            margin-bottom: 4px;
         }
 
-        .icono{
-            font-size:40px;
-        }
-    
-        .btn-volver{
-            background:#6c757d;
-            color:white;
-            font-weight:bold;
-            border:none;
+        .subtitulo {
+            text-align: center;
+            color: var(--cc-texto-secundario);
+            margin-bottom: 40px;
         }
 
-        .btn-volver:hover{
-            background:#5c636a;
-            color:white;
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 35px;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
+        .card {
+            background: var(--cc-superficie);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--cc-borde);
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--cc-primario);
+            box-shadow: 0 0 20px rgba(0, 234, 255, 0.35);
+        }
+
+        .card .icono {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .card h2 {
+            font-size: 19px;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: var(--cc-texto-secundario);
+            font-size: 14px;
+        }
+
+        .card a {
+            background: var(--cc-primario);
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: var(--cc-texto-sobre-primario);
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 12px;
+            transition: 0.2s;
+        }
+
+        .card a:hover {
+            background: var(--cc-primario-hover);
+        }
+
+        @media (max-width: 650px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 
 </head>
 
 <body>
-<div class="container mt-5">
-    <div class="titulo-panel shadow-sm">
 
-        <h2 class="mb-0">
-            📚 Panel de Gestion de Entradas del sistema
-        </h2>
+<?php require __DIR__ . '/../includes/header_admin.php'; ?>
 
-        <small>
-            Administración de productos y proveedores
-        </small>
+<div class="subheader">
+    <a href="../inicio.php">← Volver al Panel</a>
+</div>
 
+<div class="container">
+
+    <h1>📦 Panel de Gestión de Entradas del Sistema</h1>
+    <p class="subtitulo">Administración de productos y proveedores</p>
+
+    <div class="grid">
+
+        <div class="card">
+            <div class="icono">👤</div>
+            <h2>Proveedores</h2>
+            <p>Gestión de Proveedores y contactos.</p>
+            <a href="proveedores/listarProveedor.php">Administrar</a>
         </div>
 
-        <a href="../inicio.php"
-            class="btn btn-secondary">
-                ← Volver
-        </a><br><br>
-
-
-    <div class="row g-4">
-
-        <!-- Proveedores -->
-        <div class="col-md-4">
-            <div class="card card-maestra shadow h-100">
-                <div class="card-body text-center">
-
-                    <div class="icono mb-3">
-                        👤
-                    </div>
-
-                    <h5>Proveedores</h5>
-
-                    <p class="text-muted">
-                        Gestión de Proveedores y contactos.
-                    </p>
-
-                    <a href="proveedores/listarProveedor.php"
-                    class="btn btn-maestra">
-                        Administrar
-                    </a>
-
-                </div>
-            </div>
-        </div>
-
-        <!-- Productos -->
-        <div class="col-md-4">
-            <div class="card card-maestra shadow h-100">
-                <div class="card-body text-center">
-
-                    <div class="icono mb-3">
-                        💻
-                    </div>
-
-                    <h5>Productos</h5>
-
-                    <p class="text-muted">
-                        Gestión de entradas de productos.
-                    </p>
-
-                    <a href="productos/listarProducto.php"
-                    class="btn btn-maestra">
-                        Administrar
-                    </a>
-
-                </div>
-            </div>
+        <div class="card">
+            <div class="icono">💻</div>
+            <h2>Productos</h2>
+            <p>Gestión de entradas de productos.</p>
+            <a href="productos/listarProducto.php">Administrar</a>
         </div>
 
     </div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/theme-toggle.js"></script>
 
 </body>
 </html>

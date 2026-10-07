@@ -1,6 +1,5 @@
-<?php
-require_once 'C:\Users\areva\.vscode\cyber_core\models/Database.php';
-
+ <?php
+ require_once __DIR__ . '/../Database.php';
 class Categoria{
     private mysqli $conexion;
 
@@ -46,7 +45,7 @@ class Categoria{
         return $stmt->execute();
     }
 
-    public function editar(string $nombre, string $descripcion, int $rela_id_categoria_padre, int $id_categoria){
+    public function editar(string $nombre, string $descripcion, ?int $rela_id_categoria_padre, int $id_categoria){
         $sql = "UPDATE categorias SET nombre = ?, descripcion = ?, rela_id_categoria_padre = ? WHERE id_categoria = ?";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param('ssii',$nombre,$descripcion,$rela_id_categoria_padre,$id_categoria);

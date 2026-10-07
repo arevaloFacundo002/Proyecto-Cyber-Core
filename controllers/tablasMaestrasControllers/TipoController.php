@@ -1,5 +1,5 @@
 <?php
-require_once 'C:\Users\areva\.vscode\cyber_core\models/tablas_maestras/TipoContacto.php';
+require_once __DIR__ . '/../../models/tablas_maestras/TipoContacto.php';
 
 class TipoContactoController{
     private TipoContacto $tipo;

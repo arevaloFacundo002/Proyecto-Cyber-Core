@@ -1,7 +1,7 @@
 <?php
 
-require_once 'C:\Users\areva\.vscode\cyber_core\models/inputs/Proveedor.php';
-
+ require_once __DIR__ . '/../../models/inputs/Proveedor.php'; 
+ 
 class ProveedorController
 {
     private Proveedor $proveedor;
@@ -68,21 +68,25 @@ class ProveedorController
         }
     }
 
+   public function eliminar()
+   {
+    $id_proveedor = $_GET['id'];
 
-    public function eliminar()
-    {
-        $id_proveedor = $_GET['id'];
+    $resultado = $this->proveedor->eliminar($id_proveedor);
 
-        $resultado = $this->proveedor->eliminar($id_proveedor);
-
-        if ($resultado) {
-            header("Location: ../../views/proveedores/listarProveedor.php?mensaje=eliminado");
-            exit();
-        }
-        else {
-            header("Location: ../../views/proveedores/listarProveedor.php?error=1");
-            exit();
-        }
+    if ($resultado === true) {
+        header("Location: ../../views/proveedores/listarProveedor.php?mensaje=eliminado");
+        exit();
+    }
+    elseif ($resultado === 'tiene_relacion') {
+        header("Location: ../../views/proveedores/listarProveedor.php?error=relacion");
+        exit();
+    }
+    else {
+        header("Location: ../../views/proveedores/listarProveedor.php?error=1");
+        exit();
+    }
+    
     }
 
     public function activar()
@@ -104,6 +108,7 @@ class ProveedorController
             exit();
         }
     }
+
 }
 
 

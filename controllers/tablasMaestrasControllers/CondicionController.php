@@ -1,6 +1,6 @@
 <?php
-require_once 'C:\Users\areva\.vscode\cyber_core\models/tablas_maestras/CondicionIva.php';
-
+ require_once __DIR__ . '/../../models/tablas_maestras/CondicionIva.php';
+ 
 class CondicionIvaController{
     private CondicionIva $condicion;
 

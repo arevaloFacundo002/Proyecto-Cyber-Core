@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once "models/Usuario.php";
 require_once 'config/mail.php';
 session_start();
@@ -36,12 +36,16 @@ if (isset($_POST['registrar'])) {
         if ($user->verificar_correo($correo)) {
             $error = "Ya existe una cuenta con este correo.";
         } else {
+          
+        $token = bin2hex(random_bytes(32));
 
-            $token = bin2hex(random_bytes(32));
-            $base_url = "http://" . $_SERVER['HTTP_HOST'];     //link automatico segun servidor xampp o phpserver
-            $link = $base_url . "/validar_cuenta.php?token=$token";
-            
-            $mensajeHTML = "<h2>Hola! $nombre</h2>
+// Detecta automáticamente el protocolo y la carpeta donde corre el proyecto
+$scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+$path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+
+$base_url = $scheme . "://" . $_SERVER['HTTP_HOST'] . $path;
+$link = $base_url . "/validar_cuenta.php?token=$token";
+          $mensajeHTML = "<h2>Hola! $nombre</h2>
                 <p>Gracias por registrarte en CYBER CORE</p>
                 <p>Hace click para validar tu cuenta: </p>
                 <p><a href='$link'>Validar Cuenta</a></p>";
@@ -64,48 +68,56 @@ if (isset($_POST['registrar'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Registrarse - CyberCore</title>
 
+<link href="css/theme.css" rel="stylesheet">
+
 <style>
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #0f0f0f;
-    color: white;
 }
 
 .container {
     width: 100%;
     max-width: 420px;
     margin: 80px auto;
-    background: #1a1a1a;
+    background: var(--cc-superficie);
     padding: 35px;
     border-radius: 12px;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.20);
+    box-shadow: 0 0 15px rgba(0, 234, 255, 0.20);
+    border: 1px solid var(--cc-borde);
     text-align: center;
+    color: var(--cc-texto);
+    box-sizing: border-box;
 }
 
 h2 {
     margin-bottom: 25px;
-    color: #00eaff;
+    color: var(--cc-primario);
 }
 
 input {
     width: 100%;
+    box-sizing: border-box;
     padding: 14px;
     margin-bottom: 18px;
     border-radius: 8px;
-    border: none;
+    border: 1px solid var(--cc-borde);
     outline: none;
-    background: #2a2a2a;
-    color: white;
+    background: var(--cc-fondo);
+    color: var(--cc-texto);
     font-size: 15px;
 }
 
-button {
+input:focus {
+    border-color: var(--cc-primario);
+}
+
+.container button {
     width: 100%;
     padding: 14px;
-    background: #00eaff;
+    background: var(--cc-primario);
     border: none;
-    color: black;
+    color: var(--cc-texto-sobre-primario);
     font-weight: bold;
     font-size: 16px;
     border-radius: 8px;
@@ -113,12 +125,12 @@ button {
     transition: 0.3s;
 }
 
-button:hover {
-    background: #00b1cc;
+.container button:hover {
+    background: var(--cc-primario-hover);
 }
 
 a {
-    color: #00eaff;
+    color: var(--cc-primario);
     text-decoration: none;
 }
 
@@ -127,12 +139,12 @@ a:hover {
 }
 
 .msg-error {
-    background: #ff3b3b;
+    background: var(--cc-peligro);
     padding: 12px;
     border-radius: 6px;
     margin-bottom: 18px;
     font-weight: bold;
-    color: white;
+    color: #fff;
 }
 </style>
 </head>
@@ -163,6 +175,7 @@ a:hover {
     </p>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/theme-toggle.js"></script>
 
     <?php if (!empty($exito)): ?>
         <script>

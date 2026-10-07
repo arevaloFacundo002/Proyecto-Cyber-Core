@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once "../models/Usuario.php";
 $user = new Usuario();
 

@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once 'models/Usuario.php';
 $user = new Usuario();
 
@@ -30,13 +30,19 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
 
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validacion de cuenta</title>
+    <title>Validación de cuenta - CyberCore</title>
+    <link href="css/theme.css" rel="stylesheet">
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .estado { color: var(--cc-texto-secundario); font-size: 18px; }
+    </style>
 </head>
 <body>
+    <div class="estado">Validando tu cuenta...</div>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <?php if ($error != ""): ?>
@@ -63,5 +69,6 @@ if (!isset($_GET['token']) || empty($_GET['token'])) {
     </script>
     <?php endif; ?>
 
+    <script src="js/theme-toggle.js"></script>
 </body>
 </html>
