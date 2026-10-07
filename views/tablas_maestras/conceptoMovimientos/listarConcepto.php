@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once '../../../auth/auth.php';
 require_once '../../../models/tablas_maestras/ConceptoMovimiento.php';
 $con = new ConceptoMovimiento();
@@ -15,8 +15,15 @@ $conceptos = $con->listar();
     <title>Document</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" 
     integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="../../../css/theme.css" rel="stylesheet">
 </head>
 <body>
+
+<?php
+$ruta_raiz = '../../../';
+require __DIR__ . '/../../../includes/header_admin.php';
+?>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" 
     integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 
@@ -56,7 +63,7 @@ $conceptos = $con->listar();
 
                     <tr>
                         <td>
-                            <?= $concepto['id_concepto'] ?>
+                            <?= $concepto['id_conceptos'] ?>
                         </td>
 
                         <td>
@@ -67,17 +74,17 @@ $conceptos = $con->listar();
 
                         <td>
                             <span class="badge bg-secondary">
-                                <?= $concepto['tipo_movimiento'] ?>
+                                <?= $concepto['tipo_accion'] ?>
                             </span>
                         </td>
 
                         <td>
-                            <a href="editarConcepto.php?id=<?= $concepto['id_concepto'] ?>"
+                            <a href="editarConcepto.php?id=<?= $concepto['id_conceptos'] ?>"
                             class="btn btn-warning btn-sm fw-bold">
                                 Editar
                             </a>
 
-                            <a href="../../../controllers/tablasMaestrasControllers/ConceptoController.php?accion=eliminar&id=<?= $concepto['id_concepto'] ?>"
+                            <a href="../../../controllers/tablasMaestrasControllers/ConceptoController.php?accion=eliminar&id=<?= $concepto['id_conceptos'] ?>"
                             class="btn btn-danger btn-sm fw-bold" onclick="return confirm('¿Estas seguro de querer eliminar el concepto?')">
                                 Baja
                             </a>
@@ -92,5 +99,6 @@ $conceptos = $con->listar();
     </div>
 </div>
     
+<script src="../../../js/theme-toggle.js"></script>
 </body>
 </html>

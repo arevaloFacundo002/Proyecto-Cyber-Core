@@ -11,6 +11,7 @@ require_once '../../../auth/auth.php';
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
+    <link href="../../../css/theme.css" rel="stylesheet">
 
     <style>
 
@@ -58,6 +59,12 @@ require_once '../../../auth/auth.php';
 </head>
 <body>
 
+<?php
+$ruta_raiz = '../../../';
+require __DIR__ . '/../../../includes/header_admin.php';
+?>
+
+
 <div class="container">
     <div class="card card-form shadow">
         <div class="card-header-custom">
@@ -101,5 +108,6 @@ require_once '../../../auth/auth.php';
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
+<script src="../../../js/theme-toggle.js"></script>
 </body>
 </html>

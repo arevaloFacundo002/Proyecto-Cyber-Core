@@ -28,10 +28,17 @@ $conceptos = $conceptoModel->listar();
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
+    <link href="../../css/theme.css" rel="stylesheet">
 
 </head>
 
 <body>
+
+<?php
+$ruta_raiz = '../../';
+require __DIR__ . '/../../includes/header_admin.php';
+?>
+
 
 <div class="container mt-3">
 
@@ -122,12 +129,12 @@ $conceptos = $conceptoModel->listar();
                             <?php foreach ($conceptos as $c): ?>
 
                                 <option
-                                    value="<?= $c['id_concepto'] ?>">
+                                  value="<?= $c['id_concepto'] ?>">
 
-                                    <?= htmlspecialchars($c['descripcion']) ?>
+                                  <?= htmlspecialchars($c['descripcion']) ?>
 
                                 </option>
-
+                                 
                             <?php endforeach; ?>
 
                         </select>
@@ -247,6 +254,7 @@ $conceptos = $conceptoModel->listar();
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
 </script>
 
+<script src="../../js/theme-toggle.js"></script>
 </body>
 
 </html>

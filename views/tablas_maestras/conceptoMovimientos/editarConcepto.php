@@ -23,6 +23,7 @@ $tipos = ['A','S','E'];
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
+    <link href="../../../css/theme.css" rel="stylesheet">
 
     <style>
 
@@ -71,6 +72,12 @@ $tipos = ['A','S','E'];
 
 <body>
 
+<?php
+$ruta_raiz = '../../../';
+require __DIR__ . '/../../../includes/header_admin.php';
+?>
+
+
 <div class="container">
     <div class="card card-form shadow">
         <div class="card-header-custom">
@@ -84,7 +91,7 @@ $tipos = ['A','S','E'];
                 <input
                     type="hidden"
                     name="id_concepto"
-                    value="<?= $conceptos['id_concepto'] ?>">
+                    value="<?= $conceptos['id_conceptos'] ?>">
 
                 <div class="mb-3">
                     <label class="form-label fw-bold">
@@ -108,7 +115,7 @@ $tipos = ['A','S','E'];
 
                             <option
                                 value="<?= $tipo ?>"
-                                <?= ($tipo == $conceptos['tipo_movimiento']) ? 'selected' : '' ?>>
+                                <?= ($tipo == $conceptos['tipo_accion']) ? 'selected' : '' ?>>
 
                                 <?= $tipo ?>
                             </option>
@@ -134,5 +141,6 @@ $tipos = ['A','S','E'];
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
+<script src="../../../js/theme-toggle.js"></script>
 </body>
 </html>

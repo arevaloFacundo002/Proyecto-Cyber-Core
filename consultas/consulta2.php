@@ -1,27 +1,35 @@
-<?php 
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['usuario']) ||
+   ($_SESSION['rol'] != "administrador" && $_SESSION['rol'] != "empleado")) {
+    header("Location: ../home.php");
+    exit;
+}
+
 include "../conexion.php";
 
-// ======= RANGO (solo para mostrar, NO modifica la consulta) =======
-$desde = isset($_GET['desde']) && $_GET['desde'] !== '' ? $_GET['desde'] : null;
-$hasta = isset($_GET['hasta']) && $_GET['hasta'] !== '' ? $_GET['hasta'] : null;
-
-// Pedidos: detalle completo con productos, cliente y envío
+// Productos + Proveedor + Último precio de compra
 $sql = "
 SELECT 
-    pd.id_pedidos,
-    c.nombre AS cliente,
-    c.apellido,
     p.nombre AS producto,
-    dp.cantidad,
-    dp.subtotal_final,
-    e.empresa_transporte,
-    e.estado_envio
-FROM pedidos pd
-INNER JOIN clientes c ON pd.rela_id_cliente = c.id_cliente
-INNER JOIN detalle_pedidos dp ON dp.rela_id_pedidos = pd.id_pedidos
-INNER JOIN productos p ON p.id_productos = dp.rela_id_productos
-LEFT JOIN envios e ON e.rela_id_pedidos = pd.id_pedidos
-ORDER BY pd.id_pedidos DESC
+    m.nombre_marca AS marca,
+    pr.nombre_apellido AS proveedor,
+    dc.precio AS ultimo_precio_compra,
+    cp.fecha_compra
+FROM productos p
+INNER JOIN marcas m ON p.rela_id_marca = m.id_marca
+LEFT JOIN detalle_compras dc ON dc.rela_id_productos = p.id_producto
+LEFT JOIN compras cp ON cp.id_compras = dc.rela_id_compras
+LEFT JOIN proveedores pr ON cp.rela_id_proveedores = pr.id_proveedores
+WHERE cp.fecha_compra = (
+    SELECT MAX(c2.fecha_compra)
+    FROM detalle_compras dc2
+    INNER JOIN compras c2 ON c2.id_compras = dc2.rela_id_compras
+    WHERE dc2.rela_id_productos = p.id_producto
+)
+ORDER BY cp.fecha_compra DESC
 ";
 
 $res = mysqli_query($conexion, $sql);
@@ -30,120 +38,108 @@ $res = mysqli_query($conexion, $sql);
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Consulta 2 - Pedidos detallados</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta 1 - Último precio de compra por producto</title>
 
-<!-- ESTILO ESTÁNDAR -->
+<link href="../css/theme.css" rel="stylesheet">
+
 <style>
     body {
         margin: 0;
         font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #0a0a0a, #0f1a20);
-        color: #e6e6e6;
     }
     .container {
         width: 90%;
         max-width: 1100px;
         margin: 40px auto;
-        background: #111;
+        background: var(--cc-superficie);
         padding: 30px;
         border-radius: 12px;
-        border: 1px solid #00eaff33;
-        box-shadow: 0 0 15px #000;
+        border: 1px solid var(--cc-borde);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
     }
     h1 {
         text-align: center;
-        color: #00eaff;
-        text-shadow: 0 0 12px #00eaffaa;
-        margin-bottom: 8px;
-    }
-    .subtitulo {
-        text-align: center;
-        color: #cfefff;
-        margin-bottom: 18px;
-        font-size: 14px;
+        color: var(--cc-primario);
+        text-shadow: 0 0 12px rgba(0, 234, 255, 0.4);
+        margin-bottom: 25px;
     }
     table {
         width: 100%;
         border-collapse: collapse;
-        background: #0d0d0d;
-        border-radius: 10px;
-        overflow: hidden;
         margin-top: 20px;
     }
     th {
-        background: #00eaff33;
-        color: #00eaff;
+        background: rgba(0, 234, 255, 0.12);
+        color: var(--cc-primario);
         padding: 12px;
         text-align: left;
-        border-bottom: 1px solid #00eaff44;
+        border-bottom: 1px solid var(--cc-borde);
     }
     td {
         padding: 12px;
-        border-bottom: 1px solid #1f1f1f;
+        border-bottom: 1px solid var(--cc-borde);
+        color: var(--cc-texto);
     }
     tr:hover {
-        background-color: #00eaff11;
+        background-color: rgba(0, 234, 255, 0.07);
     }
     .volver {
         display: inline-block;
         margin-top: 30px;
-        background: #00eaff;
+        background: var(--cc-primario);
         padding: 12px 20px;
-        color: black;
+        color: var(--cc-texto-sobre-primario);
         font-weight: bold;
         text-decoration: none;
         border-radius: 10px;
-        transition: .3s;
+        transition: .2s;
     }
-    .volver:hover { background: #009ac0; }
+    .volver:hover { background: var(--cc-primario-hover); }
     .empty {
-        text-align:center;
-        padding:18px;
-        color:#ccc;
+        text-align: center;
+        padding: 18px;
+        color: var(--cc-texto-secundario);
     }
 </style>
 </head>
 <body>
-<div class="container">
-    <h1>Consulta 2 — Pedidos y detalle de envío</h1>
 
-    <!-- === RANGO VISUAL === -->
-    <div class="subtitulo">
-        <?php if ($desde && $hasta): ?>
-            Consulta desde <strong><?= htmlspecialchars($desde) ?></strong> hasta <strong><?= htmlspecialchars($hasta) ?></strong>
-        <?php else: ?>
-            Consulta desde <strong>inicio</strong> hasta <strong>últimos datos</strong> (sin rango aplicado)
-        <?php endif; ?>
-    </div>
+<?php
+$ruta_raiz = '../';
+require __DIR__ . '/../includes/header_admin.php';
+?>
+
+<div class="container">
+    <h1>Consulta 1 — Último precio de compra por producto</h1>
 
     <?php if ($res && mysqli_num_rows($res) > 0) { ?>
     <table>
         <tr>
-            <th>N° Pedido</th>
-            <th>Cliente</th>
             <th>Producto</th>
-            <th>Cantidad</th>
-            <th>Subtotal</th>
-            <th>Transporte</th>
-            <th>Estado envío</th>
+            <th>Marca</th>
+            <th>Último precio</th>
+            <th>Proveedor</th>
+            <th>Fecha compra</th>
         </tr>
         <?php while ($f = mysqli_fetch_assoc($res)) { ?>
         <tr>
-            <td><?= htmlspecialchars($f['id_pedidos']) ?></td>
-            <td><?= htmlspecialchars($f['cliente'] . ' ' . $f['apellido']) ?></td>
             <td><?= htmlspecialchars($f['producto']) ?></td>
-            <td><?= htmlspecialchars($f['cantidad']) ?></td>
-            <td>$<?= number_format($f['subtotal_final'] ?? 0, 2) ?></td>
-            <td><?= htmlspecialchars($f['empresa_transporte'] ?? 'N/A') ?></td>
-            <td><?= htmlspecialchars($f['estado_envio'] ?? 'N/A') ?></td>
+            <td><?= htmlspecialchars($f['marca']) ?></td>
+            <td>$<?= number_format($f['ultimo_precio_compra'] ?? 0, 2) ?></td>
+            <td><?= htmlspecialchars($f['proveedor'] ?? 'N/A') ?></td>
+            <td><?= htmlspecialchars($f['fecha_compra'] ?? 'N/A') ?></td>
         </tr>
         <?php } ?>
     </table>
     <?php } else { ?>
-        <div class="empty">No se encontraron pedidos.</div>
+        <div class="empty">No se encontraron registros para esta consulta.</div>
     <?php } ?>
 
     <a href="menu_consultas.php" class="volver">⬅ Volver a Consultas</a>
 </div>
+
+<script src="../js/theme-toggle.js"></script>
+
 </body>
 </html>

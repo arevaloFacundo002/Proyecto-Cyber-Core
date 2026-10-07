@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 require_once '../../auth/auth.php';
 require_once '../../models/inputs/Producto.php';
@@ -85,11 +85,18 @@ $error = $_GET['error'] ?? '';
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
+    <link href="../../css/theme.css" rel="stylesheet">
 
 </head>
 
 
 <body>
+
+<?php
+$ruta_raiz = '../../';
+require __DIR__ . '/../../includes/header_admin.php';
+?>
+
 
 <div class="container mt-4">
 
@@ -495,7 +502,7 @@ $error = $_GET['error'] ?? '';
 
                             <td>
 
-                                <?php if ($prod['es_activo'] == 1): ?>
+                                <?php if ($prod['es_descontinuado'] == 0): ?>
 
                                     <span class="badge bg-success">
 
@@ -534,7 +541,7 @@ $error = $_GET['error'] ?? '';
                                     </a>
 
 
-                                    <?php if ($prod['es_activo'] == 1): ?>
+                                    <?php if ($prod['es_descontinuado'] == 0): ?>
 
 
                                         <!-- BAJA -->
@@ -673,6 +680,7 @@ $error = $_GET['error'] ?? '';
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
 </script>
 
+<script src="../../js/theme-toggle.js"></script>
 </body>
 
 </html>

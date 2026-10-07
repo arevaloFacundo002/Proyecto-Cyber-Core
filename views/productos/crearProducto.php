@@ -28,6 +28,7 @@ $marcas = $marca->listar();
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
+    <link href="../../css/theme.css" rel="stylesheet">
 
     <style>
         .form-label {
@@ -54,6 +55,12 @@ $marcas = $marca->listar();
 </head>
 
 <body>
+
+<?php
+$ruta_raiz = '../../';
+require __DIR__ . '/../../includes/header_admin.php';
+?>
+
 
 <div class="container mt-3">
 
@@ -366,6 +373,7 @@ document.getElementById('marca').addEventListener('change', function () {
 });
 </script>
 
+<script src="../../js/theme-toggle.js"></script>
 </body>
 
 </html>

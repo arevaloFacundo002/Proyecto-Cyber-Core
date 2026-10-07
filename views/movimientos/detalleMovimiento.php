@@ -20,7 +20,7 @@ if (!$movimiento) {
 }
 
 // Determinar si es entrada o salida
-$tipo = $movimiento['tipo_movimiento'];
+$tipo = $movimiento['tipo_accion'];
 
 if ($tipo === 'E') {
     $tipoTexto = 'Entrada';
@@ -37,11 +37,6 @@ $fechaFormateada = date(
     'd/m/Y',
     strtotime($movimiento['fecha_movimiento'])
 );
-
-// Formatear hora
-$horaFormateada = !empty($movimiento['hora_movimiento'])
-    ? date('H:i:s', strtotime($movimiento['hora_movimiento']))
-    : '--:--:--';
 
 ?>
 <!DOCTYPE html>
@@ -60,6 +55,7 @@ $horaFormateada = !empty($movimiento['hora_movimiento'])
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
+    <link href="../../css/theme.css" rel="stylesheet">
 
     <style>
 
@@ -130,6 +126,12 @@ $horaFormateada = !empty($movimiento['hora_movimiento'])
 </head>
 
 <body>
+
+<?php
+$ruta_raiz = '../../';
+require __DIR__ . '/../../includes/header_admin.php';
+?>
+
 
 <div class="container mt-4 mb-4">
 
@@ -239,16 +241,6 @@ $horaFormateada = !empty($movimiento['hora_movimiento'])
 
                                 </div>
 
-                                <div class="dato-label mt-2">
-                                    Hora
-                                </div>
-
-                                <div class="dato">
-
-                                    <?= $horaFormateada ?>
-
-                                </div>
-
                             </div>
 
                         </div>
@@ -340,73 +332,9 @@ $horaFormateada = !empty($movimiento['hora_movimiento'])
                 </div>
 
 
-                <!-- USUARIO -->
-
-                <div class="col-md-6">
-
-                    <div class="seccion">
-
-                        <div class="titulo-seccion">
-                            Registrado por
-                        </div>
-
-                        <div class="usuario-box">
-
-                            <div class="d-flex align-items-center">
-
-                                <div class="icono-usuario me-3">
-                                    👤
-                                </div>
-
-                                <div>
-
-                                    <div class="dato">
-
-                                        <?= !empty($movimiento['nombre_usuario'])
-                                            ? htmlspecialchars($movimiento['nombre_usuario'])
-                                            : 'Usuario no disponible'
-                                        ?>
-
-                                    </div>
-
-                                    <?php if (!empty($movimiento['correo_usuario'])): ?>
-
-                                        <div class="text-muted small">
-
-                                            <?= htmlspecialchars(
-                                                $movimiento['correo_usuario']
-                                            ) ?>
-
-                                        </div>
-
-                                    <?php endif; ?>
-
-                                    <?php if (!empty($movimiento['rol_usuario'])): ?>
-
-                                        <span class="badge bg-secondary mt-1">
-
-                                            <?= htmlspecialchars(
-                                                $movimiento['rol_usuario']
-                                            ) ?>
-
-                                        </span>
-
-                                    <?php endif; ?>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
                 <!-- COMENTARIO -->
 
-                <div class="col-12">
+                <div class="col-md-6">
 
                     <div class="seccion">
 
@@ -451,6 +379,7 @@ $horaFormateada = !empty($movimiento['hora_movimiento'])
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
 </script>
 
+<script src="../../js/theme-toggle.js"></script>
 </body>
 
 </html>

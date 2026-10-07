@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 require_once '../../auth/auth.php';
 
@@ -80,6 +80,7 @@ $id_modelo_actual = $producto['rela_id_modelo_producto'];
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
+    <link href="../../css/theme.css" rel="stylesheet">
 
     <style>
 
@@ -110,6 +111,12 @@ $id_modelo_actual = $producto['rela_id_modelo_producto'];
 
 
 <body>
+
+<?php
+$ruta_raiz = '../../';
+require __DIR__ . '/../../includes/header_admin.php';
+?>
+
 
 
 <div class="container mt-3">
@@ -618,6 +625,7 @@ if (marca.value !== '') {
 </script>
 
 
+<script src="../../js/theme-toggle.js"></script>
 </body>
 
 </html>

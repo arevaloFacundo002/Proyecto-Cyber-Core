@@ -45,77 +45,71 @@ if (isset($_POST['guardar'])) {
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Agregar Usuario</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agregar Usuario - CyberCore</title>
+
+<link href="../css/theme.css" rel="stylesheet">
 
 <style>
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #f4f4f4;
-}
-
-/* HEADER */
-header {
-    background: #0a0a0a;
-    padding: 18px 40px;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-header a {
-    color: #00eaff;
-    text-decoration: none;
-    font-weight: bold;
 }
 
 /* FORM CARD */
 .form-container {
     width: 420px;
+    max-width: 90%;
     margin: 40px auto;
-    background: white;
+    background: var(--cc-superficie);
     padding: 30px;
     border-radius: 16px;
-    box-shadow: 0 0 12px rgba(0,0,0,0.15);
+    box-shadow: 0 0 15px rgba(0, 234, 255, 0.15);
+    border: 1px solid var(--cc-borde);
+    box-sizing: border-box;
 }
 
 .form-container h2 {
     text-align: center;
-    color: #222;
+    color: var(--cc-primario);
     margin-bottom: 20px;
 }
 
 /* Inputs */
 input, select {
     width: 100%;
+    box-sizing: border-box;
     padding: 13px;
     margin: 10px 0;
     border-radius: 10px;
-    border: 1px solid #aaa;
+    border: 1px solid var(--cc-borde);
+    background: var(--cc-fondo);
+    color: var(--cc-texto);
     font-size: 15px;
     outline: none;
 }
 
 input:focus, select:focus {
-    border-color: #00b1cc;
+    border-color: var(--cc-primario);
 }
 
 /* Botón */
-button {
+.form-container button {
     width: 100%;
     padding: 14px;
-    background: #00eaff;
+    background: var(--cc-primario);
+    color: var(--cc-texto-sobre-primario);
     border: none;
     border-radius: 20px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     margin-top: 12px;
+    transition: 0.2s;
 }
 
-button:hover {
-    background: #009ebd;
+.form-container button:hover {
+    background: var(--cc-primario-hover);
 }
 
 /* Link volver */
@@ -124,20 +118,21 @@ button:hover {
     text-align: center;
     margin-top: 15px;
     text-decoration: none;
-    color: #00b1cc;
+    color: var(--cc-primario);
     font-weight: bold;
 }
 
 .volver:hover {
-    color: #00809b;
+    color: var(--cc-primario-hover);
 }
+
 .msg-error {
-    background: #ff3b3b;
+    background: var(--cc-peligro);
     padding: 12px;
     border-radius: 6px;
     margin-bottom: 18px;
     font-weight: bold;
-    color: white;
+    color: #fff;
 }
 
 </style>
@@ -145,10 +140,13 @@ button:hover {
 
 <body>
 
-<header>
-    <div><strong>CyberCore - Panel Admin</strong></div>
-    <a href="listar.php">← Volver</a>
-</header>
+<?php
+$ruta_raiz = '../';
+require __DIR__ . '/../includes/header_admin.php';
+?>
+
+
+
 
 <div class="form-container">
     <h2>Agregar Usuario</h2>
@@ -178,6 +176,7 @@ button:hover {
     <a class="volver" href="listar.php">Volver al listado</a>
 </div>
 
+<script src="../js/theme-toggle.js"></script>
+
 </body>
 </html>
-

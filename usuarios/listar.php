@@ -21,25 +21,27 @@ $usuarios = $user->listar_usuarios($busqueda,$estado);
 
 <title>ABM Usuarios</title>
 
+<link href="../css/theme.css" rel="stylesheet">
+
 <style>
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #f4f4f4;
 }
 
 /* HEADER */
 header {
-    background: #0a0a0a;
+    background: var(--cc-superficie-2);
     padding: 18px 40px;
-    color: white;
+    color: var(--cc-texto);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid var(--cc-borde);
 }
 
 header a {
-    color: #00eaff;
+    color: var(--cc-primario);
     text-decoration: none;
     font-weight: bold;
 }
@@ -49,7 +51,7 @@ h2 {
     text-align: center;
     margin-top: 25px;
     font-size: 28px;
-    color: #222;
+    color: var(--cc-texto);
 }
 
 /* BUSCADOR */
@@ -62,7 +64,9 @@ h2 {
 .search-box select {
     padding: 12px;
     border-radius: 20px;
-    border: 1px solid #aaa;
+    border: 1px solid var(--cc-borde);
+    background: var(--cc-superficie);
+    color: var(--cc-texto);
 }
 
 .search-box input {
@@ -73,13 +77,14 @@ h2 {
     padding: 12px 18px;
     border: none;
     border-radius: 20px;
-    background: #00eaff;
+    background: var(--cc-primario);
+    color: var(--cc-texto-sobre-primario);
     font-weight: bold;
     cursor: pointer;
 }
 
 .search-box button:hover {
-    background: #0099bb;
+    background: var(--cc-primario-hover);
 }
 
 /* TABLA */
@@ -87,15 +92,16 @@ table {
     width: 90%;
     margin: 30px auto;
     border-collapse: collapse;
-    background: white;
+    background: var(--cc-superficie);
+    border: 1px solid var(--cc-borde);
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    box-shadow: 0 0 10px rgba(0,0,0,0.35);
 }
 
 th {
-    background: #00b1cc;
-    color: white;
+    background: rgba(0, 234, 255, 0.15);
+    color: var(--cc-primario);
     padding: 12px;
     text-transform: uppercase;
 }
@@ -103,11 +109,12 @@ th {
 td {
     padding: 12px;
     text-align: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--cc-borde);
+    color: var(--cc-texto);
 }
 
 tr:hover {
-    background: #f5ffff;
+    background: rgba(0, 234, 255, 0.07);
 }
 
 /* BOTONES */
@@ -116,32 +123,32 @@ tr:hover {
     border-radius: 12px;
     text-decoration: none;
     font-weight: bold;
-    background: #00eaff;
-    color: black;
+    background: var(--cc-primario);
+    color: var(--cc-texto-sobre-primario);
     transition: 0.3s;
     display: inline-block;
 }
 
 .btn:hover {
-    background: #009ebd;
+    background: var(--cc-primario-hover);
 }
 
 .btn-red {
-    background: #ff4d4d;
+    background: var(--cc-peligro);
     color: white;
 }
 
 .btn-red:hover {
-    background: #c83737;
+    filter: brightness(1.15);
 }
 
 .btn-client {
-    background: #ffd54d;
-    color: black;
+    background: var(--cc-advertencia);
+    color: #1a1400;
 }
 
 .btn-client:hover {
-    background: #ffca28;
+    filter: brightness(1.1);
 }
 
 /* Acciones ordenadas */
@@ -158,26 +165,32 @@ tr:hover {
 }
 
 .add-user-box a {
-    background: #00eaff;
+    background: var(--cc-primario);
     padding: 10px 20px;
     border-radius: 20px;
-    color: black;
+    color: var(--cc-texto-sobre-primario);
     font-weight: bold;
     text-decoration: none;
 }
 
 .add-user-box a:hover {
-    background: #0099bb;
+    background: var(--cc-primario-hover);
 }
 
 .link-cliente {
-    color: blue;
+    color: var(--cc-primario);
     font-weight: bold;
     text-decoration: underline;
 }
 </style>
 </head>
 <body>
+
+<?php
+$ruta_raiz = '../';
+require __DIR__ . '/../includes/header_admin.php';
+?>
+
 
 <header>
     <div><strong>CyberCore - Panel Admin</strong></div>
@@ -223,10 +236,10 @@ tr:hover {
 
 <?php foreach($usuarios as $fila) { 
         $u_id = (int)$fila['id_usuario'];
-        $u_name = htmlspecialchars($fila['nombre']);
-        $u_email = htmlspecialchars($fila['correo']);
-        $u_rol = htmlspecialchars($fila['nombre_perfil']);
-        $u_registro = htmlspecialchars($fila['fecha_registro']);
+        $u_name = htmlspecialchars($fila['nombre'] ?? '');
+        $u_email = htmlspecialchars($fila['correo'] ?? '');
+        $u_rol = htmlspecialchars($fila['nombre_perfil'] ?? '');
+        $u_registro = htmlspecialchars($fila['fecha_registro'] ?? '');
         $c_id = $fila['id_cliente'] ?? null;
         $u_estado = $fila['estado'] ?? null;
 ?>
@@ -240,12 +253,12 @@ tr:hover {
         <td>
             <?php 
                 $color_map = [
-                    'activo' => 'green',
-                    'inactivo' => 'orange',
-                    'bloqueado' => 'red'
+                    'activo' => 'var(--cc-exito)',
+                    'inactivo' => 'var(--cc-advertencia)',
+                    'bloqueado' => 'var(--cc-peligro)'
                 ];
 
-                $color = $color_map[$u_estado] ?? 'black';
+                $color = $color_map[$u_estado] ?? 'var(--cc-texto)';
             ?>
 
             <strong style="color:<?php echo $color ?>">
@@ -279,7 +292,7 @@ tr:hover {
 
                     <select name="estado"
                             class="form-select"
-                            style="color: <?= $color ?>; font-weight: bold; border-color: <?= $color ?>;">
+                            style="color: <?= $color ?>; font-weight: bold; border-color: <?= $color ?>; background:var(--cc-superficie-2);">
 
                         <option value="activo" <?= $u_estado == 'activo' ? 'selected' : '' ?>>
                             🟢 Activo
@@ -306,6 +319,8 @@ tr:hover {
 <div class="add-user-box">
     <a href="agregar.php">➕ Agregar usuario</a>
 </div>
+
+<script src="../js/theme-toggle.js"></script>
 
 </body>
 </html>

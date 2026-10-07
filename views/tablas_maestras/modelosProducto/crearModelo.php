@@ -1,4 +1,4 @@
-<?php
+ <?php
 require_once '../../../auth/auth.php';
 require_once "../../../models/tablas_maestras/Marca.php";
 
@@ -16,6 +16,7 @@ $marcas = $mar->listar();
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
+    <link href="../../../css/theme.css" rel="stylesheet">
 
     <style>
 
@@ -62,6 +63,12 @@ $marcas = $mar->listar();
 
 </head>
 <body>
+
+<?php
+$ruta_raiz = '../../../';
+require __DIR__ . '/../../../includes/header_admin.php';
+?>
+
 
 <div class="container">
     <div class="card card-form shadow">
@@ -120,5 +127,6 @@ $marcas = $mar->listar();
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
+<script src="../../../js/theme-toggle.js"></script>
 </body>
 </html>
