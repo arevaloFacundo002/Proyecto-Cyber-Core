@@ -21,32 +21,38 @@ if (!isset($_GET["desde"]) || !isset($_GET["hasta"])) {
         margin: 0;
         padding: 0;
         font-family: 'Segoe UI', sans-serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
     }
 
-    .volver {
-        position: fixed;
-        top: 22px;
-        left: 22px;
-        display: inline-flex;
+    /* Franja con el botón de volver, debajo del header (igual que en los otros módulos) */
+    .subheader {
+        background: var(--cc-superficie-2);
+        padding: 16px 50px;
+        display: flex;
+        justify-content: flex-end;
         align-items: center;
-        gap: 6px;
+        border-bottom: 1px solid var(--cc-borde);
+    }
+
+    .subheader a {
+        background: var(--cc-primario);
         padding: 10px 18px;
         border-radius: 20px;
-        background: var(--cc-superficie);
-        border: 1px solid var(--cc-borde);
-        color: var(--cc-texto);
-        text-decoration: none;
+        color: var(--cc-texto-sobre-primario);
         font-weight: bold;
+        text-decoration: none;
         transition: 0.2s;
     }
 
-    .volver:hover {
-        border-color: var(--cc-primario);
-        color: var(--cc-primario);
+    .subheader a:hover {
+        background: var(--cc-primario-hover);
+    }
+
+    /* Ahora el centrado lo hace este contenedor, no el body */
+    .centro {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 70vh;
     }
 
     .container {
@@ -100,7 +106,7 @@ if (!isset($_GET["desde"]) || !isset($_GET["hasta"])) {
         box-shadow: 0 0 6px rgba(0, 234, 255, 0.5);
     }
 
-    button {
+    .container button {
         margin-top: 30px;
         width: 100%;
         padding: 15px;
@@ -114,7 +120,7 @@ if (!isset($_GET["desde"]) || !isset($_GET["hasta"])) {
         transition: 0.25s;
     }
 
-    button:hover {
+    .container button:hover {
         background: var(--cc-primario-hover);
         box-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
     }
@@ -129,8 +135,11 @@ require __DIR__ . '/../includes/header_admin.php';
 ?>
 
 
-<a href="../inicio.php" class="volver">← Volver a Módulos</a>
+<div class="subheader">
+    <a href="../inicio.php">← Volver a Módulos</a>
+</div>
 
+<div class="centro">
 <div class="container">
     <h1>📊 Reporte de Usuarios y Clientes</h1>
 
@@ -144,6 +153,7 @@ require __DIR__ . '/../includes/header_admin.php';
 
         <button type="submit">📄 Generar Reporte / Descargar PDF</button>
     </form>
+</div>
 </div>
 
 <script src="../js/theme-toggle.js"></script>
