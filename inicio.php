@@ -1,4 +1,4 @@
- <?php
+<?php
 // Si NO hay usuario logueado → al login
 require_once "auth/auth.php";
 
@@ -276,6 +276,12 @@ h1 {
         </div>
 
         <div class="card">
+            <h2>Pedidos</h2>
+            <p>Ver pedidos de clientes y actualizar su estado.</p>
+            <a href="views/pedidos/listarPedidos.php">Gestionar</a>
+        </div>
+
+        <div class="card">
             <h2>Productos y Proveedores</h2>
             <p>Entradas del sistema.</p>
             <a href="views/panel_inputs.php">Gestionar</a>
@@ -313,6 +319,11 @@ const modulosAdmin = [
       descripcion: "Alta, baja y modificación de usuarios del sistema.",
       url: "usuarios/listar.php",
       claves: "usuarios abm alta baja modificacion cuentas" },
+
+    { nombre: "Pedidos", grupo: "General", icono: "📦",
+      descripcion: "Ver pedidos de clientes y actualizar su estado.",
+      url: "views/pedidos/listarPedidos.php",
+      claves: "pedidos ordenes compras estado seguimiento" },
 
     { nombre: "Tablas maestras", grupo: "General", icono: "🗂️",
       descripcion: "Menú de tablas maestras del sistema.",
