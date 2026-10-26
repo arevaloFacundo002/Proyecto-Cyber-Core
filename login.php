@@ -7,7 +7,7 @@ $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $correo = $_POST['correo'] ?? null;
+    $correo = $_POST['correo'] ?? null; 
     $password = $_POST['password'] ?? null;
 
     $usuario = $user->login($correo);

@@ -223,6 +223,107 @@ nav a:hover {
 .btn-ver:hover {
     background: #00b1cc;
 }
+
+.notif-wrapper { position: relative; display: inline-block; }
+
+.panel-notif {
+    display: none;
+    position: absolute;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 340px;
+    background: white;
+    color: #111;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    overflow: hidden;
+    z-index: 200;
+}
+
+.panel-notif::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid white;
+}
+
+.panel-notif.abierto { display: block; }
+
+.panel-notif-header {
+    background: #0a0a0a;
+    color: #00eaff;
+    padding: 12px 16px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.panel-notif-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    position: relative;
+}
+
+.panel-notif-item:last-child { border-bottom: none; }
+
+.panel-notif-titulo {
+    color: #00717a;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 3px;
+}
+
+.panel-notif-mensaje {
+    color: #555;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.panel-notif-fecha {
+    color: #000000;
+    font-size: 11px;
+}
+
+.panel-notif-badge-nueva {
+    display: inline-block;
+    background: #00eaff;
+    color: #003840;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+}
+
+.panel-notif-vacio {
+    padding: 24px 16px;
+    text-align: center;
+    color: #888;
+    font-size: 13px;
+}
+
+.panel-notif-vermas {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    background: #f5f5f5;
+    color: #00717a;
+    font-weight: bold;
+    font-size: 13px;
+    text-decoration: none;
+    border-top: 1px solid #eee;
+}
+
+.panel-notif-vermas:hover { background: #eaeaea; }
+
+#panel-notif-lista {
+    max-height: 400px; /* Limita la altura máxima de la lista */
+    overflow-y: auto;  /* Agrega barra de desplazamiento interna si supera el tamaño */
+}
 </style>
 
 </head>
@@ -232,13 +333,34 @@ nav a:hover {
     <div class="logo">CYBERCORE</div>
     <nav>
         <a href="home.php">Inicio</a>
+
+        <?php if (isset($_SESSION['id_usuario'])): ?>
+            <div class="notif-wrapper">
+                <a href="javascript:void(0)" id="campana-notificaciones" style="position:relative;">
+                    🔔
+                    <span id="badge-notificaciones"
+                        style="display:none; position:absolute; top:-6px; right:-10px; background:red;
+                        color:white; border-radius:50%; padding:2px 6px; font-size:11px;">
+                        0</span>
+                </a>
+
+                <div id="panel-notificaciones" class="panel-notif">
+                    <div class="panel-notif-header">Notificaciones</div>
+                    <div id="panel-notif-lista">
+                        <p class="panel-notif-vacio">Cargando...</p>
+                    </div>
+                    <a href="views/notificaciones/historial.php" class="panel-notif-vermas">Ver más</a>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <?php if ($rol == 'administrador' || $rol == 'empleado') { ?>
             <a href="inicio.php">Panel</a>
 
         <?php }elseif($rol == 'usuario' || $rol == 'cliente'){ ?>
             <a href="carrito/carrito.php">🛒 Carrito</a>
             <a class="logout" href="logout.php">Cerrar sesión</a>
-            
+
         <?php }else{ ?>
             <a href="index.php">Iniciar sesión</a>
             <a href="registro.php">Registrarse</a>
@@ -331,6 +453,117 @@ nav a:hover {
 
 
 </div>
+
+
+    <script src="https://js.pusher.com/8.4/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    const idUsuario = <?= json_encode($_SESSION['id_usuario'] ?? null) ?>;
+
+    if (idUsuario) {
+        const pusher = new Pusher('961fd9e4c7e0f7109ae5', { cluster: 'us2' });
+        const canal = pusher.subscribe('canal-usuario-' + idUsuario);
+
+        canal.bind('nueva-notificacion', function (data) {
+            actualizarBadge();
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: data.titulo,
+                text: data.mensaje,
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true
+            });
+        });
+
+        function actualizarBadge() {
+            fetch('ajax/notificaciones.php?accion=listar')
+                .then(res => res.json())
+                .then(data => {
+                    const badge = document.getElementById('badge-notificaciones');
+                    if (!badge) return;
+                    if (data.total > 0) {
+                        badge.style.display = 'inline-block';
+                        badge.textContent = data.total;
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                });
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // --- Panel desplegable ---
+        const campana = document.getElementById('campana-notificaciones');
+        const panel = document.getElementById('panel-notificaciones');
+        const lista = document.getElementById('panel-notif-lista');
+
+        function formatearFecha(fechaStr) {
+            const f = new Date(fechaStr.replace(' ', 'T'));
+            return `${f.toLocaleDateString('es-AR')} ${f.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`;
+        }
+
+        function renderPanel(notifs) {
+            if (!notifs.length) {
+                lista.innerHTML = '<p class="panel-notif-vacio">Todavía no tenés notificaciones.</p>';
+                return;
+            }
+            lista.innerHTML = notifs.map(n => `
+                <div class="panel-notif-item">
+                    ${n.leida == 0 ? '<span class="panel-notif-badge-nueva">Nueva</span>' : ''}
+                    <div class="panel-notif-titulo">${escapeHtml(n.titulo)}</div>
+                    <div class="panel-notif-mensaje">${escapeHtml(n.mensaje)}</div>
+                    <div class="panel-notif-fecha">${formatearFecha(n.fecha_creacion)}</div>
+                </div>
+            `).join('');
+        }
+
+        function abrirPanel() {
+            fetch('ajax/notificaciones.php?accion=recientes&limite=5')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.notificaciones) {
+                        console.error('Respuesta inesperada de notificaciones.php:', data);
+                        lista.innerHTML = '<p class="panel-notif-vacio">Error al cargar notificaciones.</p>';
+                        panel.classList.add('abierto');
+                        return;
+                    }
+
+                    renderPanel(data.notificaciones);
+                    panel.classList.add('abierto');
+
+                    const idsNoLeidas = data.notificaciones.filter(n => n.leida == 0).map(n => n.id_notificacion);
+                    if (idsNoLeidas.length) {
+                        const form = new URLSearchParams();
+                        form.append('accion', 'marcar_vistas');
+                        idsNoLeidas.forEach(id => form.append('ids[]', id));
+                        fetch('ajax/notificaciones.php', { method: 'POST', body: form }).then(() => actualizarBadge());
+                    }
+                })
+                .catch(err => console.error('Error al abrir el panel de notificaciones:', err));
+        }
+
+
+        campana.addEventListener('click', function (e) {
+            e.stopPropagation();
+            panel.classList.contains('abierto') ? panel.classList.remove('abierto') : abrirPanel();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!panel.contains(e.target) && e.target !== campana) {
+                panel.classList.remove('abierto');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', actualizarBadge);
+    }
+    </script>
 
 </body>
 </html>
