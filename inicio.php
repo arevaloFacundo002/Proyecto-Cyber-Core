@@ -164,6 +164,12 @@ h1 {
         </div>
 
         <div class="card">
+            <h2>Comunicaciones 📣</h2>
+            <p>Administrar anuncios, historial, canales de envio.</p>
+            <a href="views/anuncios/listarAnuncio.php">Ver</a>
+        </div>
+
+        <div class="card">
             <h2>Consultas</h2>
             <p>Consultas SQL del sistema.</p>
             <a href="consultas/menu_consultas.php">Ver consultas</a>

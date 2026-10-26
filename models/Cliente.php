@@ -64,6 +64,7 @@ class Cliente {
         return $stmt->execute();
     }
 
+
     function actualizar_contacto_cliente(string $telefono,int $tipo_contacto,int $id_cliente){
         $update = "UPDATE contactos SET valor=?, rela_id_tipo_contacto=?, rela_id_cliente=?
             WHERE rela_id_cliente=?";
@@ -72,6 +73,22 @@ class Cliente {
         return $stmt->execute();
     }
 
+
+    // Devuelve el numero de contacto del cliente a partir de su id_usuario (para usar en WhatsApp)
+    function obtener_contacto_por_usuario(int $id_usuario) {
+        $sql = "SELECT co.valor
+                FROM clientes c
+                INNER JOIN contactos co ON co.rela_id_cliente = c.id_cliente
+                WHERE c.rela_id_usuario = ?
+                LIMIT 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param("i", $id_usuario);
+        $stmt->execute();
+        $fila = $stmt->get_result()->fetch_assoc();
+        return $fila ? $fila['valor'] : null;
+    }
+
+    
   // Obtener datos del cliente + contacto + provincia + localidad + direccion.  editar_cliente.php
     function obtenerPerfilCompleto(int $id_cliente){
         $sql = "SELECT

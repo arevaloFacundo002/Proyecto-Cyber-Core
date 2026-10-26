@@ -1,6 +1,6 @@
 <?php
 require_once "models/Usuario.php";
-require_once 'config/mail.php';
+require_once 'config/notificaciones/mail.php';
 session_start();
 $user = new Usuario();
 

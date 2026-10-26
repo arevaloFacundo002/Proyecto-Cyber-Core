@@ -162,6 +162,31 @@ require_once '../auth/auth.php';
             </div>
         </div>
 
+        <!-- Anuncios -->
+        <div class="col-md-4">
+            <div class="card card-maestra shadow h-100">
+                <div class="card-body text-center">
+
+                    <div class="icono mb-3">
+                        📣
+                    </div>
+
+                    <h5>Anuncios</h5>
+
+                    <p class="text-muted">
+                        Ofertas, eventos y avisos para clientes o staff.
+                    </p>
+
+                    <a href="tablas_maestras/anuncios/listarAnuncio.php"
+                    class="btn btn-maestra">
+                        Administrar
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        
         <!-- Métodos de pago -->
         <div class="col-md-4">
             <div class="card card-maestra shadow h-100">

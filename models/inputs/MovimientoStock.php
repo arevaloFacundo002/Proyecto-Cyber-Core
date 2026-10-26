@@ -184,6 +184,27 @@ class MovimientoStock
 
             $this->conexion->commit();
 
+            
+            // Aviso de stock bajo (no debe romper el registro del movimiento si falla)
+            $UMBRAL_STOCK_BAJO = 5;
+
+            if ($tipo === 'S' && $nuevoStock <= $UMBRAL_STOCK_BAJO) {
+                require_once __DIR__ . '/../../config/notificaciones/pusher.php';
+
+                $sqlNombre = "SELECT nombre, codigo FROM productos WHERE id_producto = ?";
+                $stmtNombre = $this->conexion->prepare($sqlNombre);
+                $stmtNombre->bind_param("i", $id_producto);
+                $stmtNombre->execute();
+                $prod = $stmtNombre->get_result()->fetch_assoc();
+
+                notificar_staff(
+                    'stock_bajo',
+                    'Stock bajo: ' . $prod['nombre'],
+                    "El producto {$prod['codigo']} - {$prod['nombre']} quedó con {$nuevoStock} unidades.",
+                    '../../views/productos/listarProducto.php?id=' . $id_producto
+                );
+            }
+
             return true;
 
         } catch (Exception $e) {
