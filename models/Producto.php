@@ -1,4 +1,4 @@
- <?php
+<?php
 
 require_once __DIR__ . '/Database.php';
 
@@ -27,6 +27,7 @@ class Producto
                 WHERE p.es_descontinuado = 0
                 AND (
                     p.nombre LIKE ?
+                    OR p.codigo LIKE ?
                     OR p.descripcion LIKE ?
                     OR c.nombre LIKE ?
                     OR m.nombre_marca LIKE ?
@@ -36,7 +37,7 @@ class Producto
         $stmt = $this->conexion->prepare($sql);
 
         $like = "%" . $buscar . "%";
-        $stmt->bind_param("ssss", $like, $like, $like, $like);
+        $stmt->bind_param("sssss", $like, $like, $like, $like, $like);
         $stmt->execute();
 
         $resultado = $stmt->get_result();
@@ -47,6 +48,19 @@ class Producto
         }
 
         return $productos;
+    }
+
+    // SI EL TEXTO BUSCADO ES EXACTAMENTE EL CÓDIGO DE UN PRODUCTO ACTIVO, DEVUELVE SU ID
+    public function id_por_codigo(string $codigo)
+    {
+        $stmt = $this->conexion->prepare(
+            "SELECT id_producto FROM productos WHERE codigo = ? AND es_descontinuado = 0 LIMIT 1"
+        );
+        $stmt->bind_param("s", $codigo);
+        $stmt->execute();
+
+        $fila = $stmt->get_result()->fetch_assoc();
+        return $fila ? (int) $fila['id_producto'] : null;
     }
 
     // BUSCA UN PRODUCTO POR ID PARA LA PÁGINA DE DETALLE

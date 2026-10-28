@@ -1,6 +1,7 @@
- <?php
+<?php
 session_start();
 require_once '../models/Producto.php';
+require_once __DIR__ . '/../includes/imagen_helper.php';
 $pro = new Producto();
 
 // Si no existe el carrito, crearlo vacío
@@ -171,6 +172,7 @@ h2 {
     <div class="logo">CYBERCORE</div>
     <nav>
         <a href="../home.php">Inicio</a>
+        <?php $ruta_raiz = '../'; include __DIR__ . '/../includes/campana.php'; ?>
         <?php if ($rol == 'administrador' || $rol == 'empleado') { ?>
             <a href="../inicio.php">Panel</a>
 
@@ -212,7 +214,7 @@ h2 {
         $total += $subtotal;
     ?>
     <tr>
-        <td><img src="../img/<?php echo htmlspecialchars($item['imagen']); ?>"></td>
+        <td><img src="<?php echo htmlspecialchars(urlImagen($item['imagen'], '../')); ?>"></td>
 
         <td><?php echo htmlspecialchars($item['nombre']); ?></td>
 

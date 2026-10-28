@@ -1,10 +1,12 @@
- <?php
+<?php
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 require_once 'models/Producto.php';
+require_once 'models/ProductoImagen.php';
+require_once 'includes/imagen_helper.php';
 $pro = new Producto();
 
 // Validar ID
@@ -20,6 +22,10 @@ $producto = $pro->busqueda_de_producto($id);
 if (!$producto) {
     die("Producto no encontrado.");
 }
+
+
+// Galería de imágenes (la principal va primero)
+$galeria = (new ProductoImagen())->listarPublico($id, $producto['imagen_url'] ?? null);
 
 ?>
 <!DOCTYPE html>
@@ -243,6 +249,26 @@ nav a:hover {
 .texto-secundario {
     color: var(--cc-texto-secundario);
 }
+/* GALERÍA */
+.galeria-mini {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    justify-content: center;
+}
+.galeria-mini img {
+    width: 64px !important;
+    height: 64px !important;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid var(--cc-borde);
+    cursor: pointer;
+    opacity: .75;
+    transition: .2s;
+}
+.galeria-mini img:hover { opacity: 1; border-color: var(--cc-primario); }
+.galeria-mini img.activa { opacity: 1; border-color: var(--cc-primario); box-shadow: 0 0 8px rgba(0,234,255,.45); }
 </style>
 </head>
 
@@ -252,6 +278,7 @@ nav a:hover {
     <div class="logo">CYBERCORE</div>
     <nav>
         <a href="home.php">Inicio</a>
+        <?php $ruta_raiz = ''; include __DIR__ . '/includes/campana.php'; ?>
         <?php if ($rol == 'administrador' || $rol == 'empleado') { ?>
             <a href="inicio.php">Panel</a>
 
@@ -268,9 +295,22 @@ nav a:hover {
 
 <div class="container">
 
-    <!-- IMAGEN -->
+    <!-- IMAGEN / GALERÍA -->
     <div class="product-img">
-        <img src="img/<?php echo htmlspecialchars($producto['imagen_url']); ?>" alt="">
+        <?php if ($galeria): ?>
+            <img id="img-principal" src="<?php echo htmlspecialchars(urlImagen($galeria[0]['archivo'])); ?>" alt="">
+            <?php if (count($galeria) > 1): ?>
+                <div class="galeria-mini">
+                    <?php foreach ($galeria as $i => $g): ?>
+                        <img src="<?php echo htmlspecialchars(urlImagen($g['archivo'])); ?>" alt=""
+                             class="<?php echo $i === 0 ? 'activa' : ''; ?>"
+                             onclick="cambiarImagen(this)">
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <p style="color:var(--cc-texto-secundario);">Sin imagen</p>
+        <?php endif; ?>
     </div>
 
     <!-- DETALLES -->
@@ -364,6 +404,13 @@ nav a:hover {
 
 </div>
 
+<script>
+function cambiarImagen(mini) {
+    document.getElementById('img-principal').src = mini.src;
+    document.querySelectorAll('.galeria-mini img').forEach(function (i) { i.classList.remove('activa'); });
+    mini.classList.add('activa');
+}
+</script>
 <script src="js/theme-toggle.js"></script>
 
 </body>

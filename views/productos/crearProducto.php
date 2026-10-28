@@ -84,7 +84,8 @@ require __DIR__ . '/../../includes/header_admin.php';
 
             <form
                 action="../../controllers/inputsControllers/ProductoController.php?accion=crear"
-                method="POST">
+                method="POST"
+                enctype="multipart/form-data">
 
                 <!-- CÓDIGO + NOMBRE -->
                 <div class="row">
@@ -137,19 +138,27 @@ require __DIR__ . '/../../includes/header_admin.php';
                 </div>
 
 
-                <!-- IMAGEN -->
+                <!-- IMÁGENES -->
                 <div class="mb-3">
 
                     <label class="form-label fw-bold">
-                        Imagen
+                        Imágenes del producto
                     </label>
 
                     <input
-                        type="text"
-                        name="imagen_url"
+                        type="file"
+                        name="imagenes[]"
+                        id="imagenes"
                         class="form-control"
-                        maxlength="200"
-                        placeholder="Ej: producto.png">
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple>
+
+                    <div class="form-text">
+                        Podés elegir varias fotos a la vez (JPG, PNG o WebP · hasta 8 fotos · 4 MB cada una).
+                        Mantené apretado Ctrl para elegir varias a la vez. Abajo, en la vista previa, marcá cuál será la principal.
+                    </div>
+
+                    <div id="vistaPrevia" class="d-flex flex-wrap gap-2 mt-2"></div>
 
                 </div>
 
@@ -373,6 +382,37 @@ document.getElementById('marca').addEventListener('change', function () {
 });
 </script>
 
+<script>
+// Vista previa de las fotos nuevas, con la opción de elegir cuál es la principal
+document.getElementById('imagenes').addEventListener('change', function () {
+    var cont = document.getElementById('vistaPrevia');
+    cont.innerHTML = '';
+    var esCrear = true;
+    Array.prototype.forEach.call(this.files, function (f, i) {
+        if (!f.type.startsWith('image/')) return;
+        var caja = document.createElement('div');
+        caja.style.cssText = 'width:110px;text-align:center;font-size:12px;';
+
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(f);
+        img.style.cssText = 'width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid #888;';
+
+        var etiqueta = document.createElement('label');
+        etiqueta.style.cssText = 'display:block;margin-top:4px;cursor:pointer;';
+        var radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'imagen_principal';
+        radio.value = 'nueva_' + i;
+        if (esCrear && i === 0) radio.checked = true;
+        etiqueta.appendChild(radio);
+        etiqueta.appendChild(document.createTextNode(' Principal'));
+
+        caja.appendChild(img);
+        caja.appendChild(etiqueta);
+        cont.appendChild(caja);
+    });
+});
+</script>
 <script src="../../js/theme-toggle.js"></script>
 </body>
 

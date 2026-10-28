@@ -244,6 +244,7 @@ h1 {
     <div class="logo">CYBERCORE PANEL</div>
     <div class="user">
         Hola, <b><?php echo $_SESSION['usuario']; ?></b>
+        <?php $ruta_raiz = ''; include __DIR__ . '/includes/campana.php'; ?>
         <a class="ir-tienda" href="home.php">🛒 Tienda</a>
         <a class="logout" href="logout.php">Cerrar sesión</a>
     </div>
@@ -279,6 +280,18 @@ h1 {
             <h2>Pedidos</h2>
             <p>Ver pedidos de clientes y actualizar su estado.</p>
             <a href="views/pedidos/listarPedidos.php">Gestionar</a>
+        </div>
+
+        <div class="card">
+            <h2>Comunicaciones</h2>
+            <p>Anuncios y avisos para clientes o personal, por la app, correo o WhatsApp.</p>
+            <a href="views/anuncios/listarAnuncio.php">Gestionar</a>
+        </div>
+
+        <div class="card">
+            <h2>Facturas</h2>
+            <p>Facturas emitidas y pedidos pendientes de facturar.</p>
+            <a href="consultas/facturas.php">Gestionar</a>
         </div>
 
         <div class="card">
@@ -323,12 +336,37 @@ const modulosAdmin = [
     { nombre: "Pedidos", grupo: "General", icono: "📦",
       descripcion: "Ver pedidos de clientes y actualizar su estado.",
       url: "views/pedidos/listarPedidos.php",
-      claves: "pedidos ordenes compras estado seguimiento" },
+      claves: "pedidos ordenes compras estado seguimiento tracking transportista pago aprobar cancelar" },
 
-    { nombre: "Tablas maestras", grupo: "General", icono: "🗂️",
-      descripcion: "Menú de tablas maestras del sistema.",
-      url: "views/panel_tablas.php",
-      claves: "tablas maestras" },
+    { nombre: "Comunicaciones", grupo: "General", icono: "📣",
+      descripcion: "Anuncios y avisos para clientes o personal: app, correo y WhatsApp.",
+      url: "views/anuncios/listarAnuncio.php",
+      claves: "comunicaciones anuncios avisos notificaciones campanita whatsapp correo mensajes ofertas" },
+
+    { nombre: "Historial de notificaciones", grupo: "General", icono: "🔔",
+      descripcion: "Todas tus notificaciones y si se enviaron por correo o WhatsApp.",
+      url: "views/notificaciones/historial.php",
+      claves: "notificaciones historial campanita avisos" },
+
+    { nombre: "Facturas", grupo: "General", icono: "🧾",
+      descripcion: "Facturas emitidas, detalle imprimible (A y B) y pedidos sin facturar.",
+      url: "consultas/facturas.php",
+      claves: "facturas factura emitir comprobante iva tipo a tipo b pdf imprimir" },
+
+    { nombre: "Pedidos sin facturar", grupo: "General", icono: "⏳",
+      descripcion: "Pedidos que todavía no tienen factura emitida.",
+      url: "consultas/facturas.php?tab=pendientes",
+      claves: "pedidos sin facturar pendientes emitir factura" },
+
+    { nombre: "Pedidos nuevos", grupo: "General", icono: "🟡",
+      descripcion: "Pedidos recién recibidos, a la espera de confirmar.",
+      url: "views/pedidos/listarPedidos.php?estado=Pedido%20recibido",
+      claves: "pedidos nuevos recibidos pendientes confirmar" },
+
+    { nombre: "Pedidos en camino", grupo: "General", icono: "🚚",
+      descripcion: "Pedidos despachados que están en camino al cliente.",
+      url: "views/pedidos/listarPedidos.php?estado=En%20camino",
+      claves: "pedidos en camino despachados envio entrega seguimiento" },
 
     { nombre: "Productos y Proveedores", grupo: "General", icono: "📦",
       descripcion: "Menú de entradas del sistema.",
@@ -408,7 +446,32 @@ const modulosAdmin = [
     { nombre: "Productos", grupo: "Productos y Proveedores", icono: "💻",
       descripcion: "Gestión de entradas de productos.",
       url: "views/productos/listarProducto.php",
-      claves: "productos stock catalogo" }
+      claves: "productos stock catalogo imagenes fotos galeria precio stock cloudinary" },
+
+    { nombre: "Consulta 1 · Último precio de compra", grupo: "Consultas", icono: "🧮",
+      descripcion: "Producto y proveedor con el último precio de compra.",
+      url: "consultas/consulta1.php",
+      claves: "consulta 1 producto proveedor precio compra" },
+
+    { nombre: "Consulta 2 · Pedidos agrupados", grupo: "Consultas", icono: "🧮",
+      descripcion: "Cada pedido con sus productos, cliente y envío. Filtros por fecha y estado.",
+      url: "consultas/consulta2.php",
+      claves: "consulta 2 pedidos detallados agrupados cliente envio productos" },
+
+    { nombre: "Consulta 3 · Más vendidos", grupo: "Consultas", icono: "🧮",
+      descripcion: "Top 5 de productos más vendidos.",
+      url: "consultas/consulta3.php",
+      claves: "consulta 3 top productos mas vendidos ranking" },
+
+    { nombre: "Consulta 4 · Mejores clientes", grupo: "Consultas", icono: "🧮",
+      descripcion: "Clientes con más pedidos realizados.",
+      url: "consultas/consulta4.php",
+      claves: "consulta 4 clientes pedidos frecuentes" },
+
+    { nombre: "Consulta 5 · Marcas", grupo: "Consultas", icono: "🧮",
+      descripcion: "Marcas con mayor cantidad de productos.",
+      url: "consultas/consulta5.php",
+      claves: "consulta 5 marcas cantidad productos" },
 ];
 
 const inputBuscador = document.getElementById('buscadorModulos');

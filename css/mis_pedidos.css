@@ -1,0 +1,70 @@
+/* Mis pedidos (cliente) - usa las variables de theme.css */
+.mp-filtros { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 18px; }
+.mp-filtro {
+    display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:20px;
+    background:var(--cc-superficie); color:var(--cc-texto); border:1px solid var(--cc-borde);
+    text-decoration:none; font-weight:600; font-size:14px; transition:.2s;
+}
+.mp-filtro:hover { border-color:var(--cc-primario); color:var(--cc-primario); }
+.mp-filtro.activa { background:var(--cc-primario); color:var(--cc-texto-sobre-primario); border-color:var(--cc-primario); }
+.mp-filtro .n { background:rgba(0,0,0,.18); border-radius:10px; padding:0 8px; font-size:12px; }
+
+.mp-card {
+    background:var(--cc-superficie); border:1px solid var(--cc-borde); border-radius:14px;
+    padding:18px 20px; margin-bottom:16px; transition:.25s;
+}
+.mp-card:hover { border-color:var(--cc-primario); box-shadow:0 0 14px rgba(0,234,255,.2); }
+.mp-card-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.mp-num { font-size:18px; font-weight:700; color:var(--cc-primario); }
+.mp-meta { color:var(--cc-texto-secundario); font-size:13px; margin-top:2px; }
+.mp-total { font-size:20px; font-weight:700; color:var(--cc-texto); }
+.mp-badge { padding:5px 12px; border-radius:12px; font-size:13px; font-weight:700; color:#0B1220; display:inline-block; }
+
+/* Barra de progreso */
+.mp-prog { display:flex; align-items:flex-start; margin:18px 0 6px; }
+.mp-paso { flex:1; text-align:center; position:relative; font-size:11px; color:var(--cc-texto-secundario); }
+.mp-paso::before {
+    content:''; position:absolute; top:9px; left:-50%; width:100%; height:3px;
+    background:var(--cc-borde); z-index:0;
+}
+.mp-paso:first-child::before { display:none; }
+.mp-punto {
+    width:20px; height:20px; border-radius:50%; margin:0 auto 6px; position:relative; z-index:1;
+    background:var(--cc-superficie-2); border:2px solid var(--cc-borde);
+}
+.mp-paso.hecho .mp-punto { background:var(--cc-primario); border-color:var(--cc-primario); }
+.mp-paso.hecho::before { background:var(--cc-primario); }
+.mp-paso.actual .mp-punto { box-shadow:0 0 0 4px rgba(0,234,255,.25); }
+.mp-paso.hecho, .mp-paso.actual { color:var(--cc-texto); }
+.mp-cancelado {
+    border:1px solid var(--cc-peligro); color:var(--cc-peligro); border-radius:10px;
+    padding:10px 14px; margin-top:14px; font-weight:600;
+}
+
+.mp-track {
+    display:inline-flex; align-items:center; gap:8px; background:var(--cc-superficie-2);
+    border:1px dashed var(--cc-primario); border-radius:10px; padding:6px 12px; margin-top:10px;
+    font-size:14px; color:var(--cc-texto);
+}
+.mp-track button {
+    background:var(--cc-primario); color:var(--cc-texto-sobre-primario); border:none;
+    border-radius:8px; padding:4px 10px; font-weight:700; cursor:pointer; font-size:12px;
+}
+
+/* Historial */
+.mp-hist { list-style:none; margin:0; padding:0 0 0 18px; border-left:2px solid var(--cc-borde); }
+.mp-hist li { position:relative; padding:0 0 16px 16px; }
+.mp-hist li::before {
+    content:''; position:absolute; left:-26px; top:4px; width:12px; height:12px; border-radius:50%;
+    background:var(--cc-primario); border:2px solid var(--cc-superficie);
+}
+.mp-hist .h-estado { font-weight:700; color:var(--cc-texto); }
+.mp-hist .h-fecha { color:var(--cc-texto-secundario); font-size:12px; }
+.mp-hist .h-nota { color:var(--cc-texto-secundario); font-size:14px; margin-top:2px; }
+
+.mp-vacio { text-align:center; padding:40px 10px; color:var(--cc-texto-secundario); }
+@media (max-width:600px) { .mp-paso { font-size:9px; } }
+
+.mp-pago { padding:5px 12px; border-radius:12px; font-size:12px; font-weight:700; display:inline-block; }
+.mp-pago.ok { border:1px solid var(--cc-exito); color:var(--cc-exito); }
+.mp-pago.pend { border:1px solid var(--cc-advertencia); color:var(--cc-advertencia); }

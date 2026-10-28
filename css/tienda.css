@@ -290,6 +290,7 @@ body {
         flex-shrink: 0;
     }
 }
+
 /* Filas de dos campos lado a lado (checkout) */
 .fila-campos {
     display: grid;

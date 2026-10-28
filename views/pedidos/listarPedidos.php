@@ -2,14 +2,22 @@
 require_once '../../auth/auth.php';
 require_once '../../models/Pedido.php';
 
+$rol = $_SESSION['rol'] ?? '';
+if (!in_array($rol, ['administrador', 'empleado'], true)) {
+    header("Location: ../../home.php");
+    exit;
+}
+
 $pedidosModelo = new Pedido();
 
 $estado = $_GET['estado'] ?? 'todos';
 if ($estado !== 'todos' && !array_key_exists($estado, Pedido::ESTADOS)) {
     $estado = 'todos';
 }
+$buscar = trim($_GET['buscar'] ?? '');
 
-$pedidos = $pedidosModelo->listarPedidosAdmin($estado);
+$pedidos = $pedidosModelo->listarPedidosAdmin($estado, $buscar);
+$cuentas = $pedidosModelo->contarPorEstado();
 
 function e($valor)
 {
@@ -19,6 +27,14 @@ function e($valor)
 function plata($valor)
 {
     return '$' . number_format((float) $valor, 2, ',', '.');
+}
+
+function urlFiltro($estado, $buscar)
+{
+    $q = [];
+    if ($estado !== 'todos') $q['estado'] = $estado;
+    if ($buscar !== '')      $q['buscar'] = $buscar;
+    return 'listarPedidos.php' . ($q ? '?' . http_build_query($q) : '');
 }
 
 $ruta_raiz = '../../';
@@ -34,21 +50,9 @@ $ruta_raiz = '../../';
 <link href="../../css/theme.css" rel="stylesheet">
 
 <style>
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-}
-
-.contenedor {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 0 20px;
-}
-
-h1 {
-    color: var(--cc-primario);
-    text-shadow: 0 0 10px rgba(0, 234, 255, 0.4);
-}
+body { margin: 0; font-family: 'Segoe UI', sans-serif; }
+.contenedor { max-width: 1150px; margin: 40px auto; padding: 0 20px; }
+h1 { color: var(--cc-primario); text-shadow: 0 0 10px rgba(0, 234, 255, 0.4); }
 
 .caja-filtro {
     background: var(--cc-superficie);
@@ -58,14 +62,32 @@ h1 {
     margin-bottom: 20px;
 }
 
-.badge-estado {
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: bold;
-    color: #0B1220;
-    display: inline-block;
+.tabs-estado { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.tab-estado {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 20px;
+    background: var(--cc-superficie); color: var(--cc-texto);
+    border: 1px solid var(--cc-borde); text-decoration: none;
+    font-size: 14px; font-weight: 600; transition: 0.2s;
 }
+.tab-estado:hover { border-color: var(--cc-primario); color: var(--cc-primario); }
+.tab-estado.activa {
+    background: var(--cc-primario); color: var(--cc-texto-sobre-primario);
+    border-color: var(--cc-primario);
+}
+.tab-estado .cuenta {
+    background: rgba(0,0,0,0.18); border-radius: 10px;
+    padding: 0 8px; font-size: 12px;
+}
+
+.badge-estado {
+    padding: 5px 10px; border-radius: 12px; font-size: 13px;
+    font-weight: bold; color: #0B1220; display: inline-block;
+}
+.table { color: var(--cc-texto); }
+.table thead th { color: var(--cc-primario); font-weight: 700; border-bottom: 2px solid var(--cc-primario); background: transparent; }
+.table td { background: transparent; color: var(--cc-texto); border-color: var(--cc-borde); }
+.sub { color: var(--cc-texto-secundario); font-size: 12px; }
 </style>
 </head>
 
@@ -81,21 +103,37 @@ h1 {
 
     <div class="caja-filtro">
         <form method="GET" class="row g-3 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label fw-bold">Filtrar por estado</label>
-                <select name="estado" class="form-select">
-                    <option value="todos" <?= $estado === 'todos' ? 'selected' : '' ?>>Todos</option>
-                    <?php foreach (Pedido::ESTADOS as $nombreEstado => $info): ?>
-                        <option value="<?= e($nombreEstado) ?>" <?= $estado === $nombreEstado ? 'selected' : '' ?>>
-                            <?= $info['emoji'] ?> <?= e($nombreEstado) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+            <?php if ($estado !== 'todos'): ?>
+                <input type="hidden" name="estado" value="<?= e($estado) ?>">
+            <?php endif; ?>
+            <div class="col-md-8">
+                <label class="form-label fw-bold">Buscar pedido</label>
+                <input type="text" name="buscar" class="form-control"
+                       placeholder="N° de pedido, nombre, apellido, correo o N° de seguimiento"
+                       value="<?= e($buscar) ?>">
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-info text-dark fw-bold w-100">🔎 Filtrar</button>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-info text-dark fw-bold w-100">🔎 Buscar</button>
             </div>
+            <?php if ($buscar !== ''): ?>
+                <div class="col-md-2">
+                    <a href="<?= e(urlFiltro($estado, '')) ?>" class="btn btn-outline-secondary w-100">Limpiar</a>
+                </div>
+            <?php endif; ?>
         </form>
+    </div>
+
+    <div class="tabs-estado">
+        <a class="tab-estado <?= $estado === 'todos' ? 'activa' : '' ?>" href="<?= e(urlFiltro('todos', $buscar)) ?>">
+            Todos <span class="cuenta"><?= (int) ($cuentas['todos'] ?? 0) ?></span>
+        </a>
+        <?php foreach (Pedido::ESTADOS as $nombreEstado => $info): ?>
+            <a class="tab-estado <?= $estado === $nombreEstado ? 'activa' : '' ?>"
+               href="<?= e(urlFiltro($nombreEstado, $buscar)) ?>">
+                <?= $info['emoji'] ?> <?= e($nombreEstado) ?>
+                <span class="cuenta"><?= (int) ($cuentas[$nombreEstado] ?? 0) ?></span>
+            </a>
+        <?php endforeach; ?>
     </div>
 
     <div class="table-responsive">
@@ -107,8 +145,8 @@ h1 {
                     <th>Fecha</th>
                     <th>Total</th>
                     <th>Estado</th>
-                    <th>Transporte</th>
-                    <th width="100">Acciones</th>
+                    <th>Transporte / Seguimiento</th>
+                    <th width="90">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -121,7 +159,10 @@ h1 {
                         <?php $info = Pedido::ESTADOS[$p['estado']] ?? ['emoji' => '⚪', 'color' => '#999']; ?>
                         <tr>
                             <td>#<?= (int) $p['id_pedidos'] ?></td>
-                            <td><?= e($p['nombre'] . ' ' . $p['apellido']) ?></td>
+                            <td>
+                                <?= e($p['nombre'] . ' ' . $p['apellido']) ?>
+                                <?php if (!empty($p['correo'])): ?><div class="sub"><?= e($p['correo']) ?></div><?php endif; ?>
+                            </td>
                             <td><?= e(date('d/m/Y', strtotime($p['fecha_pedidos']))) ?></td>
                             <td><?= plata($p['monto_total']) ?></td>
                             <td>
@@ -129,11 +170,14 @@ h1 {
                                     <?= $info['emoji'] ?> <?= e($p['estado']) ?>
                                 </span>
                             </td>
-                            <td><?= e($p['empresa_transporte'] ?? 'N/A') ?></td>
                             <td>
-                                <a href="verPedido.php?id=<?= (int) $p['id_pedidos'] ?>" class="btn btn-info btn-sm text-dark fw-bold">
-                                    Ver
-                                </a>
+                                <?= e($p['empresa_transporte'] ?: '—') ?>
+                                <?php if (!empty($p['num_seguimiento'])): ?>
+                                    <div class="sub">N° <?= e($p['num_seguimiento']) ?></div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <a href="verPedido.php?id=<?= (int) $p['id_pedidos'] ?>" class="btn btn-info btn-sm text-dark fw-bold">Ver</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>

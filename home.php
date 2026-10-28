@@ -1,10 +1,11 @@
- <?php
+<?php
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once 'models/Producto.php';   // Incluye la clase
+require_once 'models/Producto.php';
+require_once 'includes/imagen_helper.php';   // Incluye la clase
 
 $pro = new Producto();                // Instancia de la clase
 
@@ -12,6 +13,15 @@ $rol = $_SESSION['rol'] ?? null;
 
 // Búsqueda (opcional, vía ?buscar=...)
 $buscar = trim($_GET['buscar'] ?? '');
+
+// Si escribió el código exacto de un producto, lo llevamos directo a su página
+if ($buscar !== '') {
+    $id_directo = $pro->id_por_codigo($buscar);
+    if ($id_directo !== null) {
+        header("Location: producto.php?id=" . $id_directo);
+        exit;
+    }
+}
 
 // Traer productos para la grilla
 $productos = $pro->listar($buscar);
@@ -246,15 +256,17 @@ nav a:hover {
     <div class="logo">CYBERCORE</div>
     <nav>
         <a href="home.php">Inicio</a>
+        <?php $ruta_raiz = ''; include __DIR__ . '/includes/campana.php'; ?>
         <?php if ($rol == 'administrador' || $rol == 'empleado') { ?>
             <a href="inicio.php">Panel</a>
 
         <?php }elseif($rol == 'usuario' || $rol == 'cliente'){ ?>
             <a href="carrito/carrito.php">🛒 Carrito</a>
+            <a href="carrito/mis_pedidos.php">📦 Mis pedidos</a>
             <a class="logout" href="logout.php">Cerrar sesión</a>
             
         <?php }else{ ?>
-            <a href="login.php">Iniciar sesión</a>
+            <a href="index.php">Iniciar sesión</a>
             <a href="registro.php">Registrarse</a>
         <?php } ?>
     </nav>
@@ -277,7 +289,7 @@ nav a:hover {
         <input 
             type="text" 
             name="buscar" 
-            placeholder="Buscar productos, marcas, categorías..."
+            placeholder="Buscar por nombre, código, marca o categoría..."
             value="<?php echo htmlspecialchars($buscar); ?>">
         <button type="submit">Buscar</button>
     </form>
@@ -302,7 +314,7 @@ nav a:hover {
 <?php foreach($productos as $p) { ?>
     <div class="card">
 
-        <img src="img/<?php echo $p['imagen_url']; ?>" alt="">
+        <img src="<?php echo htmlspecialchars(urlImagen($p['imagen_url'])); ?>" alt="">
 
         <h3><?php echo $p['nombre']; ?></h3>
         <small><?php echo $p['nombre_marca']; ?> • <?php echo $p['categoria']; ?></small>

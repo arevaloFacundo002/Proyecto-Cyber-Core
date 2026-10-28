@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../models/Pedido.php';
+require_once __DIR__ . '/../includes/imagen_helper.php';
 
 // Hay que estar logueado
 if (!isset($_SESSION['usuario'])) {
@@ -91,7 +92,8 @@ $metodoSel   = (int) old('metodo_pago', !empty($datos['metodos']) ? $datos['meto
 
     <h1>Finalizar compra</h1>
 
-    <?php if ($errorPedido): ?>
+    <?php /* Si ya hay avisos de stock más abajo, no repetimos el mismo mensaje acá */ ?>
+    <?php if ($errorPedido && ($hayError || empty($datos['problemas']))): ?>
         <div class="aviso"><?= e($errorPedido) ?></div>
     <?php endif; ?>
 
@@ -127,7 +129,7 @@ $metodoSel   = (int) old('metodo_pago', !empty($datos['metodos']) ? $datos['meto
                 <?php foreach ($datos['lineas'] as $l): ?>
                 <tr>
                     <td>
-                        <img src="../img/<?= e($l['imagen']) ?>" alt="">
+                        <img src="<?= e(urlImagen($l['imagen'], '../')) ?>" alt="">
                         <?= e($l['nombre']) ?>
                     </td>
                     <td class="num"><?= plata($l['precio']) ?></td>

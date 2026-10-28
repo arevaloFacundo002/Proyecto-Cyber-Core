@@ -1,4 +1,4 @@
- <?php
+<?php
 
  require_once __DIR__ . '/../Database.php';
  
@@ -13,6 +13,19 @@ class Producto
     }
 
     // LISTAR PRODUCTOS
+
+    // Si el texto viene de una sugerencia con formato "CODIGO · Nombre", busca solo por el código
+    private function limpiarBusqueda(string $busqueda): string
+    {
+        $busqueda = trim($busqueda);
+
+        if (strpos($busqueda, '·') !== false) {
+            $busqueda = trim(explode('·', $busqueda, 2)[0]);
+        }
+
+        return $busqueda;
+    }
+
     public function listar(
         string $busqueda = "",
         string $estado = "activos",
@@ -54,7 +67,7 @@ class Producto
 
         $stmt = $this->conexion->prepare($sql);
 
-        $busqueda = "%" . $busqueda . "%";
+        $busqueda = "%" . $this->limpiarBusqueda($busqueda) . "%";
 
         $stmt->bind_param(
             "sssssii",
@@ -146,6 +159,13 @@ class Producto
         );
 
         return $stmt->execute();
+    }
+
+
+    // ID del último producto creado con esta conexión
+    public function ultimoId(): int
+    {
+        return (int) $this->conexion->insert_id;
     }
 
 
@@ -258,7 +278,7 @@ class Producto
 
         $stmt = $this->conexion->prepare($sql);
 
-        $busqueda = "%" . $busqueda . "%";
+        $busqueda = "%" . $this->limpiarBusqueda($busqueda) . "%";
 
         $stmt->bind_param(
             "sssss",

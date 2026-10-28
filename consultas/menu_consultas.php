@@ -147,7 +147,7 @@ require __DIR__ . '/../includes/header_admin.php';
 
         <div class="card">
             <h2>Consulta 2</h2>
-            <p>Pedidos detallados por cliente y envío.</p>
+            <p>Pedidos agrupados: cada pedido con sus productos, cliente y envío.</p>
             <a href="consulta2.php">Ver consulta</a>
         </div>
 
@@ -167,6 +167,12 @@ require __DIR__ . '/../includes/header_admin.php';
             <h2>Consulta 5</h2>
             <p>Marcas con mayor cantidad de productos.</p>
             <a href="consulta5.php">Ver consulta</a>
+        </div>
+
+        <div class="card">
+            <h2>Facturas</h2>
+            <p>Facturas emitidas, detalle imprimible y pedidos sin facturar.</p>
+            <a href="facturas.php">Ver facturas</a>
         </div>
 
     </div>

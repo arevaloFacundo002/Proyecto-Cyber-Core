@@ -1,34 +1,5 @@
-<?php 
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
-require_once __DIR__.'/../vendor/autoload.php';
-
-function enviar_mail(string $destino,string $nombre,string $asunto,string $mensajeHTML){
-    $email = new PHPMailer(true);
-    
-    try {
-        $email->isSMTP();
-        $email->Host = 'smtp.gmail.com';
-        $email->SMTPAuth = true;
-        $email->Username = 'arevalofacundo304@gmail.com';
-        $email->Password = 'ompz zzof zkzc xddj';
-        $email->Port = 587;
-        $email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $email->CharSet = 'UTF-8';
-
-        $email->setFrom('arevalofacundo304@gmail.com','Cyber Core');
-        $email->addAddress($destino,$nombre);
-
-        $email->isHTML(true);
-        $email->Subject = $asunto;
-        $email->Body = $mensajeHTML;
-
-        $email->send();
-        return true;
-
-        } catch (Exception $ex) {
-            return false;
-    }
-}
+<?php
+// Este archivo quedó solo para que los require viejos sigan funcionando.
+// El envío real de correos está en config/notificaciones/mail.php
+// y las claves se leen del archivo .env (que no se sube a GitHub).
+require_once __DIR__ . '/notificaciones/mail.php';

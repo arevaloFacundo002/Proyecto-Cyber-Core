@@ -37,24 +37,6 @@ foreach ($pedido['items'] as $it) {
     $subtotal += (float) $it['subtotal_final'];
 }
 $envio = round((float) $pedido['monto_total'] - $subtotal, 2);
-
-// ---- Línea de tiempo del estado ----
-$estaCancelado   = ($pedido['estado'] === 'Cancelado');
-$secuenciaEstados = array_values(array_diff(array_keys(Pedido::ESTADOS), ['Cancelado']));
-$posActual        = array_search($pedido['estado'], $secuenciaEstados);
-if ($posActual === false) {
-    $posActual = 0;
-}
-
-// ---- Tipo de lugar / quién recibe, en texto legible ----
-$etiquetasLugar = [
-    'casa'         => '🏠 Casa',
-    'departamento' => '🏢 Departamento',
-    'trabajo'      => '💼 Trabajo',
-    'local'        => '🏪 Local comercial',
-    'otro'         => '📍 Otro',
-];
-$tipoLugarTexto = $etiquetasLugar[$pedido['tipo_lugar'] ?? ''] ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -73,6 +55,7 @@ $tipoLugarTexto = $etiquetasLugar[$pedido['tipo_lugar'] ?? ''] ?? null;
     <nav>
         <a href="../home.php">Inicio</a>
         <a href="carrito.php">🛒 Carrito</a>
+        <a href="mis_pedidos.php">📦 Mis pedidos</a>
         <a class="logout" href="../logout.php">Cerrar sesión</a>
     </nav>
 </header>
@@ -83,30 +66,6 @@ $tipoLugarTexto = $etiquetasLugar[$pedido['tipo_lugar'] ?? ''] ?? null;
 
     <div class="aviso aviso-ok centrado">
         Tu pedido <strong>#<?= (int) $pedido['id_pedidos'] ?></strong> quedó registrado.
-    </div>
-
-    <!-- SEGUIMIENTO -->
-    <div class="caja">
-        <h2>Seguimiento</h2>
-
-        <?php if ($estaCancelado): ?>
-
-            <div class="aviso" style="border-color: var(--cc-peligro);">
-                🔴 Este pedido fue <strong>cancelado</strong>.
-            </div>
-
-        <?php else: ?>
-
-            <div class="timeline">
-                <?php foreach ($secuenciaEstados as $i => $estado): ?>
-                    <div class="timeline-paso <?= $i <= $posActual ? 'completo' : '' ?> <?= $i === $posActual ? 'actual' : '' ?>">
-                        <div class="timeline-punto"><?= Pedido::ESTADOS[$estado]['emoji'] ?></div>
-                        <div class="timeline-texto"><?= e($estado) ?></div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-
-        <?php endif; ?>
     </div>
 
     <div class="caja">
@@ -145,23 +104,6 @@ $tipoLugarTexto = $etiquetasLugar[$pedido['tipo_lugar'] ?? ''] ?? null;
         <h2>Envío y pago</h2>
         <p>
             <strong>Dirección:</strong> <?= e($pedido['direccion_entrega']) ?><br>
-            <?php if ($tipoLugarTexto): ?>
-                <strong>Tipo de lugar:</strong> <?= e($tipoLugarTexto) ?>
-                <?php if (!empty($pedido['piso_depto_torre'])): ?>
-                    (<?= e($pedido['piso_depto_torre']) ?>)
-                <?php endif; ?>
-                <br>
-            <?php endif; ?>
-            <?php if (!empty($pedido['referencia'])): ?>
-                <strong>Referencia:</strong> <?= e($pedido['referencia']) ?><br>
-            <?php endif; ?>
-            <strong>Recibe:</strong>
-            <?php if (($pedido['recibe_quien'] ?? 'yo') === 'otra_persona'): ?>
-                <?= e($pedido['recibe_nombre']) ?> — Tel: <?= e($pedido['recibe_telefono']) ?>
-            <?php else: ?>
-                Quien compró el pedido
-            <?php endif; ?>
-            <br>
             <strong>Transporte:</strong> <?= e($pedido['empresa_transporte']) ?>
             (<?= e($pedido['estado_envio']) ?>)<br>
             <?php if (!empty($pedido['fecha_estimada_entrega'])): ?>
@@ -178,6 +120,7 @@ $tipoLugarTexto = $etiquetasLugar[$pedido['tipo_lugar'] ?? ''] ?? null;
 
     <p class="centrado">
         <a class="btn-principal" href="../home.php">Seguir comprando</a>
+        <a class="btn-secundario" href="mi_pedido.php?id=<?= (int) $pedido['id_pedidos'] ?>">Seguir mi pedido</a>
     </p>
 
 </div>

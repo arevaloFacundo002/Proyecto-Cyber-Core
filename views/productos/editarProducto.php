@@ -1,8 +1,10 @@
- <?php
+<?php
 
 require_once '../../auth/auth.php';
 
 require_once '../../models/inputs/Producto.php';
+require_once '../../models/ProductoImagen.php';
+require_once '../../includes/imagen_helper.php';
 require_once '../../models/tablas_maestras/Categoria.php';
 require_once '../../models/tablas_maestras/Marca.php';
 require_once '../../models/tablas_maestras/ModeloProducto.php';
@@ -63,6 +65,10 @@ $marcas = $marca->listar();
 $id_categoria_actual = $producto['rela_id_categoria'];
 $id_marca_actual = $producto['rela_id_marca'];
 $id_modelo_actual = $producto['rela_id_modelo_producto'];
+
+// Galería de imágenes del producto
+$imagenes = (new ProductoImagen())->listar($id_producto);
+$avisoImagenes = $_GET['aviso'] ?? '';
 
 ?>
 <!DOCTYPE html>
@@ -155,7 +161,8 @@ require __DIR__ . '/../../includes/header_admin.php';
 
             <form
                 action="../../controllers/inputsControllers/ProductoController.php?accion=editar"
-                method="POST">
+                method="POST"
+                enctype="multipart/form-data">
 
 
                 <!-- ID OCULTO -->
@@ -228,23 +235,58 @@ require __DIR__ . '/../../includes/header_admin.php';
                 </div>
 
 
-                <!-- IMAGEN -->
-
+                <!-- IMÁGENES -->
                 <div class="mb-3">
 
                     <label class="form-label fw-bold">
-
-                        Imagen
-
+                        Imágenes del producto
                     </label>
 
+                    <?php if ($avisoImagenes !== ''): ?>
+                        <div class="alert alert-warning py-2">
+                            El producto se guardó, pero: <?= htmlspecialchars($avisoImagenes) ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (empty($imagenes)): ?>
+                        <p class="text-muted small mb-2">Este producto todavía no tiene fotos.</p>
+                    <?php else: ?>
+                        <div class="d-flex flex-wrap gap-3 mb-3">
+                            <?php foreach ($imagenes as $img): ?>
+                                <div class="border rounded p-2 text-center" style="width:130px;">
+                                    <img src="<?= htmlspecialchars(urlImagen($img['archivo'], '../../')) ?>" alt=""
+                                         style="width:100%;height:90px;object-fit:cover;border-radius:6px;">
+                                    <div class="form-check mt-2 text-start">
+                                        <input class="form-check-input" type="radio" name="imagen_principal"
+                                               id="pri<?= (int) $img['id_imagen'] ?>" value="<?= (int) $img['id_imagen'] ?>"
+                                               <?= $img['es_principal'] ? 'checked' : '' ?>>
+                                        <label class="form-check-label small" for="pri<?= (int) $img['id_imagen'] ?>">Principal</label>
+                                    </div>
+                                    <div class="form-check text-start">
+                                        <input class="form-check-input" type="checkbox" name="eliminar_imagenes[]"
+                                               id="del<?= (int) $img['id_imagen'] ?>" value="<?= (int) $img['id_imagen'] ?>">
+                                        <label class="form-check-label small text-danger" for="del<?= (int) $img['id_imagen'] ?>">Eliminar</label>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <label class="form-label small mb-1">Agregar más fotos</label>
                     <input
-                        type="text"
-                        name="imagen_url"
+                        type="file"
+                        name="imagenes[]"
+                        id="imagenes"
                         class="form-control"
-                        maxlength="200"
-                        value="<?= htmlspecialchars($producto['imagen_url'] ?? '') ?>"
-                        placeholder="Ej: producto.png">
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple>
+
+                    <div class="form-text">
+                        JPG, PNG o WebP · hasta 8 fotos por producto · 4 MB cada una.
+                        Podés elegir varias a la vez (Ctrl + clic). Marcá "Principal" en la que quieras mostrar en la tienda, incluso entre las nuevas, y "Eliminar" en las que quieras sacar.
+                    </div>
+
+                    <div id="vistaPrevia" class="d-flex flex-wrap gap-2 mt-2"></div>
 
                 </div>
 
@@ -625,6 +667,37 @@ if (marca.value !== '') {
 </script>
 
 
+<script>
+// Vista previa de las fotos nuevas, con la opción de elegir cuál es la principal
+document.getElementById('imagenes').addEventListener('change', function () {
+    var cont = document.getElementById('vistaPrevia');
+    cont.innerHTML = '';
+    var esCrear = false;
+    Array.prototype.forEach.call(this.files, function (f, i) {
+        if (!f.type.startsWith('image/')) return;
+        var caja = document.createElement('div');
+        caja.style.cssText = 'width:110px;text-align:center;font-size:12px;';
+
+        var img = document.createElement('img');
+        img.src = URL.createObjectURL(f);
+        img.style.cssText = 'width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid #888;';
+
+        var etiqueta = document.createElement('label');
+        etiqueta.style.cssText = 'display:block;margin-top:4px;cursor:pointer;';
+        var radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'imagen_principal';
+        radio.value = 'nueva_' + i;
+        if (esCrear && i === 0) radio.checked = true;
+        etiqueta.appendChild(radio);
+        etiqueta.appendChild(document.createTextNode(' Principal'));
+
+        caja.appendChild(img);
+        caja.appendChild(etiqueta);
+        cont.appendChild(caja);
+    });
+});
+</script>
 <script src="../../js/theme-toggle.js"></script>
 </body>
 

@@ -1,4 +1,4 @@
- <?php
+<?php
 
 require_once __DIR__ . '/../Database.php';
 
@@ -172,6 +172,12 @@ class MovimientoStock
             // Confirmar todo
 
             $this->conexion->commit();
+
+            // Aviso de stock bajo al personal (nunca rompe el registro del movimiento)
+            if ($tipo === 'S') {
+                require_once __DIR__ . '/../../includes/avisos.php';
+                avisar_stock_bajo($this->conexion, [$id_producto]);
+            }
 
             return true;
 

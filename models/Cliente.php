@@ -1,4 +1,4 @@
- <?php
+<?php
 require_once __DIR__ . '/Database.php';
 
 class Cliente {
@@ -111,6 +111,20 @@ class Cliente {
         $stmt->execute();
 
         return $stmt->get_result()->fetch_assoc();
+    }
+
+    // Devuelve el numero de contacto del cliente a partir de su id_usuario (para usar en WhatsApp)
+    function obtener_contacto_por_usuario(int $id_usuario) {
+        $sql = "SELECT co.valor
+                FROM clientes c
+                INNER JOIN contactos co ON co.rela_id_cliente = c.id_cliente
+                WHERE c.rela_id_usuario = ?
+                LIMIT 1";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param("i", $id_usuario);
+        $stmt->execute();
+        $fila = $stmt->get_result()->fetch_assoc();
+        return $fila ? $fila['valor'] : null;
     }
 
 }
