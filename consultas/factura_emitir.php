@@ -28,6 +28,7 @@ if ($id_pedido <= 0) volver('error', 'Pedido inválido.');
 $r = (new Pedido())->emitirFactura($id_pedido);
 
 if ($r['ok']) {
-    volver('ok', "Factura {$r['numero']} emitida para el pedido #$id_pedido.", 'factura_ver.php?id=' . $r['id_factura']);
+    $esT = strncmp((string) $r['numero'], 'T-', 2) === 0;
+    volver('ok', ($esT ? 'Ticket' : 'Factura') . " {$r['numero']} " . ($esT ? 'emitido' : 'emitida') . " para el pedido #$id_pedido.", 'factura_ver.php?id=' . $r['id_factura']);
 }
 volver('error', $r['error'] ?? 'No se pudo emitir la factura.');

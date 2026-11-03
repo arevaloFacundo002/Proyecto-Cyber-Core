@@ -1,4 +1,4 @@
- <?php
+<?php
 session_start();
 require_once 'models/Usuario.php';
 $user = new Usuario();
@@ -7,8 +7,8 @@ $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $correo = $_POST['correo'] ?? null;
-    $password = $_POST['password'] ?? null;
+    $correo = isset($_POST['correo']) ? trim($_POST['correo']) : null;
+    $password = isset($_POST['password']) ? trim($_POST['password']) : null;
 
     $usuario = $user->login($correo);
 

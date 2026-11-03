@@ -121,14 +121,14 @@ function avisar_pago_aprobado(mysqli $cx, int $id_pedido, ?string $factura = nul
 
         $msg = "Aprobamos el pago de tu pedido #{$id_pedido} por " . avisos_dinero($p['monto_total']) . '.';
         if ($factura) {
-            $msg .= " Ya podés ver tu factura {$factura} en Mis pedidos.";
+            $msg .= ' Ya podés ver ' . (strncmp($factura, 'T-', 2) === 0 ? 'tu ticket ' : 'tu factura ') . $factura . ' en Mis pedidos.';
         }
 
         $htmlFactura = null;
         if ($factura) {
             try {
                 require_once __DIR__ . '/factura_email.php';
-                $htmlFactura = factura_email_de_pedido($id_pedido, "Hola {$p['nombre']}, aprobamos el pago de tu pedido #{$id_pedido}. Acá tenés tu factura.");
+                $htmlFactura = factura_email_de_pedido($id_pedido, "Hola {$p['nombre']}, aprobamos el pago de tu pedido #{$id_pedido}. Acá tenés tu " . (strncmp($factura, 'T-', 2) === 0 ? 'ticket.' : 'factura.'));
             } catch (Throwable $e) {
                 error_log('avisar_pago_aprobado (factura): ' . $e->getMessage());
             }
@@ -162,7 +162,7 @@ function avisar_factura_emitida(mysqli $cx, int $id_pedido, string $numero): voi
         $htmlFactura = null;
         try {
             require_once __DIR__ . '/factura_email.php';
-            $htmlFactura = factura_email_de_pedido($id_pedido, "Hola {$p['nombre']}, emitimos la factura de tu pedido #{$id_pedido}.");
+            $htmlFactura = factura_email_de_pedido($id_pedido, "Hola {$p['nombre']}, emitimos " . (strncmp($numero, 'T-', 2) === 0 ? 'el ticket' : 'la factura') . " de tu pedido #{$id_pedido}.");
         } catch (Throwable $e) {
             error_log('avisar_factura_emitida (factura): ' . $e->getMessage());
         }
@@ -170,8 +170,8 @@ function avisar_factura_emitida(mysqli $cx, int $id_pedido, string $numero): voi
         notificar_multicanal(
             (int) $p['id_usuario'],
             'factura_emitida',
-            "Tu factura {$numero} está lista",
-            "Emitimos la factura {$numero} de tu pedido #{$id_pedido}. Podés verla en Mis pedidos.",
+            (strncmp($numero, 'T-', 2) === 0 ? "Tu ticket {$numero} está listo" : "Tu factura {$numero} está lista"),
+            'Emitimos ' . (strncmp($numero, 'T-', 2) === 0 ? 'el ticket ' : 'la factura ') . "{$numero} de tu pedido #{$id_pedido}. Podés verlo en Mis pedidos.",
             avisos_canales(['app', 'email']),
             'carrito/mi_pedido.php?id=' . $id_pedido,
             null,

@@ -65,7 +65,7 @@ try {
     volverConError($e->getMessage());
 }
 
-$resultado = $pedidos->crearPedido($id_usuario, $carrito, $id_metodo, $datosEntrega, $datosCliente, $_SESSION['cupon_codigo'] ?? null);
+$resultado = $pedidos->crearPedido($id_usuario, $carrito, $id_metodo, $datosEntrega, $datosCliente, $_SESSION['cupon_codigo'] ?? null, $_POST['tipo_comprobante'] ?? null);
 
 if (!empty($resultado['ok'])) {
 

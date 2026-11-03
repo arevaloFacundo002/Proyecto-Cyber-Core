@@ -157,12 +157,13 @@ if (empty($_SESSION['csrf_comprobante'])) {
     </div>
 
     <div class="caja">
-        <h2>Factura</h2>
+        <?php $esTicket = (($pedido['tipo_comprobante'] ?? 'Factura') === 'Ticket') || strncmp((string) ($pedido['numero_factura'] ?? ''), 'T-', 2) === 0; $cNombre = $esTicket ? 'ticket' : 'factura'; ?>
+        <h2><?= $esTicket ? 'Ticket' : 'Factura' ?></h2>
         <?php if (!empty($pedido['id_factura'])): ?>
-            <p>Factura <strong><?= e($pedido['numero_factura']) ?></strong></p>
-            <p><a class="btn-principal" href="mi_factura.php?id=<?= (int) $pedido['id_factura'] ?>">🧾 Ver / imprimir factura</a></p>
+            <p><?= $esTicket ? 'Ticket' : 'Factura' ?> <strong><?= e($pedido['numero_factura']) ?></strong></p>
+            <p><a class="btn-principal" href="mi_factura.php?id=<?= (int) $pedido['id_factura'] ?>">🧾 Ver / imprimir <?= $cNombre ?></a></p>
         <?php else: ?>
-            <p class="texto-suave"><?= ($pedido['estado_pagos'] ?? '') === 'Aprobado' ? 'Tu factura se está preparando.' : 'Tu factura se emite cuando se aprueba el pago.' ?></p>
+            <p class="texto-suave"><?= ($pedido['estado_pagos'] ?? '') === 'Aprobado' ? 'Tu ' . $cNombre . ' se está preparando.' : 'Tu ' . $cNombre . ' se emite cuando se aprueba el pago.' ?></p>
         <?php endif; ?>
     </div>
 

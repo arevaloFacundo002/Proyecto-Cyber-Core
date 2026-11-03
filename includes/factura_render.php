@@ -1,5 +1,6 @@
+
 <?php
-// Dibuja una factura (la usan la pantalla del administrador y la del cliente).
+//  se crea o disena la factura  (la usan la pantalla del administrador y la del cliente).
 // $f = resultado de Pedido::obtenerFactura()
 function renderFactura(array $f): void
 {
@@ -23,6 +24,65 @@ function renderFactura(array $f): void
     $emisorFiscal = (function_exists('env_valor') ? env_valor('EMPRESA_CUIT', '') : '') ?: 'CUIT de la empresa';
     $esA = ($f['tipo_factura'] === 'A');
     $difiere = abs((float) $f['monto_total'] - (float) $f['total_pedido']) > 0.01;
+
+    if ($f['tipo_factura'] === 'T') {
+        ?>
+<style>
+    .ticket { background: var(--cc-superficie); border: 1px dashed var(--cc-borde); border-radius: 8px; padding: 26px 24px; color: var(--cc-texto);
+        max-width: 380px; margin: 0 auto; font-family: 'Courier New', Consolas, monospace; font-size: 14px; }
+    .ticket .centro { text-align: center; }
+    .ticket h2 { margin: 0 0 2px; font-size: 22px; letter-spacing: 2px; color: var(--cc-primario); }
+    .ticket p { margin: 2px 0; }
+    .ticket .suave { color: var(--cc-texto-secundario); font-size: 12px; }
+    .ticket hr { border: none; border-top: 1px dashed var(--cc-borde); margin: 12px 0; }
+    .ticket .linea { display: flex; justify-content: space-between; gap: 10px; margin: 3px 0; }
+    .ticket .linea span:last-child { white-space: nowrap; }
+    .ticket .detalle { color: var(--cc-texto-secundario); font-size: 12px; margin: 0 0 6px; }
+    .ticket .total { font-size: 18px; font-weight: bold; border-top: 1px dashed var(--cc-borde); margin-top: 8px; padding-top: 8px; }
+    @media print {
+        body { background: #fff !important; }
+        .cc-header-admin, .tienda-header, #cc-theme-toggle, .no-imprimir { display: none !important; }
+        .tienda-container, .container { margin: 0 auto !important; padding: 0 !important; box-shadow: none !important; border: none !important; background: #fff !important; }
+        .ticket { border: none; background: #fff; }
+        .ticket * { color: #000 !important; border-color: #999 !important; text-shadow: none !important; }
+    }
+</style>
+
+<div class="ticket">
+    <div class="centro">
+        <h2>CYBERCORE</h2>
+        <p class="suave"><?= $e($emisorDom) ?></p>
+    </div>
+    <hr>
+    <div class="centro">
+        <p><strong>TICKET <?= $e($f['numero_factura']) ?></strong></p>
+        <p class="suave"><?= $f['fecha_emicion'] ? $e(date('d/m/Y H:i', strtotime($f['fecha_emicion']))) : '-' ?> · Pedido #<?= (int) $f['rela_id_pedidos'] ?></p>
+    </div>
+    <hr>
+    <?php foreach ($f['items'] as $it): ?>
+        <div class="linea"><span><?= $e($it['nombre']) ?></span><span><?= $plata($it['subtotal_base'] ?? $it['subtotal_final']) ?></span></div>
+        <p class="detalle"><?= (int) $it['cantidad'] ?> x <?= $plata($it['precio_unitario_base']) ?></p>
+    <?php endforeach; ?>
+    <hr>
+    <?php if ($promoDesc > 0): ?>
+        <div class="linea"><span>Descuento<?= $promoNombre ? ' (' . $e($promoNombre) . ')' : '' ?></span><span>− <?= $plata($promoDesc) ?></span></div>
+    <?php endif; ?>
+    <?php if ($cuponDesc > 0): ?>
+        <div class="linea"><span>Cupón <?= $e($f['cupon_codigo'] ?? '') ?></span><span>− <?= $plata($cuponDesc) ?></span></div>
+    <?php endif; ?>
+    <?php if ($envio > 0): ?>
+        <div class="linea"><span>Envío<?= !empty($f['empresa_transporte']) ? ' (' . $e($f['empresa_transporte']) . ')' : '' ?></span><span><?= $plata($envio) ?></span></div>
+    <?php endif; ?>
+    <div class="linea total"><span>TOTAL</span><span><?= $plata($f['monto_total']) ?></span></div>
+    <?php if (!empty($f['metodo_pago'])): ?>
+        <p class="suave" style="margin-top:10px;">Pago: <?= $e($f['metodo_pago']) ?></p>
+    <?php endif; ?>
+    <hr>
+    <p class="centro suave">¡Gracias por tu compra!<br>Comprobante interno, sin validez fiscal.</p>
+</div>
+<?php
+        return;
+    }
     ?>
 <style>
     .factura { background: var(--cc-superficie); border: 1px solid var(--cc-borde); border-radius: 12px; padding: 32px; color: var(--cc-texto); max-width: 860px; margin: 0 auto; }

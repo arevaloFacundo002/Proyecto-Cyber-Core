@@ -405,6 +405,27 @@ $metodoSel   = (int) old('metodo_pago', !empty($datos['metodos']) ? $datos['meto
                 </p>
             </div>
 
+            <!-- COMPROBANTE -->
+            <div class="caja">
+                <h2>Comprobante</h2>
+                <?php if (!empty($datos['solo_factura'])): ?>
+                    <p class="texto-suave">Como sos Responsable Inscripto, vas a recibir <strong>factura</strong> con el IVA discriminado.</p>
+                <?php else: ?>
+                    <?php $tipoSel = old('tipo_comprobante', 'Factura') === 'Ticket' ? 'Ticket' : 'Factura'; ?>
+                    <label class="opcion-pago">
+                        <input type="radio" name="tipo_comprobante" value="Factura" <?= $tipoSel === 'Factura' ? 'checked' : '' ?>>
+                        <strong>Factura</strong>
+                        <small>Con tus datos (nombre, CUIL/CUIT) y el IVA incluido.</small>
+                    </label>
+                    <label class="opcion-pago">
+                        <input type="radio" name="tipo_comprobante" value="Ticket" <?= $tipoSel === 'Ticket' ? 'checked' : '' ?>>
+                        <strong>Ticket</strong>
+                        <small>Comprobante simple, sin datos fiscales: solo lo que compraste y el total.</small>
+                    </label>
+                    <p class="texto-suave">Te lo enviamos por correo cuando se confirme el pago.</p>
+                <?php endif; ?>
+            </div>
+
             <div class="acciones">
                 <a class="btn-secundario" href="carrito.php">← Volver al carrito</a>
                 <button type="submit" class="btn-principal" <?= $puedeConfirmar ? '' : 'disabled' ?>>

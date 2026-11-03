@@ -23,7 +23,7 @@ $ruta_raiz = '../';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Factura <?= htmlspecialchars($factura['numero_factura']) ?> - CyberCore</title>
+<title><?= $factura['tipo_factura'] === 'T' ? 'Ticket' : 'Factura' ?> <?= htmlspecialchars($factura['numero_factura']) ?> - CyberCore</title>
 <link href="../css/theme.css" rel="stylesheet">
 <?php require __DIR__ . '/_estilo_consultas.php'; ?>
 <style>.container { max-width: 880px; padding: 20px; }</style>

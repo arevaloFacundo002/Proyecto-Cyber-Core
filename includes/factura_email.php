@@ -24,6 +24,48 @@ function factura_email_html(array $f, string $saludo = ''): string
     $emisorFiscal = (function_exists('env_valor') ? env_valor('EMPRESA_CUIT', '') : '') ?: 'CUIT de la empresa';
     $esA = ($f['tipo_factura'] === 'A');
 
+    if ($f['tipo_factura'] === 'T') {
+        $lin = function (string $a, string $b, bool $fuerte = false) {
+            $est = $fuerte ? 'font-size:17px;font-weight:bold;border-top:1px dashed #b9c2cf;padding-top:8px;' : '';
+            return '<tr><td style="padding:3px 0;' . $est . '">' . $a . '</td><td style="padding:3px 0;text-align:right;white-space:nowrap;' . $est . '">' . $b . '</td></tr>';
+        };
+
+        $h  = '<div style="background:#f4f6f9;padding:20px;font-family:Segoe UI,Arial,sans-serif;color:#1b2330;">';
+        if ($saludo !== '') {
+            $h .= '<p style="max-width:380px;margin:0 auto 14px;font-size:15px;">' . $e($saludo) . '</p>';
+        }
+        $h .= '<div style="max-width:380px;margin:0 auto;background:#ffffff;border:1px dashed #b9c2cf;border-radius:8px;padding:24px;font-family:Courier New,Consolas,monospace;font-size:14px;">';
+        $h .= '<div style="text-align:center;"><div style="font-size:21px;font-weight:bold;letter-spacing:2px;">CYBERCORE</div>'
+            . '<div style="color:#5a6577;font-size:12px;">' . $e($emisorDom) . '</div></div>';
+        $h .= '<hr style="border:none;border-top:1px dashed #b9c2cf;margin:12px 0;">';
+        $h .= '<div style="text-align:center;"><strong>TICKET ' . $e($f['numero_factura']) . '</strong><br>'
+            . '<span style="color:#5a6577;font-size:12px;">' . ($f['fecha_emicion'] ? $e(date('d/m/Y H:i', strtotime($f['fecha_emicion']))) : '-') . ' · Pedido #' . (int) $f['rela_id_pedidos'] . '</span></div>';
+        $h .= '<hr style="border:none;border-top:1px dashed #b9c2cf;margin:12px 0;"><table width="100%" cellspacing="0" cellpadding="0">';
+        foreach ($f['items'] as $it) {
+            $h .= $lin($e($it['nombre']), $plata($it['subtotal_base'] ?? $it['subtotal_final']));
+            $h .= '<tr><td colspan="2" style="color:#5a6577;font-size:12px;padding:0 0 6px;">' . (int) $it['cantidad'] . ' x ' . $plata($it['precio_unitario_base']) . '</td></tr>';
+        }
+        $h .= '</table><hr style="border:none;border-top:1px dashed #b9c2cf;margin:12px 0;"><table width="100%" cellspacing="0" cellpadding="0">';
+        if ($promoDesc > 0) {
+            $h .= $lin('Descuento' . ($promoNombre ? ' (' . $e($promoNombre) . ')' : ''), '− ' . $plata($promoDesc));
+        }
+        if ($cuponDesc > 0) {
+            $h .= $lin('Cupón ' . $e($f['cupon_codigo'] ?? ''), '− ' . $plata($cuponDesc));
+        }
+        if ($envio > 0) {
+            $h .= $lin('Envío' . (!empty($f['empresa_transporte']) ? ' (' . $e($f['empresa_transporte']) . ')' : ''), $plata($envio));
+        }
+        $h .= $lin('TOTAL', $plata($f['monto_total']), true) . '</table>';
+        if (!empty($f['metodo_pago'])) {
+            $h .= '<p style="color:#5a6577;font-size:12px;margin:10px 0 0;">Pago: ' . $e($f['metodo_pago']) . '</p>';
+        }
+        $h .= '<hr style="border:none;border-top:1px dashed #b9c2cf;margin:12px 0;">'
+            . '<p style="text-align:center;color:#5a6577;font-size:12px;margin:0;">¡Gracias por tu compra!<br>Guardá este correo como respaldo. Comprobante interno, sin validez fiscal.</p>';
+        $h .= '</div></div>';
+
+        return $h;
+    }
+
     $celda  = 'padding:8px 10px;border-bottom:1px solid #e3e8ef;';
     $filas  = '';
     foreach ($f['items'] as $it) {

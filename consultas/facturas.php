@@ -45,7 +45,7 @@ if ($tab === 'emitidas') {
         mysqli_stmt_bind_param($st, 'sis', $like, $id, $like);
     }
 } else {
-    $sql = "SELECT p.id_pedidos, p.fecha_pedidos, p.estado, p.monto_total, c.nombre, c.apellido
+    $sql = "SELECT p.id_pedidos, p.fecha_pedidos, p.estado, p.monto_total, p.tipo_comprobante, c.nombre, c.apellido
             FROM pedidos p
             INNER JOIN clientes c ON c.id_cliente = p.rela_id_cliente
             WHERE p.estado <> 'Cancelado'
@@ -107,12 +107,12 @@ $ruta_raiz = '../';
         <div class="empty"><?= $tab === 'emitidas' ? 'No hay facturas para mostrar.' : '¡Todos los pedidos están facturados!' ?></div>
     <?php elseif ($tab === 'emitidas'): ?>
     <table>
-        <tr><th>N° Factura</th><th>Tipo</th><th>Fecha</th><th>Pedido</th><th>Cliente</th>
+        <tr><th>N° Comprobante</th><th>Tipo</th><th>Fecha</th><th>Pedido</th><th>Cliente</th>
             <th class="num">Neto</th><th class="num">IVA</th><th class="num">Total</th><th></th></tr>
         <?php foreach ($filas as $f): ?>
         <tr>
             <td><strong><?= e($f['numero_factura']) ?></strong></td>
-            <td><?= e($f['tipo_factura']) ?></td>
+            <td><?= $f['tipo_factura'] === 'T' ? 'Ticket' : e($f['tipo_factura']) ?></td>
             <td><?= $f['fecha_emicion'] ? e(date('d/m/Y', strtotime($f['fecha_emicion']))) : '' ?></td>
             <td>#<?= (int) $f['rela_id_pedidos'] ?></td>
             <td><?= e($f['nombre'] . ' ' . $f['apellido']) ?></td>
@@ -125,19 +125,20 @@ $ruta_raiz = '../';
     </table>
     <?php else: ?>
     <table>
-        <tr><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th class="num">Total</th><th></th></tr>
+        <tr><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Pidió</th><th>Estado</th><th class="num">Total</th><th></th></tr>
         <?php foreach ($filas as $f): ?>
         <tr>
             <td>#<?= (int) $f['id_pedidos'] ?></td>
             <td><?= e(date('d/m/Y', strtotime($f['fecha_pedidos']))) ?></td>
             <td><?= e($f['nombre'] . ' ' . $f['apellido']) ?></td>
+            <td><?= e($f['tipo_comprobante'] ?? 'Factura') ?></td>
             <td><?= e($f['estado']) ?></td>
             <td class="num"><strong><?= plata($f['monto_total']) ?></strong></td>
             <td>
                 <form method="POST" action="factura_emitir.php" style="margin:0;">
                     <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_facturas']) ?>">
                     <input type="hidden" name="id_pedido" value="<?= (int) $f['id_pedidos'] ?>">
-                    <button class="btn-cc" style="padding:6px 12px;font-size:13px;" type="submit">Emitir factura</button>
+                    <button class="btn-cc" style="padding:6px 12px;font-size:13px;" type="submit">Emitir <?= ($f['tipo_comprobante'] ?? 'Factura') === 'Ticket' ? 'ticket' : 'factura' ?></button>
                 </form>
             </td>
         </tr>

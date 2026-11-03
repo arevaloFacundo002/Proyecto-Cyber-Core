@@ -338,7 +338,8 @@ h1 { color: var(--cc-primario); text-shadow: 0 0 10px rgba(0, 234, 255, 0.4); }
             <tr><td>Método</td><td><?= e($pedido['metodo_pago'] ?? 'N/A') ?></td></tr>
             <tr><td>Estado del pago</td><td><?= e($pedido['estado_pagos'] ?? 'N/A') ?></td></tr>
             <tr><td>Referencia</td><td><?= e($pedido['referencia_transaccion'] ?? 'N/A') ?></td></tr>
-            <tr><td>Factura</td><td>
+            <tr><td>Comprobante pedido</td><td><?= e($pedido['tipo_comprobante'] ?? 'Factura') ?></td></tr>
+            <tr><td><?= (($pedido['tipo_comprobante'] ?? 'Factura') === 'Ticket') ? 'Ticket' : 'Factura' ?></td><td>
                 <?php if (!empty($pedido['id_factura'])): ?>
                     <a href="../../consultas/factura_ver.php?id=<?= (int) $pedido['id_factura'] ?>"><?= e($pedido['numero_factura']) ?> · ver</a>
                 <?php else: ?>
@@ -374,11 +375,11 @@ h1 { color: var(--cc-primario); text-shadow: 0 0 10px rgba(0, 234, 255, 0.4); }
 
         <?php if (($pedido['estado_pagos'] ?? '') !== 'Aprobado' && $pedido['estado'] !== 'Cancelado' && !empty($pedido['metodo_pago'])): ?>
             <form method="POST" action="../../controllers/pedidosControllers/PedidoController.php?accion=aprobarPago" style="margin-top:12px;"
-                  onsubmit="return confirm('¿Marcar el pago como aprobado? Se emitirá la factura automáticamente.');">
+                  onsubmit="return confirm('¿Marcar el pago como aprobado? Se emitirá el comprobante automáticamente.');">
                 <input type="hidden" name="id_pedido" value="<?= (int) $pedido['id_pedidos'] ?>">
                 <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_admin_pedidos']) ?>">
                 <button type="submit" class="btn btn-success fw-bold">✅ Marcar pago como aprobado</button>
-                <div style="font-size:12px;opacity:.7;margin-top:6px;">Al aprobarlo se emite la factura del cliente.</div>
+                <div style="font-size:12px;opacity:.7;margin-top:6px;">Al aprobarlo se emite el comprobante del cliente (factura o ticket, según lo que eligió).</div>
             </form>
         <?php endif; ?>
     </div>

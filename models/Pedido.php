@@ -54,12 +54,13 @@ class Pedido
     // =====================================================
     public function obtenerCliente(int $id_usuario): ?array
     {
-        $sql = "SELECT c.id_cliente, c.nombre, c.apellido,
+        $sql = "SELECT c.id_cliente, c.nombre, c.apellido, ci.nombre AS condicion_iva,
                        d.calle, d.numero_exterior, d.barrio_colonia, d.piso_departamento,
                        l.id_localidad, l.nombre_localidad, l.codigo_postal,
                        p.nombre_provincia, p.dias_transitos_base
                 FROM clientes c
                 INNER JOIN direcciones d ON d.id_direccion = c.rela_id_direccion
+                LEFT JOIN condiciones_iva ci ON ci.id_condicion_iva = c.rela_id_condicion_iva
                 LEFT JOIN localidades l ON l.id_localidad = d.rela_id_localidad
                 LEFT JOIN provincias p ON p.id_provincia = l.rela_id_provincia
                 WHERE c.rela_id_usuario = ?
@@ -72,6 +73,16 @@ class Pedido
         $fila = $stmt->get_result()->fetch_assoc();
 
         return $fila ?: null;
+    }
+
+    public static function esInscripto(?array $cliente): bool
+    {
+        return $cliente !== null && stripos((string) ($cliente['condicion_iva'] ?? ''), 'inscripto') !== false;
+    }
+
+    public static function etiquetaComprobante(?string $numero): string
+    {
+        return strncmp((string) $numero, 'T-', 2) === 0 ? 'el ticket' : 'la factura';
     }
 
     public function direccionEnTexto(array $c): string
@@ -340,6 +351,7 @@ class Pedido
             'subtotal'  => round($subtotal, 2),
             'promo'     => $promo,
             'descuento' => $descuento,
+            'solo_factura' => self::esInscripto($cliente),
             'cupon'     => $cupon,
             'cupon_error' => $cuponError,
             'descuento_cupon' => $descCupon,
@@ -618,7 +630,7 @@ class Pedido
     // =====================================================
     //  CREAR EL PEDIDO (todo o nada)
     // =====================================================
-    public function crearPedido(int $id_usuario, array $carrito, int $id_metodo_pago, array $datosEntrega, ?array $datosCliente = null, ?string $codigoCupon = null): array
+    public function crearPedido(int $id_usuario, array $carrito, int $id_metodo_pago, array $datosEntrega, ?array $datosCliente = null, ?string $codigoCupon = null, ?string $tipoComprobante = null): array
     {
         // La tabla del historial se crea ANTES de abrir la transacción (CREATE TABLE la confirmaría).
         $this->asegurarHistorial();
@@ -736,12 +748,14 @@ class Pedido
             // ---- Pedido (rela_id_envio se completa después) ----
             $estadoInicial = 'Pedido recibido';
 
+            $tipoElegido = ($tipoComprobante === 'Ticket' && !self::esInscripto($cliente)) ? 'Ticket' : 'Factura';
+
             $stmt = $this->conexion->prepare(
-                "INSERT INTO pedidos (fecha_pedidos, estado, moneda, monto_total, rela_id_envio, rela_id_cliente)
-                 VALUES (CURDATE(), ?, 'ARS', ?, 0, ?)"
+                "INSERT INTO pedidos (fecha_pedidos, estado, moneda, monto_total, rela_id_envio, rela_id_cliente, tipo_comprobante)
+                 VALUES (CURDATE(), ?, 'ARS', ?, 0, ?, ?)"
             );
             $id_cliente = (int) $cliente['id_cliente'];
-            $stmt->bind_param("sdi", $estadoInicial, $total, $id_cliente);
+            $stmt->bind_param("sdis", $estadoInicial, $total, $id_cliente, $tipoElegido);
             $stmt->execute();
             $id_pedido = (int) $this->conexion->insert_id;
 
@@ -884,7 +898,7 @@ class Pedido
     // =====================================================
     public function obtenerPedido(int $id_pedido, int $id_usuario): ?array
     {
-        $sql = "SELECT p.id_pedidos, p.fecha_pedidos, p.estado, p.moneda, p.monto_total,
+        $sql = "SELECT p.id_pedidos, p.fecha_pedidos, p.estado, p.moneda, p.monto_total, p.tipo_comprobante,
                        e.direccion_entrega, e.recibe_quien, e.recibe_nombre, e.recibe_telefono,
                        e.tipo_lugar, e.piso_depto_torre, e.referencia,
                        e.empresa_transporte, e.estado_envio, e.fecha_estimada_entrega,
@@ -1243,7 +1257,7 @@ class Pedido
     // =====================================================
     public function obtenerPedidoAdmin(int $id_pedido): ?array
     {
-        $sql = "SELECT p.id_pedidos, p.fecha_pedidos, p.estado, p.moneda, p.monto_total,
+        $sql = "SELECT p.id_pedidos, p.fecha_pedidos, p.estado, p.moneda, p.monto_total, p.tipo_comprobante,
                        c.id_cliente, c.nombre AS cliente_nombre, c.apellido AS cliente_apellido,
                        u.correo AS cliente_correo,
                        (SELECT ct.valor FROM contactos ct
@@ -1422,7 +1436,7 @@ class Pedido
                         try {
                             $fac = $this->emitirFacturaInterna($id_pedido);
                             if (!empty($fac['ok'])) {
-                                $nota_factura = 'Pago aprobado. Se emitió la factura ' . $fac['numero'] . '.';
+                                $nota_factura = 'Pago aprobado. Se emitió ' . self::etiquetaComprobante($fac['numero']) . ' ' . $fac['numero'] . '.';
                                 $numFacturaNueva = $fac['numero'];
                             }
                         } catch (Throwable $e) {
@@ -1608,7 +1622,7 @@ class Pedido
     private function emitirFacturaInterna(int $id_pedido): array
     {
         $st = $this->conexion->prepare(
-            "SELECT p.estado, p.monto_total, ci.nombre AS condicion
+            "SELECT p.estado, p.monto_total, p.tipo_comprobante, ci.nombre AS condicion
              FROM pedidos p
              INNER JOIN clientes c ON c.id_cliente = p.rela_id_cliente
              LEFT JOIN condiciones_iva ci ON ci.id_condicion_iva = c.rela_id_condicion_iva
@@ -1636,10 +1650,20 @@ class Pedido
         $total  = round((float) $p['monto_total'], 2);
         $neto   = round($total / (1 + self::IVA_PORCENTAJE / 100), 2);
         $iva    = round($total - $neto, 2);
-        $tipo   = (stripos((string) $p['condicion'], 'inscripto') !== false) ? 'A' : 'B';
+        $inscripto = (stripos((string) $p['condicion'], 'inscripto') !== false);
+        $esTicket  = (($p['tipo_comprobante'] ?? 'Factura') === 'Ticket') && !$inscripto;
 
-        $sig    = (int) $this->conexion->query("SELECT COALESCE(MAX(id_facturas),0)+1 FROM facturas FOR UPDATE")->fetch_row()[0];
-        $numero = 'F-' . str_pad((string) $sig, 4, '0', STR_PAD_LEFT);
+        if ($esTicket) {
+            $tipo   = 'T';
+            $sig    = (int) $this->conexion->query(
+                "SELECT COALESCE(MAX(CAST(SUBSTRING(numero_factura, 3) AS UNSIGNED)), 0) + 1 FROM facturas WHERE numero_factura LIKE 'T-%' FOR UPDATE"
+            )->fetch_row()[0];
+            $numero = 'T-' . str_pad((string) $sig, 4, '0', STR_PAD_LEFT);
+        } else {
+            $tipo   = $inscripto ? 'A' : 'B';
+            $sig    = (int) $this->conexion->query("SELECT COALESCE(MAX(id_facturas),0)+1 FROM facturas FOR UPDATE")->fetch_row()[0];
+            $numero = 'F-' . str_pad((string) $sig, 4, '0', STR_PAD_LEFT);
+        }
 
         $st = $this->conexion->prepare(
             "INSERT INTO facturas (fecha_emicion, numero_factura, monto_total, tipo_factura, monto_total_bruto, estado_fiscal, monto_total_impuesto, rela_id_pedidos)
@@ -1709,7 +1733,7 @@ class Pedido
             $fac = $this->emitirFacturaInterna($id_pedido);
             $numero = $fac['numero'] ?? null;
 
-            $nota = 'Pago aprobado.' . (!empty($fac['ok']) ? ' Se emitió la factura ' . $numero . '.' : '');
+            $nota = 'Pago aprobado.' . (!empty($fac['ok']) ? ' Se emitió ' . self::etiquetaComprobante($numero) . ' ' . $numero . '.' : '');
             $this->registrarHistorial($id_pedido, $f['estado'], $autor, $nota);
 
             $this->conexion->commit();
