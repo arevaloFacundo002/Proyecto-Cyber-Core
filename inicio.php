@@ -1,4 +1,4 @@
-<?php
+ <?php
 // Si NO hay usuario logueado → al login
 require_once "auth/auth.php";
 
@@ -283,15 +283,51 @@ h1 {
         </div>
 
         <div class="card">
+            <h2>Promociones</h2>
+            <p>Descuentos automáticos por monto de compra y fechas.</p>
+            <a href="views/promociones/listarPromociones.php">Gestionar</a>
+        </div>
+
+        <div class="card">
+            <h2>Devoluciones</h2>
+            <p>Pedidos de devolución de los clientes: aprobar o rechazar.</p>
+            <a href="views/devoluciones/listarDevoluciones.php">Gestionar</a>
+        </div>
+
+        <div class="card">
             <h2>Comunicaciones</h2>
             <p>Anuncios y avisos para clientes o personal, por la app, correo o WhatsApp.</p>
             <a href="views/anuncios/listarAnuncio.php">Gestionar</a>
         </div>
 
         <div class="card">
+            <h2>Cupones</h2>
+            <p>Códigos de descuento que el cliente escribe al comprar.</p>
+            <a href="views/cupones/listarCupones.php">Gestionar</a>
+        </div>
+
+        <div class="card">
             <h2>Facturas</h2>
             <p>Facturas emitidas y pedidos pendientes de facturar.</p>
             <a href="consultas/facturas.php">Gestionar</a>
+        </div>
+
+        <div class="card">
+            <h2>Transacciones</h2>
+            <p>Todos los pagos del sitio, con totales por estado y método.</p>
+            <a href="consultas/transacciones.php">Gestionar</a>
+        </div>
+
+        <div class="card">
+            <h2>Cuenta bancaria</h2>
+            <p>Datos de la cuenta para pagos por transferencia.</p>
+            <a href="consultas/cuenta_bancaria.php">Gestionar</a>
+        </div>
+
+        <div class="card">
+            <h2>Caja</h2>
+            <p>Apertura, ingresos y egresos, cierre del efectivo e historial.</p>
+            <a href="consultas/caja.php">Gestionar</a>
         </div>
 
         <div class="card">
@@ -338,6 +374,16 @@ const modulosAdmin = [
       url: "views/pedidos/listarPedidos.php",
       claves: "pedidos ordenes compras estado seguimiento tracking transportista pago aprobar cancelar" },
 
+    { nombre: "Promociones", grupo: "General", icono: "🏷",
+      descripcion: "Descuentos automáticos por porcentaje o monto fijo, con compra mínima y fechas.",
+      url: "views/promociones/listarPromociones.php",
+      claves: "promociones promocion descuentos descuento ofertas porcentaje monto minimo" },
+
+    { nombre: "Devoluciones", grupo: "General", icono: "↩",
+      descripcion: "Pedidos de devolución de los clientes: aprobar, rechazar y devolver al stock.",
+      url: "views/devoluciones/listarDevoluciones.php",
+      claves: "devoluciones devolucion reembolso cambio producto defectuoso stock aprobar rechazar" },
+
     { nombre: "Comunicaciones", grupo: "General", icono: "📣",
       descripcion: "Anuncios y avisos para clientes o personal: app, correo y WhatsApp.",
       url: "views/anuncios/listarAnuncio.php",
@@ -348,10 +394,35 @@ const modulosAdmin = [
       url: "views/notificaciones/historial.php",
       claves: "notificaciones historial campanita avisos" },
 
+    { nombre: "Cupones", grupo: "General", icono: "🎟",
+      descripcion: "Códigos de descuento con mínimo de compra, vigencia y límite de usos.",
+      url: "views/cupones/listarCupones.php",
+      claves: "cupones cupon codigo descuento regalo promocion usos limite" },
+
     { nombre: "Facturas", grupo: "General", icono: "🧾",
       descripcion: "Facturas emitidas, detalle imprimible (A y B) y pedidos sin facturar.",
       url: "consultas/facturas.php",
       claves: "facturas factura emitir comprobante iva tipo a tipo b pdf imprimir" },
+
+    { nombre: "Transacciones", grupo: "General", icono: "💳",
+      descripcion: "Todos los pagos del sitio con filtros y totales por estado y método de pago.",
+      url: "consultas/transacciones.php",
+      claves: "transacciones pagos cobros dinero metodo de pago reembolso pendiente aprobado" },
+
+    { nombre: "Cuenta bancaria", grupo: "General", icono: "🏦",
+      descripcion: "Titular, banco, CBU y alias que ve el cliente al pagar por transferencia.",
+      url: "consultas/cuenta_bancaria.php",
+      claves: "cuenta bancaria cbu alias transferencia banco titular datos pago" },
+
+    { nombre: "Caja", grupo: "General", icono: "🧮",
+      descripcion: "Abrir y cerrar la caja, anotar ingresos y egresos y ver el efectivo esperado.",
+      url: "consultas/caja.php",
+      claves: "caja abrir cerrar cierre apertura arqueo efectivo ingreso egreso turno" },
+
+    { nombre: "Historial de cajas", grupo: "General", icono: "📜",
+      descripcion: "Cajas anteriores con su diferencia y reporte en PDF.",
+      url: "consultas/caja_historial.php",
+      claves: "historial cajas cierres diferencia sobrante faltante reporte pdf" },
 
     { nombre: "Pedidos sin facturar", grupo: "General", icono: "⏳",
       descripcion: "Pedidos que todavía no tienen factura emitida.",

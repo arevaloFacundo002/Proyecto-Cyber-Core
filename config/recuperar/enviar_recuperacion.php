@@ -24,8 +24,10 @@ if (!isset($_POST['correo'])) {
         $user->actualizar_token($token,$correo);
 
         // link
-        $base_url = "http://" . $_SERVER['HTTP_HOST'];
-        $link = $base_url . "/config/recuperar/nueva_password.php?token=$token";
+        $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+        $path   = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+        $path   = implode('/', array_map('rawurlencode', explode('/', $path)));
+        $link   = $scheme . "://" . $_SERVER['HTTP_HOST'] . $path . "/nueva_password.php?token=$token";
 
         // mail
         $mensaje = "

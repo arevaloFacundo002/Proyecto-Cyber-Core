@@ -80,6 +80,34 @@ nav a:hover {
     color: var(--cc-peligro);
 }
 
+/* BOTÓN VOLVER */
+.volver-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 25px 50px 0;
+}
+
+.btn-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: var(--cc-superficie);
+    color: var(--cc-texto);
+    border: 1px solid var(--cc-borde);
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+.btn-volver:hover {
+    color: var(--cc-primario);
+    border-color: var(--cc-primario);
+    box-shadow: 0 0 10px rgba(0, 234, 255, 0.25);
+}
+
 /* PRODUCT PAGE */
 .container {
     display: flex;
@@ -293,6 +321,11 @@ nav a:hover {
     </nav>
 </header>
 
+<!-- BOTÓN VOLVER -->
+<div class="volver-wrap">
+    <a href="home.php" class="btn-volver" onclick="return volverAtras();">&larr; Volver</a>
+</div>
+
 <div class="container">
 
     <!-- IMAGEN / GALERÍA -->
@@ -409,6 +442,15 @@ function cambiarImagen(mini) {
     document.getElementById('img-principal').src = mini.src;
     document.querySelectorAll('.galeria-mini img').forEach(function (i) { i.classList.remove('activa'); });
     mini.classList.add('activa');
+}
+
+// Vuelve a la página anterior de la tienda; si entró directo, va al inicio
+function volverAtras() {
+    if (document.referrer && document.referrer.indexOf(location.host) !== -1) {
+        history.back();
+        return false;
+    }
+    return true;
 }
 </script>
 <script src="js/theme-toggle.js"></script>

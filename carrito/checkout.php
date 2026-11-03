@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once '../models/Pedido.php';
+require_once '../models/Comprobante.php';
+require_once __DIR__ . '/_pago_info.php';
 require_once __DIR__ . '/../includes/imagen_helper.php';
 
 // Hay que estar logueado
@@ -24,7 +26,17 @@ if (empty($carrito)) {
 }
 
 $pedidos = new Pedido();
-$datos   = $pedidos->prepararCheckout((int) $_SESSION['id_usuario'], $carrito);
+$cuentaBanco = (new Comprobante())->cuenta();
+$codigoCupon = $_SESSION['cupon_codigo'] ?? null;
+$datos   = $pedidos->prepararCheckout((int) $_SESSION['id_usuario'], $carrito, $codigoCupon);
+
+$cuponMsg = $_SESSION['cupon_flash'] ?? null;
+unset($_SESSION['cupon_flash']);
+if (!empty($datos['cupon_error'])) {
+    $cuponMsg = ['tipo' => 'error', 'texto' => $datos['cupon_error']];
+    unset($_SESSION['cupon_codigo']);
+    $codigoCupon = null;
+}
 
 // Token para evitar envíos falsos del formulario
 if (empty($_SESSION['csrf_checkout'])) {
@@ -141,6 +153,18 @@ $metodoSel   = (int) old('metodo_pago', !empty($datos['metodos']) ? $datos['meto
                     <td colspan="3" class="num texto-suave">Subtotal</td>
                     <td class="num"><?= plata($datos['subtotal']) ?></td>
                 </tr>
+                <?php if (!empty($datos['promo']) && $datos['descuento'] > 0): ?>
+                <tr>
+                    <td colspan="3" class="num texto-suave">🏷 <?= e($datos['promo']['nombre']) ?></td>
+                    <td class="num" style="color: var(--cc-exito);">− <?= plata($datos['descuento']) ?></td>
+                </tr>
+                <?php endif; ?>
+                <?php if (!empty($datos['cupon']) && $datos['descuento_cupon'] > 0): ?>
+                <tr>
+                    <td colspan="3" class="num texto-suave">🎟 Cupón <?= e($datos['cupon']['codigo']) ?></td>
+                    <td class="num" style="color: var(--cc-exito);">− <?= plata($datos['descuento_cupon']) ?></td>
+                </tr>
+                <?php endif; ?>
                 <tr>
                     <td colspan="3" class="num texto-suave">
                         Envío<?= $esNuevo ? ' estimado' : '' ?>
@@ -158,6 +182,22 @@ $metodoSel   = (int) old('metodo_pago', !empty($datos['metodos']) ? $datos['meto
                     <td class="num"><?= plata($datos['total']) ?></td>
                 </tr>
             </table>
+
+            <div style="margin-top:16px;">
+                <?php if ($cuponMsg): ?>
+                    <div class="aviso" style="margin-bottom:10px;"><?= e($cuponMsg['texto']) ?></div>
+                <?php endif; ?>
+                <form action="aplicar_cupon.php" method="POST" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_checkout']) ?>">
+                    <?php if (!empty($datos['cupon'])): ?>
+                        <span class="texto-suave">🎟 Cupón <strong><?= e($datos['cupon']['codigo']) ?></strong> aplicado</span>
+                        <button style="padding:9px 16px;border-radius:8px;border:1px solid var(--cc-primario);background:transparent;color:var(--cc-primario);font-weight:700;cursor:pointer;" type="submit" name="accion" value="quitar">Quitar</button>
+                    <?php else: ?>
+                        <input type="text" name="codigo" maxlength="40" placeholder="¿Tenés un cupón?" style="padding:9px 12px;border-radius:8px;border:1px solid var(--cc-borde);background:var(--cc-superficie-2);color:var(--cc-texto);text-transform:uppercase;">
+                        <button style="padding:9px 16px;border-radius:8px;border:1px solid var(--cc-primario);background:transparent;color:var(--cc-primario);font-weight:700;cursor:pointer;" type="submit" name="accion" value="aplicar">Aplicar</button>
+                    <?php endif; ?>
+                </form>
+            </div>
         </div>
 
         <form action="procesar_pedido.php" method="POST" id="form-checkout">
@@ -343,6 +383,20 @@ $metodoSel   = (int) old('metodo_pago', !empty($datos['metodos']) ? $datos['meto
                             <small><?= e($m['descripcion']) ?></small>
                         </label>
                     <?php endforeach; ?>
+
+                    <?php foreach ($datos['metodos'] as $m): $tipoM = tipoMetodoPago($m['nombre']); ?>
+                        <div class="info-pago" data-metodo="<?= (int) $m['id_metodo_pago'] ?>" style="display:none;">
+                            <?php if ($tipoM === 'transferencia'): ?>
+                                <p><strong>Pagás por transferencia bancaria.</strong> Hacé la transferencia por el total del pedido a esta cuenta:</p>
+                                <?= cuentaBancariaHtml($cuentaBanco) ?>
+                                <p class="texto-suave">Cuando confirmes el pedido, subí el comprobante desde "Mi pedido" y lo revisamos para aprobar el pago.</p>
+                            <?php elseif ($tipoM === 'efectivo'): ?>
+                                <p><strong>Pagás en efectivo</strong> al recibir o retirar tu pedido. No hace falta completar nada más.</p>
+                            <?php else: ?>
+                                <p><strong>Pago con <?= e($m['nombre']) ?>.</strong> Tu pedido queda registrado con el pago pendiente y te avisamos apenas lo confirmemos. Nunca te pedimos los datos de tu tarjeta en este sitio.</p>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
                 <?php endif; ?>
 
                 <p class="texto-suave">
@@ -374,9 +428,14 @@ function sincronizar() {
 
     if (bloqueOtra) bloqueOtra.style.display = (quien && quien.value === 'otra_persona') ? 'block' : 'none';
     if (bloquePiso) bloquePiso.style.display = (lugar && lugar.value === 'departamento') ? 'block' : 'none';
+
+    var met = document.querySelector('input[name="metodo_pago"]:checked');
+    document.querySelectorAll('.info-pago').forEach(function (d) {
+        d.style.display = (met && d.getAttribute('data-metodo') === met.value) ? 'block' : 'none';
+    });
 }
 
-document.querySelectorAll('input[name="recibe_quien"], input[name="tipo_lugar"]').forEach(function (r) {
+document.querySelectorAll('input[name="recibe_quien"], input[name="tipo_lugar"], input[name="metodo_pago"]').forEach(function (r) {
     r.addEventListener('change', sincronizar);
 });
 sincronizar();
@@ -410,6 +469,7 @@ cargarLocalidades();
 <?php endif; ?>
 </script>
 
+<?= pagoInfoEstilosYScript() ?>
 <script src="../js/theme-toggle.js"></script>
 
 </body>

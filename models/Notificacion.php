@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/Database.php';
-require_once __DIR__ . '/_tablas_notificaciones.php';
 
 class Notificacion
 {
@@ -11,7 +10,6 @@ class Notificacion
     {
         $db = new Database();
         $this->conexion = $db->getConexion();
-        asegurar_tablas_notificaciones($this->conexion);
     }
 
     public function crear(int $id_usuario, string $tipo, string $titulo, string $mensaje, ?string $url_accion = null, ?int $id_anuncio = null)

@@ -1,6 +1,7 @@
 <?php
 require_once '../../auth/auth.php';
 require_once '../../models/Pedido.php';
+require_once '../../models/Comprobante.php';
 
 // Solo administrador y empleados
 $rol = $_SESSION['rol'] ?? '';
@@ -17,6 +18,9 @@ if ($id_pedido <= 0) {
 
 $pedidosModelo = new Pedido();
 $pedido = $pedidosModelo->obtenerPedidoAdmin($id_pedido);
+$compModelo = new Comprobante();
+$pagoComp   = $compModelo->pagoDePedido($id_pedido);
+$esTransf   = $pagoComp && $compModelo->esTransferencia((int) $pagoComp['rela_id_metodo_pago']);
 
 if (!$pedido) {
     die("Pedido no encontrado.");
@@ -230,49 +234,37 @@ h1 { color: var(--cc-primario); text-shadow: 0 0 10px rgba(0, 234, 255, 0.4); }
                     </div>
                 </div>
 
-                <div class="acciones-rapidas">
-                    <?php if ($siguiente): ?>
-                        <button type="submit" name="nuevo_estado" value="<?= e($siguiente) ?>" class="btn btn-info text-dark fw-bold">
-                            <?= e($etiquetasBoton[$siguiente] ?? ('Pasar a ' . $siguiente)) ?>
-                        </button>
-                    <?php endif; ?>
+                <?php if (!empty($otros)): ?>
+                    <div class="row g-2 align-items-end mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Cambiar estado a</label>
+                            <select name="nuevo_estado" class="form-select">
+                                <?php foreach ($otros as $est): ?>
+                                    <option value="<?= e($est) ?>" <?= $est === $siguiente ? 'selected' : '' ?>><?= Pedido::ESTADOS[$est]['emoji'] ?> <?= e($est) ?><?= $est === $siguiente ? ' (siguiente paso)' : '' ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-info text-dark fw-bold w-100">Actualizar estado</button>
+                        </div>
+                    </div>
+                    <div class="form-text">Podés elegir cualquier estado y saltear pasos. Si dejás el mensaje vacío, se usa uno automático.</div>
+                <?php endif; ?>
 
+                <div class="acciones-rapidas">
                     <?php if ($estadoActual === 'En camino'): ?>
-                        <button type="submit" name="nuevo_estado" value="En camino" class="btn btn-secondary fw-bold">
+                        <button type="submit" name="solo_guardar" value="1" class="btn btn-secondary fw-bold">
                             💾 Guardar seguimiento / nota
                         </button>
                     <?php endif; ?>
 
                     <?php if ($puedeCancelar): ?>
-                        <button type="submit" name="nuevo_estado" value="Cancelado" class="btn btn-danger fw-bold"
+                        <button type="submit" name="cancelar" value="1" class="btn btn-danger fw-bold"
                                 onclick="return confirm('¿Cancelar este pedido? Se repone el stock de los productos.')">
                             ✖ Cancelar pedido
                         </button>
                     <?php endif; ?>
                 </div>
-
-                <?php if (count($otros) > 1): ?>
-                    <hr>
-                    <div class="row g-2 align-items-end">
-                        <div class="col-md-6">
-                            <label class="form-label">O elegir otro estado (se pueden saltar pasos):</label>
-                            <select id="otro-estado" class="form-select">
-                                <?php foreach ($otros as $est): ?>
-                                    <option value="<?= e($est) ?>"><?= Pedido::ESTADOS[$est]['emoji'] ?> <?= e($est) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <button type="submit" name="nuevo_estado" id="btn-otro" value="<?= e($otros[0]) ?>"
-                                    class="btn btn-outline-info fw-bold w-100">Actualizar estado</button>
-                        </div>
-                    </div>
-                    <script>
-                    document.getElementById('otro-estado').addEventListener('change', function () {
-                        document.getElementById('btn-otro').value = this.value;
-                    });
-                    </script>
-                <?php endif; ?>
             </form>
 
         <?php endif; ?>
@@ -353,7 +345,32 @@ h1 { color: var(--cc-primario); text-shadow: 0 0 10px rgba(0, 234, 255, 0.4); }
                     Sin emitir
                 <?php endif; ?>
             </td></tr>
+            <?php if ($esTransf): ?>
+            <tr><td>Comprobante</td><td>
+                <?php if (!empty($pagoComp['url_comprobante'])): ?>
+                    <a href="../../carrito/ver_comprobante.php?id=<?= (int) $pedido['id_pedidos'] ?>" target="_blank" rel="noopener">Ver comprobante</a>
+                    · <?= e($pagoComp['comprobante_estado']) ?>
+                    <?php if ($pagoComp['comprobante_fecha']): ?>(<?= e(fechaHora($pagoComp['comprobante_fecha'])) ?>)<?php endif; ?>
+                <?php else: ?>
+                    El cliente todavía no subió el comprobante
+                <?php endif; ?>
+            </td></tr>
+            <?php if ($pagoComp['comprobante_estado'] === 'Rechazado' && $pagoComp['comprobante_nota']): ?>
+            <tr><td>Motivo del rechazo</td><td><?= e($pagoComp['comprobante_nota']) ?></td></tr>
+            <?php endif; ?>
+            <?php endif; ?>
         </table>
+
+        <?php if ($esTransf && $pagoComp['comprobante_estado'] === 'Enviado' && $pagoComp['estado_pagos'] === 'Pendiente' && $pedido['estado'] !== 'Cancelado'): ?>
+            <form method="POST" action="../../controllers/pedidosControllers/PedidoController.php?accion=rechazarComprobante" style="margin-top:12px;"
+                  onsubmit="return confirm('¿Rechazar el comprobante? El cliente va a recibir el motivo y podrá subir otro.');">
+                <input type="hidden" name="id_pedido" value="<?= (int) $pedido['id_pedidos'] ?>">
+                <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_admin_pedidos']) ?>">
+                <label class="form-label fw-bold">Si el comprobante no sirve, escribí el motivo</label>
+                <input type="text" name="motivo" class="form-control" maxlength="255" placeholder="Ej: no se lee el monto" required>
+                <button type="submit" class="btn btn-outline-danger fw-bold mt-2">✖ Rechazar comprobante</button>
+            </form>
+        <?php endif; ?>
 
         <?php if (($pedido['estado_pagos'] ?? '') !== 'Aprobado' && $pedido['estado'] !== 'Cancelado' && !empty($pedido['metodo_pago'])): ?>
             <form method="POST" action="../../controllers/pedidosControllers/PedidoController.php?accion=aprobarPago" style="margin-top:12px;"
@@ -379,9 +396,25 @@ h1 { color: var(--cc-primario); text-shadow: 0 0 10px rgba(0, 234, 255, 0.4); }
                     <td><?= e($it['nombre']) ?></td>
                     <td><?= (int) $it['cantidad'] ?></td>
                     <td><?= plata($it['precio_unitario_base']) ?></td>
-                    <td><?= plata($it['subtotal_final']) ?></td>
+                    <td><?= plata($it['subtotal_base'] ?? $it['subtotal_final']) ?></td>
                 </tr>
                 <?php endforeach; ?>
+                <?php
+                $baseAdm = 0.0; $finalAdm = 0.0; $promoAdm = '';
+                foreach ($pedido['items'] as $it) {
+                    $baseAdm  += (float) ($it['subtotal_base'] ?? $it['subtotal_final']);
+                    $finalAdm += (float) $it['subtotal_final'];
+                    if (in_array($it['promo_tipo'] ?? '', ['Porcentaje', 'Fijo'], true)) $promoAdm = $it['promo_nombre'];
+                }
+                $descAdm = max(0, round($baseAdm - $finalAdm, 2));
+                ?>
+                <?php $cuponAdm = (float) ($pedido['cupon_descuento'] ?? 0); $promoDescAdm = max(0, round($descAdm - $cuponAdm, 2)); ?>
+                <?php if ($promoDescAdm > 0): ?>
+                <tr><td colspan="3" class="text-end">🏷 <?= e($promoAdm ?: 'Descuento') ?></td><td style="color: var(--cc-exito);">− <?= plata($promoDescAdm) ?></td></tr>
+                <?php endif; ?>
+                <?php if ($cuponAdm > 0): ?>
+                <tr><td colspan="3" class="text-end">🎟 Cupón <?= e($pedido['cupon_codigo']) ?></td><td style="color: var(--cc-exito);">− <?= plata($cuponAdm) ?></td></tr>
+                <?php endif; ?>
             </tbody>
         </table>
         <p class="text-end fw-bold mb-0" style="color: var(--cc-primario);">

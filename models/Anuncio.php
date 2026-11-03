@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/Database.php';
-require_once __DIR__ . '/_tablas_notificaciones.php';
 
 class Anuncio
 {
@@ -11,7 +10,6 @@ class Anuncio
     {
         $db = new Database();
         $this->conexion = $db->getConexion();
-        asegurar_tablas_notificaciones($this->conexion);
     }
 
     public function crear(string $titulo, string $mensaje, string $tipo, string $canales, string $audiencia, int $id_creador)
@@ -67,6 +65,13 @@ class Anuncio
 
     public function eliminar(int $id_anuncio)
     {
+        $sql = "UPDATE notificaciones SET rela_id_anuncio = NULL
+                WHERE rela_id_anuncio = ?
+                  AND EXISTS (SELECT 1 FROM anuncios WHERE id_anuncio = ? AND enviado = 0)";
+        $stmt = $this->conexion->prepare($sql);
+        $stmt->bind_param("ii", $id_anuncio, $id_anuncio);
+        $stmt->execute();
+
         $sql = "DELETE FROM anuncios WHERE id_anuncio = ? AND enviado = 0";
         $stmt = $this->conexion->prepare($sql);
         $stmt->bind_param("i", $id_anuncio);

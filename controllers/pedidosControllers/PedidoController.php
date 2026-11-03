@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../../auth/auth.php';
 require_once __DIR__ . '/../../models/Pedido.php';
+require_once __DIR__ . '/../../models/Comprobante.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -34,6 +35,11 @@ if ($accion === 'cambiarEstado' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $nuevo_estado  = trim($_POST['nuevo_estado'] ?? '');
+    if (isset($_POST['cancelar'])) {
+        $nuevo_estado = 'Cancelado';
+    } elseif (isset($_POST['solo_guardar'])) {
+        $nuevo_estado = '';
+    }
     $nota          = trim($_POST['nota'] ?? '');
     $transportista = trim($_POST['transportista'] ?? '');
     $tracking      = trim($_POST['tracking'] ?? '');
@@ -93,6 +99,28 @@ if ($accion === 'aprobarPago' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $_SESSION['pedido_flash'] = ['tipo' => 'error', 'texto' => $r['error'] ?? 'No se pudo aprobar el pago.'];
     }
+
+    header("Location: " . $destino);
+    exit;
+}
+
+if ($accion === 'rechazarComprobante' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $id_pedido = (int) ($_POST['id_pedido'] ?? 0);
+    $destino   = "../../views/pedidos/verPedido.php?id=" . $id_pedido;
+
+    $token = $_POST['csrf'] ?? '';
+    if ($id_pedido <= 0 || empty($_SESSION['csrf_admin_pedidos']) || !hash_equals($_SESSION['csrf_admin_pedidos'], $token)) {
+        $_SESSION['pedido_flash'] = ['tipo' => 'error', 'texto' => 'La sesión del formulario venció. Probá de nuevo.'];
+        header("Location: " . ($id_pedido > 0 ? $destino : "../../views/pedidos/listarPedidos.php"));
+        exit;
+    }
+
+    $r = (new Comprobante())->rechazar($id_pedido, $_POST['motivo'] ?? '');
+
+    $_SESSION['pedido_flash'] = !empty($r['ok'])
+        ? ['tipo' => 'ok', 'texto' => 'Comprobante rechazado. El cliente recibió el aviso para subir uno nuevo.']
+        : ['tipo' => 'error', 'texto' => $r['error'] ?? 'No se pudo rechazar el comprobante.'];
 
     header("Location: " . $destino);
     exit;

@@ -27,7 +27,8 @@ function notificar_multicanal(
     string $mensaje,
     array $canales = ['app'],
     ?string $url_accion = null,
-    ?int $id_anuncio = null
+    ?int $id_anuncio = null,
+    ?string $html_email = null
 ): void {
     $notifModel = new Notificacion();
     $id_notificacion = $notifModel->crear($id_usuario, $tipo, $titulo, $mensaje, $url_accion, $id_anuncio);
@@ -63,7 +64,7 @@ function notificar_multicanal(
                     $usuario['correo'],
                     $usuario['nombre'] ?? '',
                     $titulo,
-                    '<p>' . nl2br(htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8')) . '</p>'
+                    $html_email ?? ('<p>' . nl2br(htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8')) . '</p>')
                 );
             } catch (Throwable $ex) {
                 error_log('notificar_multicanal (email): ' . $ex->getMessage());

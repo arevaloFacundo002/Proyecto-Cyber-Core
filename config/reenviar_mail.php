@@ -23,8 +23,10 @@ if (!isset($_POST['correo'])) {
         $token = bin2hex(random_bytes(32));
         $user->actualizar_token($token,$correo);
 
-        $base_url = "http://" . $_SERVER['HTTP_HOST'];
-        $link = $base_url . "/validar_cuenta.php?token=$token";
+        $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+        $path   = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/\\');
+        $path   = implode('/', array_map('rawurlencode', explode('/', $path)));
+        $link   = $scheme . "://" . $_SERVER['HTTP_HOST'] . $path . "/validar_cuenta.php?token=$token";
 
         $mensaje = "
             <h2>Hola {$usuario['nombre']}</h2>

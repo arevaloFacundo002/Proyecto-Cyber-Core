@@ -171,6 +171,12 @@ exit; // Detener ejecución para no generar PDF sin fechas
 require "../conexion.php";
 require __DIR__ . "/FPDF/fpdf.php";
 
+function latin1($t)
+{
+    return mb_convert_encoding((string) $t, 'ISO-8859-1', 'UTF-8');
+}
+
+
 // ========= VALIDACIÓN =========
 $desde = $_GET["desde"] ?? null;
 $hasta = $_GET["hasta"] ?? null;
@@ -262,7 +268,7 @@ function crearGrafico($datos, $titulo, $outfile) {
 
     imagefill($img, 0,0, $blanco);
 
-    imagestring($img, 5, 10, 10, utf8_decode($titulo), $negro);
+    imagestring($img, 5, 10, 10, latin1($titulo), $negro);
 
     if (!count($datos)) {
         imagestring($img, 5, 20, 50, "No hay datos suficientes.", $negro);
@@ -275,12 +281,12 @@ function crearGrafico($datos, $titulo, $outfile) {
     $base = 300;
 
     foreach ($datos as $label => $value) {
-        $barH = ($value / $maxVal) * 220;
+        $barH = (int) round(($value / $maxVal) * 220);
 
         imagefilledrectangle($img, $x, $base - $barH, $x + 80, $base, $celeste);
 
-        imagestring($img, 4, $x + 10, $base + 5, utf8_decode(substr($label,0,10)), $negro);
-        imagestring($img, 5, $x + 30, $base - $barH - 15, $value, $negro);
+        imagestring($img, 4, $x + 10, $base + 5, latin1(substr($label,0,10)), $negro);
+        imagestring($img, 5, $x + 30, $base - $barH - 15, (string) $value, $negro);
 
         $x += 130;
     }
@@ -320,13 +326,13 @@ class PDF extends FPDF {
         $this->Ln(4);
         $this->SetFont("Arial","B",14);
         $this->SetTextColor(0,0,0);
-        $this->Cell(0,10, utf8_decode($txt), 0,1);
+        $this->Cell(0,10, latin1($txt), 0,1);
     }
 
     function dato($txt) {
         $this->SetFont("Arial","",12);
         $this->SetTextColor(80,80,80);
-        $this->Cell(0,8, utf8_decode("• $txt"), 0,1);
+        $this->Cell(0,8, latin1("• $txt"), 0,1);
     }
 }
 

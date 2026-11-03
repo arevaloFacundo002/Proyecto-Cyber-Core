@@ -1,6 +1,8 @@
-<?php
+ <?php
 session_start();
 require_once '../models/Pedido.php';
+require_once '../models/Comprobante.php';
+require_once __DIR__ . '/_pago_info.php';
 
 if (!isset($_SESSION['usuario'], $_SESSION['id_usuario'])) {
     header("Location: ../login.php?msg=Debes iniciar sesión");
@@ -33,9 +35,18 @@ function plata($valor)
 }
 
 $subtotal = 0.0;
+$base     = 0.0;
+$promoNombre = '';
 foreach ($pedido['items'] as $it) {
     $subtotal += (float) $it['subtotal_final'];
+    $base     += (float) ($it['subtotal_base'] ?? $it['subtotal_final']);
+    if (in_array($it['promo_tipo'] ?? '', ['Porcentaje', 'Fijo'], true)) {
+        $promoNombre = $it['promo_nombre'];
+    }
 }
+$descuento = max(0, round($base - $subtotal, 2));
+$cuponDesc = (float) ($pedido['cupon_descuento'] ?? 0);
+$promoDesc = max(0, round($descuento - $cuponDesc, 2));
 $envio = round((float) $pedido['monto_total'] - $subtotal, 2);
 ?>
 <!DOCTYPE html>
@@ -82,9 +93,15 @@ $envio = round((float) $pedido['monto_total'] - $subtotal, 2);
                 <td><?= e($it['nombre']) ?></td>
                 <td class="num"><?= plata($it['precio_unitario_base']) ?></td>
                 <td class="num"><?= (int) $it['cantidad'] ?></td>
-                <td class="num"><?= plata($it['subtotal_final']) ?></td>
+                <td class="num"><?= plata($it['subtotal_base'] ?? $it['subtotal_final']) ?></td>
             </tr>
             <?php endforeach; ?>
+            <?php if ($promoDesc > 0): ?>
+            <tr><td colspan="3" class="num texto-suave">🏷 <?= e($promoNombre ?: 'Descuento') ?></td><td class="num" style="color: var(--cc-exito);">− <?= plata($promoDesc) ?></td></tr>
+            <?php endif; ?>
+            <?php if ($cuponDesc > 0): ?>
+            <tr><td colspan="3" class="num texto-suave">🎟 Cupón <?= e($pedido['cupon_codigo']) ?></td><td class="num" style="color: var(--cc-exito);">− <?= plata($cuponDesc) ?></td></tr>
+            <?php endif; ?>
             <tr>
                 <td colspan="3" class="num texto-suave">Subtotal</td>
                 <td class="num"><?= plata($subtotal) ?></td>
@@ -117,6 +134,21 @@ $envio = round((float) $pedido['monto_total'] - $subtotal, 2);
             <strong>Referencia:</strong> <?= e($pedido['referencia_transaccion']) ?>
         </p>
     </div>
+
+    <?php
+    $compModelo = new Comprobante();
+    $pagoC      = $compModelo->pagoDePedido((int) $pedido['id_pedidos']);
+    if ($pagoC && $compModelo->esTransferencia((int) $pagoC['rela_id_metodo_pago']) && $compModelo->puedeSubir($pagoC)):
+    ?>
+    <div class="caja">
+        <h2>Pagá por transferencia</h2>
+        <p>Transferí <strong><?= plata($pedido['monto_total']) ?></strong> a esta cuenta:</p>
+        <?= cuentaBancariaHtml($compModelo->cuenta()) ?>
+        <p class="texto-suave">Después subí el comprobante para que podamos aprobar el pago.</p>
+        <a class="btn-principal" href="mi_pedido.php?id=<?= (int) $pedido['id_pedidos'] ?>#comprobante">Subir comprobante</a>
+    </div>
+    <?= pagoInfoEstilosYScript() ?>
+    <?php endif; ?>
 
     <p class="centrado">
         <a class="btn-principal" href="../home.php">Seguir comprando</a>

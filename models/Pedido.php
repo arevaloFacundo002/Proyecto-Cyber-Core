@@ -19,6 +19,8 @@ if (!function_exists('mb_convert_case')) {
 }
 
 require_once __DIR__ . '/Database.php';
+require_once __DIR__ . '/Cupon.php';
+require_once __DIR__ . '/Comprobante.php';
 require_once __DIR__ . '/../includes/avisos.php';
 
 // Errores "esperables" (stock, datos faltantes...) cuyo mensaje sí se le muestra al usuario.
@@ -221,9 +223,67 @@ class Pedido
     }
 
     // =====================================================
+    //  PROMOCIONES (descuento automático sobre los productos)
+    // =====================================================
+    // Devuelve la promoción vigente que más descuento da para ese subtotal, o null.
+    public function promocionAplicable(float $subtotal): ?array
+    {
+        try {
+            $res = $this->conexion->query(
+                "SELECT id_promociones, nombre, tipo, valor
+                 FROM promociones
+                 WHERE es_activa = 1
+                   AND tipo IN ('Porcentaje', 'Fijo')
+                   AND valor > 0
+                   AND (fecha_inicio IS NULL OR fecha_inicio <= NOW())
+                   AND (fecha_fin IS NULL OR fecha_fin >= NOW())
+                   AND COALESCE(monto_minmo_requererido, 0) <= " . number_format($subtotal, 2, '.', '')
+            );
+        } catch (Throwable $e) {
+            return null;
+        }
+
+        $mejor = null;
+        foreach ($res->fetch_all(MYSQLI_ASSOC) as $p) {
+            $desc = $p['tipo'] === 'Porcentaje'
+                ? round($subtotal * (float) $p['valor'] / 100, 2)
+                : (float) $p['valor'];
+            $desc = round(min($desc, $subtotal), 2);
+
+            if ($desc > 0 && ($mejor === null || $desc > $mejor['descuento'])) {
+                $mejor = [
+                    'id'        => (int) $p['id_promociones'],
+                    'nombre'    => $p['nombre'],
+                    'tipo'      => $p['tipo'],
+                    'valor'     => (float) $p['valor'],
+                    'descuento' => $desc,
+                ];
+            }
+        }
+        return $mejor;
+    }
+
+    // Reparte el descuento entre las líneas en proporción a su subtotal (la última absorbe el redondeo).
+    private function repartirDescuento(array $lineas, float $descuento, float $subtotal): array
+    {
+        $reparto   = [];
+        $acumulado = 0.0;
+        $ultima    = count($lineas) - 1;
+
+        foreach ($lineas as $i => $l) {
+            $parte = ($i === $ultima)
+                ? round($descuento - $acumulado, 2)
+                : round($descuento * $l['subtotal'] / $subtotal, 2);
+            $reparto[$i] = $parte;
+            $acumulado  += $parte;
+        }
+        return $reparto;
+    }
+
+    // =====================================================
     //  DATOS PARA MOSTRAR EN EL CHECKOUT (sin escribir nada)
     // =====================================================
-    public function prepararCheckout(int $id_usuario, array $carrito): array
+    public function prepararCheckout(int $id_usuario, array $carrito, ?string $codigoCupon = null): array
     {
         $cliente  = $this->obtenerCliente($id_usuario);
         $es_nuevo = ($cliente === null);
@@ -239,6 +299,23 @@ class Pedido
         foreach ($lineas as $l) {
             $subtotal += $l['subtotal'];
             $peso     += $l['peso'];
+        }
+
+        $promo     = $this->promocionAplicable(round($subtotal, 2));
+        $descuento = $promo ? $promo['descuento'] : 0.0;
+
+        $cupon       = null;
+        $cuponError  = null;
+        $descCupon   = 0.0;
+        if ($codigoCupon !== null && $codigoCupon !== '') {
+            $idCli = $cliente ? (int) $cliente['id_cliente'] : null;
+            $ev = Cupon::evaluar($this->conexion, $codigoCupon, $idCli, round($subtotal - $descuento, 2));
+            if (!empty($ev['ok'])) {
+                $cupon     = $ev;
+                $descCupon = $ev['descuento'];
+            } else {
+                $cuponError = $ev['error'];
+            }
         }
 
         // Si todavía no es cliente no sabemos su localidad: mostramos el envío
@@ -261,10 +338,15 @@ class Pedido
             'direccion' => $cliente ? $this->direccionEnTexto($cliente) : '',
             'lineas'    => $lineas,
             'subtotal'  => round($subtotal, 2),
+            'promo'     => $promo,
+            'descuento' => $descuento,
+            'cupon'     => $cupon,
+            'cupon_error' => $cuponError,
+            'descuento_cupon' => $descCupon,
             'peso'      => $peso,
             'tarifa'    => $tarifa,
             'envio'     => $envio,
-            'total'     => round($subtotal + $envio, 2),
+            'total'     => round($subtotal - $descuento - $descCupon + $envio, 2),
             'dias'      => $dias,
             'metodos'   => $this->listarMetodosPago(),
             'problemas' => $problemas,
@@ -536,7 +618,7 @@ class Pedido
     // =====================================================
     //  CREAR EL PEDIDO (todo o nada)
     // =====================================================
-    public function crearPedido(int $id_usuario, array $carrito, int $id_metodo_pago, array $datosEntrega, ?array $datosCliente = null): array
+    public function crearPedido(int $id_usuario, array $carrito, int $id_metodo_pago, array $datosEntrega, ?array $datosCliente = null, ?string $codigoCupon = null): array
     {
         // La tabla del historial se crea ANTES de abrir la transacción (CREATE TABLE la confirmaría).
         $this->asegurarHistorial();
@@ -631,7 +713,25 @@ class Pedido
             }
 
             $envio = $this->costoEnvio($tarifa, $peso);
-            $total = round($subtotal + $envio, 2);
+
+            $promoAplicada = $this->promocionAplicable(round($subtotal, 2));
+            $descuento     = $promoAplicada ? $promoAplicada['descuento'] : 0.0;
+
+            $cuponAplicado = null;
+            $descCupon     = 0.0;
+            if ($codigoCupon !== null && $codigoCupon !== '') {
+                $ev = Cupon::evaluar($this->conexion, $codigoCupon, (int) $cliente['id_cliente'], round($subtotal - $descuento, 2), true);
+                if (empty($ev['ok'])) {
+                    throw new PedidoException($ev['error']);
+                }
+                $cuponAplicado = $ev;
+                $descCupon     = $ev['descuento'];
+            }
+
+            $descuentoTotal = round($descuento + $descCupon, 2);
+            $reparto        = $descuentoTotal > 0 ? $this->repartirDescuento($lineas, $descuentoTotal, $subtotal) : [];
+
+            $total = round($subtotal - $descuentoTotal + $envio, 2);
 
             // ---- Pedido (rela_id_envio se completa después) ----
             $estadoInicial = 'Pedido recibido';
@@ -645,12 +745,16 @@ class Pedido
             $stmt->execute();
             $id_pedido = (int) $this->conexion->insert_id;
 
+            if ($cuponAplicado) {
+                Cupon::registrarUso($this->conexion, $cuponAplicado['id'], $id_pedido, $id_cliente, $descCupon);
+            }
+
             // ---- Primer registro del historial ----
             $this->registrarHistorial(
                 $id_pedido,
                 $estadoInicial,
                 trim($cliente['nombre'] . ' ' . $cliente['apellido']),
-                'Pedido registrado por el cliente.'
+                'Pedido registrado por el cliente.' . ($cuponAplicado ? ' Cupón ' . $cuponAplicado['codigo'] . '.' : '')
             );
 
             // ---- Detalle + stock + historial ----
@@ -676,16 +780,20 @@ class Pedido
             $referenciaStock = "PEDIDO-" . $id_pedido;
             $comentario      = "Venta web";
 
-            foreach ($lineas as $l) {
+            foreach ($lineas as $i => $l) {
                 $cant   = $l['cantidad'];
                 $precio = $l['precio'];
                 $sub    = $l['subtotal'];
                 $idProd = $l['id'];
 
+                $subFinal    = round($sub - ($reparto[$i] ?? 0), 2);
+                $precioFinal = $cant > 0 ? round($subFinal / $cant, 2) : $precio;
+                $idPromoLinea = (($reparto[$i] ?? 0) > 0 && $promoAplicada) ? $promoAplicada['id'] : $id_promo;
+
                 $stmtDetalle->bind_param(
                     "iddddiii",
-                    $cant, $precio, $precio, $sub, $sub,
-                    $idProd, $id_pedido, $id_promo
+                    $cant, $precio, $precioFinal, $sub, $subFinal,
+                    $idProd, $id_pedido, $idPromoLinea
                 );
                 $stmtDetalle->execute();
 
@@ -781,6 +889,8 @@ class Pedido
                        e.tipo_lugar, e.piso_depto_torre, e.referencia,
                        e.empresa_transporte, e.estado_envio, e.fecha_estimada_entrega,
                        e.num_seguimiento, e.fecha_envio,
+                       (SELECT cu.codigo FROM cupon_usos cx INNER JOIN cupones cu ON cu.id_cupon = cx.rela_id_cupon WHERE cx.rela_id_pedidos = p.id_pedidos LIMIT 1) AS cupon_codigo,
+                       (SELECT cx.monto_descuento FROM cupon_usos cx WHERE cx.rela_id_pedidos = p.id_pedidos LIMIT 1) AS cupon_descuento,
                        (SELECT f.id_facturas FROM facturas f WHERE f.rela_id_pedidos = p.id_pedidos LIMIT 1) AS id_factura,
                        (SELECT f.numero_factura FROM facturas f WHERE f.rela_id_pedidos = p.id_pedidos LIMIT 1) AS numero_factura,
                        pg.estado_pagos, pg.referencia_transaccion,
@@ -871,9 +981,11 @@ class Pedido
     private function itemsDelPedido(int $id_pedido): array
     {
         $stmt = $this->conexion->prepare(
-            "SELECT dp.cantidad, dp.precio_unitario_base, dp.subtotal_final, pr.nombre
+            "SELECT dp.cantidad, dp.precio_unitario_base, dp.subtotal_base, dp.subtotal_final, pr.nombre, pr.codigo,
+                    pm.nombre AS promo_nombre, pm.tipo AS promo_tipo
              FROM detalle_pedidos dp
              INNER JOIN productos pr ON pr.id_producto = dp.rela_id_productos
+             LEFT JOIN promociones pm ON pm.id_promociones = dp.rela_id_promociones
              WHERE dp.rela_id_pedidos = ?"
         );
         $stmt->bind_param("i", $id_pedido);
@@ -1141,6 +1253,8 @@ class Pedido
                        e.tipo_lugar, e.piso_depto_torre, e.referencia,
                        e.empresa_transporte, e.num_seguimiento, e.fecha_envio,
                        e.estado_envio, e.fecha_estimada_entrega,
+                       (SELECT cu.codigo FROM cupon_usos cx INNER JOIN cupones cu ON cu.id_cupon = cx.rela_id_cupon WHERE cx.rela_id_pedidos = p.id_pedidos LIMIT 1) AS cupon_codigo,
+                       (SELECT cx.monto_descuento FROM cupon_usos cx WHERE cx.rela_id_pedidos = p.id_pedidos LIMIT 1) AS cupon_descuento,
                        (SELECT f.id_facturas FROM facturas f WHERE f.rela_id_pedidos = p.id_pedidos LIMIT 1) AS id_factura,
                        (SELECT f.numero_factura FROM facturas f WHERE f.rela_id_pedidos = p.id_pedidos LIMIT 1) AS numero_factura,
                        pg.estado_pagos, pg.referencia_transaccion,
@@ -1268,6 +1382,8 @@ class Pedido
 
             // ---- Pago y stock ----
             $stock_devuelto = 0;
+            $nota_factura   = '';
+            $numFacturaNueva = null;
 
             if (!$mismo) {
                 if ($nuevo_estado === 'Cancelado') {
@@ -1285,6 +1401,12 @@ class Pedido
 
                     $stock_devuelto = $this->devolverStock($id_pedido);
 
+                    try {
+                        Cupon::liberarUso($this->conexion, $id_pedido);
+                    } catch (Throwable $e) {
+                        error_log("No se pudo liberar el cupón: " . $e->getMessage());
+                    }
+
                 } else {
                     // Al confirmar el pedido se da por aprobado el pago que estaba pendiente.
                     $stmt = $this->conexion->prepare(
@@ -1293,6 +1415,20 @@ class Pedido
                     );
                     $stmt->bind_param("i", $id_pedido);
                     $stmt->execute();
+
+                    if ($stmt->affected_rows > 0) {
+                        $this->marcarComprobanteAprobado($id_pedido);
+                        $this->asignarCaja($id_pedido);
+                        try {
+                            $fac = $this->emitirFacturaInterna($id_pedido);
+                            if (!empty($fac['ok'])) {
+                                $nota_factura = 'Pago aprobado. Se emitió la factura ' . $fac['numero'] . '.';
+                                $numFacturaNueva = $fac['numero'];
+                            }
+                        } catch (Throwable $e) {
+                            error_log("No se pudo emitir la factura al confirmar: " . $e->getMessage());
+                        }
+                    }
                 }
             }
 
@@ -1308,6 +1444,9 @@ class Pedido
             }
             if ($stock_devuelto > 0) {
                 $extra[] = "Stock devuelto: " . $stock_devuelto . " unidad(es).";
+            }
+            if ($nota_factura !== '') {
+                $extra[] = $nota_factura;
             }
             if ($extra) {
                 $nota_final = trim($nota_final . "\n" . implode(' · ', $extra));
@@ -1340,6 +1479,9 @@ class Pedido
             // Aviso al cliente (campanita / correo / WhatsApp según el estado)
             if (!$mismo) {
                 avisar_estado_pedido($this->conexion, $id_pedido, $nuevo_estado, $nota_final, $transportista, $tracking);
+                if ($numFacturaNueva) {
+                    avisar_pago_aprobado($this->conexion, $id_pedido, $numFacturaNueva);
+                }
             }
 
             return [
@@ -1444,6 +1586,25 @@ class Pedido
 
     // Crea la factura del pedido (sin abrir transacción: la maneja quien llama).
     // Devuelve ['ok'=>true,'id_factura'=>..,'numero'=>..] o ['ok'=>false,'error'=>..]
+    private function marcarComprobanteAprobado(int $id_pedido): void
+    {
+        try {
+            Comprobante::marcarAprobado($this->conexion, $id_pedido);
+        } catch (Throwable $e) {
+            error_log("No se pudo marcar el comprobante como aprobado: " . $e->getMessage());
+        }
+    }
+
+    private function asignarCaja(int $id_pedido): void
+    {
+        try {
+            require_once __DIR__ . '/Caja.php';
+            Caja::asignarPagos($this->conexion, $id_pedido);
+        } catch (Throwable $e) {
+            error_log("No se pudo asignar el pago a la caja: " . $e->getMessage());
+        }
+    }
+
     private function emitirFacturaInterna(int $id_pedido): array
     {
         $st = $this->conexion->prepare(
@@ -1542,6 +1703,9 @@ class Pedido
             $st->bind_param("i", $f['id_pagos']);
             $st->execute();
 
+            $this->marcarComprobanteAprobado($id_pedido);
+            $this->asignarCaja($id_pedido);
+
             $fac = $this->emitirFacturaInterna($id_pedido);
             $numero = $fac['numero'] ?? null;
 
@@ -1568,6 +1732,8 @@ class Pedido
                        c.nombre, c.apellido, c.cuil_cuit, ci.nombre AS condicion_iva,
                        d.calle, d.numero_exterior, d.barrio_colonia, l.nombre_localidad, pr.nombre_provincia,
                        e.direccion_entrega, e.recibe_nombre, e.empresa_transporte, e.num_seguimiento,
+                       (SELECT cu.codigo FROM cupon_usos cx INNER JOIN cupones cu ON cu.id_cupon = cx.rela_id_cupon WHERE cx.rela_id_pedidos = p.id_pedidos LIMIT 1) AS cupon_codigo,
+                       (SELECT cx.monto_descuento FROM cupon_usos cx WHERE cx.rela_id_pedidos = p.id_pedidos LIMIT 1) AS cupon_descuento,
                        (SELECT mp.nombre FROM pagos pg INNER JOIN metodos_pago mp ON mp.id_metodo_pago = pg.rela_id_metodo_pago
                         WHERE pg.rela_id_pedidos = p.id_pedidos ORDER BY pg.id_pagos DESC LIMIT 1) AS metodo_pago,
                        (SELECT pg.estado_pagos FROM pagos pg

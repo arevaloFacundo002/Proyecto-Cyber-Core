@@ -65,12 +65,12 @@ try {
     volverConError($e->getMessage());
 }
 
-$resultado = $pedidos->crearPedido($id_usuario, $carrito, $id_metodo, $datosEntrega, $datosCliente);
+$resultado = $pedidos->crearPedido($id_usuario, $carrito, $id_metodo, $datosEntrega, $datosCliente, $_SESSION['cupon_codigo'] ?? null);
 
 if (!empty($resultado['ok'])) {
 
     // Pedido creado: vaciamos el carrito y renovamos el token
-    unset($_SESSION['carrito'], $_SESSION['csrf_checkout'], $_SESSION['checkout_old']);
+    unset($_SESSION['carrito'], $_SESSION['csrf_checkout'], $_SESSION['checkout_old'], $_SESSION['cupon_codigo']);
 
     header("Location: pedido_confirmado.php?id=" . (int) $resultado['id_pedido']);
     exit;

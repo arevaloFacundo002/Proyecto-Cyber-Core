@@ -124,13 +124,25 @@ function avisar_pago_aprobado(mysqli $cx, int $id_pedido, ?string $factura = nul
             $msg .= " Ya podés ver tu factura {$factura} en Mis pedidos.";
         }
 
+        $htmlFactura = null;
+        if ($factura) {
+            try {
+                require_once __DIR__ . '/factura_email.php';
+                $htmlFactura = factura_email_de_pedido($id_pedido, "Hola {$p['nombre']}, aprobamos el pago de tu pedido #{$id_pedido}. Acá tenés tu factura.");
+            } catch (Throwable $e) {
+                error_log('avisar_pago_aprobado (factura): ' . $e->getMessage());
+            }
+        }
+
         notificar_multicanal(
             (int) $p['id_usuario'],
             'pago_aprobado',
             "Pago aprobado - pedido #{$id_pedido}",
             $msg,
             avisos_canales(['app', 'email']),
-            'carrito/mi_pedido.php?id=' . $id_pedido
+            'carrito/mi_pedido.php?id=' . $id_pedido,
+            null,
+            $htmlFactura
         );
     } catch (Throwable $e) {
         error_log('avisar_pago_aprobado: ' . $e->getMessage());
@@ -147,16 +159,70 @@ function avisar_factura_emitida(mysqli $cx, int $id_pedido, string $numero): voi
             return;
         }
 
+        $htmlFactura = null;
+        try {
+            require_once __DIR__ . '/factura_email.php';
+            $htmlFactura = factura_email_de_pedido($id_pedido, "Hola {$p['nombre']}, emitimos la factura de tu pedido #{$id_pedido}.");
+        } catch (Throwable $e) {
+            error_log('avisar_factura_emitida (factura): ' . $e->getMessage());
+        }
+
         notificar_multicanal(
             (int) $p['id_usuario'],
             'factura_emitida',
             "Tu factura {$numero} está lista",
             "Emitimos la factura {$numero} de tu pedido #{$id_pedido}. Podés verla en Mis pedidos.",
             avisos_canales(['app', 'email']),
-            'carrito/mi_pedido.php?id=' . $id_pedido
+            'carrito/mi_pedido.php?id=' . $id_pedido,
+            null,
+            $htmlFactura
         );
     } catch (Throwable $e) {
         error_log('avisar_factura_emitida: ' . $e->getMessage());
+    }
+}
+
+function avisar_comprobante_recibido(mysqli $cx, int $id_pedido): void
+{
+    try {
+        avisos_cargar();
+
+        $p = avisos_datos_pedido($cx, $id_pedido);
+        if (!$p) {
+            return;
+        }
+
+        notificar_staff(
+            'comprobante_recibido',
+            "Comprobante del pedido #{$id_pedido}",
+            trim($p['nombre'] . ' ' . $p['apellido']) . " subió el comprobante de la transferencia de " . avisos_dinero($p['monto_total']) . '. Revisalo y aprobá el pago.',
+            'views/pedidos/verPedido.php?id=' . $id_pedido
+        );
+    } catch (Throwable $e) {
+        error_log('avisar_comprobante_recibido: ' . $e->getMessage());
+    }
+}
+
+function avisar_comprobante_rechazado(mysqli $cx, int $id_pedido, string $motivo): void
+{
+    try {
+        avisos_cargar();
+
+        $p = avisos_datos_pedido($cx, $id_pedido);
+        if (!$p) {
+            return;
+        }
+
+        notificar_multicanal(
+            (int) $p['id_usuario'],
+            'comprobante_rechazado',
+            "Revisá el comprobante del pedido #{$id_pedido}",
+            "No pudimos aceptar el comprobante de tu transferencia. Motivo: {$motivo}. Subí uno nuevo desde Mis pedidos.",
+            avisos_canales(['app', 'email']),
+            'carrito/mi_pedido.php?id=' . $id_pedido
+        );
+    } catch (Throwable $e) {
+        error_log('avisar_comprobante_rechazado: ' . $e->getMessage());
     }
 }
 
@@ -203,5 +269,93 @@ function avisar_estado_pedido(mysqli $cx, int $id_pedido, string $estado, ?strin
         );
     } catch (Throwable $e) {
         error_log('avisar_estado_pedido: ' . $e->getMessage());
+    }
+}
+
+
+function avisar_devolucion_solicitada(mysqli $cx, int $id_devolucion): void
+{
+    try {
+        avisos_cargar();
+
+        $st = $cx->prepare(
+            "SELECT d.rela_id_pedidos, d.monto_reembolso, c.nombre, c.apellido, c.rela_id_usuario AS id_usuario
+             FROM devolucion d
+             INNER JOIN pedidos p ON p.id_pedidos = d.rela_id_pedidos
+             INNER JOIN clientes c ON c.id_cliente = p.rela_id_cliente
+             WHERE d.id_devolucion = ?"
+        );
+        $st->bind_param("i", $id_devolucion);
+        $st->execute();
+        $d = $st->get_result()->fetch_assoc();
+        if (!$d) {
+            return;
+        }
+
+        $monto = avisos_dinero($d['monto_reembolso']);
+
+        notificar_multicanal(
+            (int) $d['id_usuario'],
+            'devolucion_recibida',
+            "Recibimos tu pedido de devolución #{$id_devolucion}",
+            "Registramos tu pedido de devolución del pedido #{$d['rela_id_pedidos']} por {$monto}. Lo revisamos y te avisamos.",
+            avisos_canales(['app', 'email']),
+            'carrito/mi_pedido.php?id=' . $d['rela_id_pedidos']
+        );
+
+        notificar_staff(
+            'devolucion_nueva',
+            "Nueva devolución #{$id_devolucion}",
+            trim($d['nombre'] . ' ' . $d['apellido']) . " pidió devolver productos del pedido #{$d['rela_id_pedidos']} ({$monto}).",
+            'views/devoluciones/verDevolucion.php?id=' . $id_devolucion
+        );
+    } catch (Throwable $e) {
+        error_log('avisar_devolucion_solicitada: ' . $e->getMessage());
+    }
+}
+
+function avisar_devolucion_resuelta(mysqli $cx, int $id_devolucion): void
+{
+    try {
+        avisos_cargar();
+
+        $st = $cx->prepare(
+            "SELECT d.estado, d.rela_id_pedidos, d.monto_reembolso, d.nota_admin, c.rela_id_usuario AS id_usuario
+             FROM devolucion d
+             INNER JOIN pedidos p ON p.id_pedidos = d.rela_id_pedidos
+             INNER JOIN clientes c ON c.id_cliente = p.rela_id_cliente
+             WHERE d.id_devolucion = ?"
+        );
+        $st->bind_param("i", $id_devolucion);
+        $st->execute();
+        $d = $st->get_result()->fetch_assoc();
+        if (!$d) {
+            return;
+        }
+
+        if ($d['estado'] === 'Aprobada') {
+            $titulo = "Devolución #{$id_devolucion} aprobada";
+            $msg    = "Aprobamos tu devolución del pedido #{$d['rela_id_pedidos']}. Te corresponde un reembolso de "
+                    . avisos_dinero($d['monto_reembolso']) . '.';
+            $tipo   = 'devolucion_aprobada';
+        } else {
+            $titulo = "Devolución #{$id_devolucion} rechazada";
+            $msg    = "No pudimos aprobar tu devolución del pedido #{$d['rela_id_pedidos']}.";
+            $tipo   = 'devolucion_rechazada';
+        }
+        if (!empty($d['nota_admin'])) {
+            $msg .= ' ' . $d['nota_admin'];
+        }
+
+        notificar_multicanal(
+            (int) $d['id_usuario'],
+            $tipo,
+            $titulo,
+            $msg,
+            avisos_canales(['app', 'email']),
+            'carrito/mi_pedido.php?id=' . $d['rela_id_pedidos']
+        );
+    } catch (Throwable $e) {
+        error_log('avisar_devolucion_resuelta: ' . $e->getMessage());
     }
 }
