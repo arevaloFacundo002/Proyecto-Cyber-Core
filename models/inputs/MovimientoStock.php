@@ -1,6 +1,6 @@
 <?php
 
-require_once 'C:\Users\areva\.vscode\cyber_core\models/Database.php';
+require_once __DIR__ . '/../Database.php';
 
 class MovimientoStock
 {
@@ -12,7 +12,141 @@ class MovimientoStock
         $this->conexion = $db->getConexion();
     }
 
-    // REGISTRAR MOVIMIENTO
+    /*
+    * MOTOR DE STOCK: aplica UN movimiento sobre UNA conexión que le pasa quien lo llama.
+    *
+    * - NO abre ni cierra transacción: eso lo decide el que lo llama. Así una factura de
+    *   40 líneas puede llamar a este método 40 veces dentro de UNA sola transacción.
+    * - Si algo falla, lanza Exception con un mensaje claro (el que llama hace rollback).
+    * - Devuelve el tipo (E/S) y el stock nuevo, para avisos posteriores.
+    */
+    public static function aplicarLinea(
+        mysqli $conexion,
+        int $id_producto,
+        int $id_concepto,
+        int $cantidad,
+        string $fecha_movimiento,
+        ?string $referencia_ext,
+        ?string $comentario,
+        ?int $id_usuario = null,
+        ?int $id_compra = null
+    ): array {
+
+        // 1) El concepto define si suma (E) o resta (S)
+        $stmt = $conexion->prepare(
+            "SELECT tipo_movimiento FROM conceptos_movimiento
+             WHERE id_concepto = ? AND es_activo = 1"
+        );
+        $stmt->bind_param("i", $id_concepto);
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        if ($res->num_rows === 0) {
+            throw new Exception("Concepto de movimiento inválido.");
+        }
+
+        $tipo = $res->fetch_assoc()['tipo_movimiento'];
+
+        if ($tipo === 'E') {
+            $delta = abs($cantidad);
+        } elseif ($tipo === 'S') {
+            $delta = -abs($cantidad);
+        } else {
+            throw new Exception("Tipo de movimiento no soportado.");
+        }
+
+        if ($delta === 0) {
+            throw new Exception("La cantidad no puede ser cero.");
+        }
+
+        // 2) Bloqueamos la fila del producto: nadie más toca su stock hasta el commit
+        $stmt = $conexion->prepare(
+            "SELECT nombre, stock FROM productos
+             WHERE id_producto = ? AND es_activo = 1 FOR UPDATE"
+        );
+        $stmt->bind_param("i", $id_producto);
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        if ($res->num_rows === 0) {
+            throw new Exception("Producto no encontrado o inactivo (id {$id_producto}).");
+        }
+
+        $producto = $res->fetch_assoc();
+        $nuevoStock = (int) $producto['stock'] + $delta;
+
+        // 3) Nunca stock negativo
+        if ($nuevoStock < 0) {
+            throw new Exception(
+                "Stock insuficiente para \"{$producto['nombre']}\" "
+                . "(hay {$producto['stock']}, se piden " . abs($delta) . ")."
+            );
+        }
+
+        // 4) Actualizar stock
+        $stmt = $conexion->prepare("UPDATE productos SET stock = ? WHERE id_producto = ?");
+        $stmt->bind_param("ii", $nuevoStock, $id_producto);
+
+        if (!$stmt->execute()) {
+            throw new Exception("No se pudo actualizar el stock.");
+        }
+
+        // 5) Registrar el movimiento en el historial (queda ligado a la compra si hay)
+        $hora = date('H:i:s');
+
+        $stmt = $conexion->prepare(
+            "INSERT INTO historial_movimientos
+                (fecha_movimiento, hora_movimiento, cantidad, referencia_ext, comentario,
+                 rela_id_productos, rela_id_conceptos, rela_id_usuario, rela_id_compras)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->bind_param(
+            "ssissiiii",
+            $fecha_movimiento, $hora, $delta, $referencia_ext, $comentario,
+            $id_producto, $id_concepto, $id_usuario, $id_compra
+        );
+
+        if (!$stmt->execute()) {
+            throw new Exception("No se pudo registrar el movimiento.");
+        }
+
+        return ['tipo' => $tipo, 'stock_nuevo' => $nuevoStock];
+    }
+
+
+    /*
+    * Aviso de stock bajo. Se llama DESPUÉS del commit; si falla (Pusher caído, etc.)
+    * no debe afectar al movimiento, que ya quedó guardado.
+    */
+    public static function avisarStockBajo(mysqli $conexion, int $id_producto, int $stock_nuevo): void
+    {
+        $UMBRAL_STOCK_BAJO = 5;
+
+        if ($stock_nuevo > $UMBRAL_STOCK_BAJO) {
+            return;
+        }
+
+        try {
+            require_once __DIR__ . '/../../config/notificaciones/pusher.php';
+
+            $stmt = $conexion->prepare("SELECT nombre, codigo FROM productos WHERE id_producto = ?");
+            $stmt->bind_param("i", $id_producto);
+            $stmt->execute();
+            $prod = $stmt->get_result()->fetch_assoc();
+
+            notificar_staff(
+                'stock_bajo',
+                'Stock bajo: ' . $prod['nombre'],
+                "El producto {$prod['codigo']} - {$prod['nombre']} quedó con {$stock_nuevo} unidades.",
+                '../../views/productos/listarProducto.php?id=' . $id_producto
+            );
+        } catch (Throwable $e) {
+            error_log('Aviso de stock bajo falló: ' . $e->getMessage());
+        }
+    }
+
+
+    // REGISTRAR MOVIMIENTO MANUAL (ajustes, mermas, conteos). Misma firma que antes.
 
     public function registrar(
         int $id_producto,
@@ -23,198 +157,26 @@ class MovimientoStock
         ?string $comentario,
         ?int $id_usuario = null
     ) {
-
-        /*
-        * Primero obtenemos el tipo de movimiento
-        * correspondiente al concepto seleccionado.
-        */
-
-        $sqlConcepto = "SELECT tipo_movimiento
-                        FROM conceptos_movimiento
-                        WHERE id_concepto = ?
-                        AND es_activo = 1";
-
-        $stmtConcepto = $this->conexion->prepare($sqlConcepto);
-
-        $stmtConcepto->bind_param("i", $id_concepto);
-
-        $stmtConcepto->execute();
-
-        $resultadoConcepto = $stmtConcepto->get_result();
-
-        if ($resultadoConcepto->num_rows === 0) {
-            return false;
-        }
-
-        $concepto = $resultadoConcepto->fetch_assoc();
-
-        $tipo = $concepto['tipo_movimiento'];
-
-        /*
-        * La cantidad que ingresa el usuario siempre
-        * se interpreta como cantidad positiva.
-        *
-        * E = Entrada  →
-        * S = Salida   →
-        */
-
-        if ($tipo === 'E') {
-
-            $cantidadMovimiento = abs($cantidad);
-
-        } elseif ($tipo === 'S') {
-
-            $cantidadMovimiento = -abs($cantidad);
-
-        } else {
-
-            return false;
-        }
-
-        // La cantidad no puede ser cero.
-
-        if ($cantidadMovimiento === 0) {
-            return false;
-        }
-
-        /*
-        * Obtener la hora exacta en la que se registra
-        * el movimiento.
-        */
-
-        $hora_movimiento = date('H:i:s');
-
-        /*
-        * Iniciamos una transacción.
-        *
-        * Esto hace que el registro del movimiento y la
-        * actualización del stock se hagan juntos.
-        */
-
         $this->conexion->begin_transaction();
 
         try {
-
-            // Obtener stock actual del producto
-
-            $sqlProducto = "SELECT stock
-                            FROM productos
-                            WHERE id_producto = ?
-                            AND es_activo = 1
-                            FOR UPDATE";
-
-            $stmtProducto = $this->conexion->prepare($sqlProducto);
-
-            $stmtProducto->bind_param("i", $id_producto);
-
-            $stmtProducto->execute();
-
-            $resultadoProducto = $stmtProducto->get_result();
-
-            if ($resultadoProducto->num_rows === 0) {
-                throw new Exception("Producto no encontrado.");
-            }
-
-            $producto = $resultadoProducto->fetch_assoc();
-
-            $stockActual = (int) $producto['stock'];
-
-            // Calcular nuevo stock
-
-            $nuevoStock = $stockActual + $cantidadMovimiento;
-
-            // No permitir stock negativo
-
-            if ($nuevoStock < 0) {
-                throw new Exception("Stock insuficiente.");
-            }
-
-            // Actualizar stock del producto
-
-            $sqlActualizar = "UPDATE productos
-                            SET stock = ?
-                            WHERE id_producto = ?";
-
-            $stmtActualizar = $this->conexion->prepare($sqlActualizar);
-
-            $stmtActualizar->bind_param(
-                "ii",
-                $nuevoStock,
-                $id_producto
+            $r = self::aplicarLinea(
+                $this->conexion, $id_producto, $id_concepto, $cantidad,
+                $fecha_movimiento, $referencia_ext, $comentario, $id_usuario
             );
-
-            if (!$stmtActualizar->execute()) {
-                throw new Exception("No se pudo actualizar el stock.");
-            }
-
-            // Registrar movimiento en el historial
-
-            $sqlMovimiento = "INSERT INTO historial_movimientos
-                            (
-                                fecha_movimiento,
-                                hora_movimiento,
-                                cantidad,
-                                referencia_ext,
-                                comentario,
-                                rela_id_productos,
-                                rela_id_conceptos,
-                                rela_id_usuario
-                            )
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-            $stmtMovimiento = $this->conexion->prepare($sqlMovimiento);
-
-            $stmtMovimiento->bind_param(
-                "ssissiii",
-                $fecha_movimiento,
-                $hora_movimiento,
-                $cantidadMovimiento,
-                $referencia_ext,
-                $comentario,
-                $id_producto,
-                $id_concepto,
-                $id_usuario
-            );
-
-            if (!$stmtMovimiento->execute()) {
-                throw new Exception("No se pudo registrar el movimiento.");
-            }
-
-            // Confirmar todo
 
             $this->conexion->commit();
 
-            
-            // Aviso de stock bajo (no debe romper el registro del movimiento si falla)
-            $UMBRAL_STOCK_BAJO = 5;
-
-            if ($tipo === 'S' && $nuevoStock <= $UMBRAL_STOCK_BAJO) {
-                require_once __DIR__ . '/../../config/notificaciones/pusher.php';
-
-                $sqlNombre = "SELECT nombre, codigo FROM productos WHERE id_producto = ?";
-                $stmtNombre = $this->conexion->prepare($sqlNombre);
-                $stmtNombre->bind_param("i", $id_producto);
-                $stmtNombre->execute();
-                $prod = $stmtNombre->get_result()->fetch_assoc();
-
-                notificar_staff(
-                    'stock_bajo',
-                    'Stock bajo: ' . $prod['nombre'],
-                    "El producto {$prod['codigo']} - {$prod['nombre']} quedó con {$nuevoStock} unidades.",
-                    '../../views/productos/listarProducto.php?id=' . $id_producto
-                );
-            }
-
-            return true;
-
         } catch (Exception $e) {
-
-            // Si algo falla, deshacer todo
-
             $this->conexion->rollback();
-
             return false;
         }
+
+        if ($r['tipo'] === 'S') {
+            self::avisarStockBajo($this->conexion, $id_producto, $r['stock_nuevo']);
+        }
+
+        return true;
     }
 
 

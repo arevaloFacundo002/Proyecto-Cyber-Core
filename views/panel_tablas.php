@@ -179,7 +179,7 @@ require_once '../auth/auth.php';
 
                     <a href="tablas_maestras/anuncios/listarAnuncio.php"
                     class="btn btn-maestra">
-                        Administrar
+                        Administrar 
                     </a>
 
                 </div>

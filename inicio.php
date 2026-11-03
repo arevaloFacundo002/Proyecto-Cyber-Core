@@ -164,6 +164,12 @@ h1 {
         </div>
 
         <div class="card">
+            <h2>Compras a proveedores</h2>
+            <p>Cargar facturas de compra y sumar stock.</p>
+            <a href="views/compras_proveedor/listarCompra.php">Gestionar</a>
+        </div>
+
+        <div class="card">
             <h2>Comunicaciones 📣</h2>
             <p>Administrar anuncios, historial, canales de envio.</p>
             <a href="views/anuncios/listarAnuncio.php">Ver</a>
