@@ -32,79 +32,77 @@ if ($id > 0 && !$detalle) {
 }
 
 if ($id > 0 && isset($_GET['pdf'])) {
-    require __DIR__ . '/../reportes/FPDF/fpdf.php';
+    require_once __DIR__ . '/../reportes/ReportePDF.php';
 
     $c    = $detalle['caja'];
     $movs = $modelo->movimientos($id);
+    $cerrada = $c['estado'] === 'Cerrada';
 
-    $pdf = new FPDF();
-    $pdf->AddPage();
-    $pdf->SetFont('Arial', 'B', 18);
-    $pdf->Cell(0, 10, latin1('CyberCore - Cierre de caja #' . $id), 0, 1);
-    $pdf->SetFont('Arial', '', 11);
-    $pdf->Cell(0, 7, latin1('Estado: ' . $c['estado']), 0, 1);
-    $pdf->Cell(0, 7, latin1('Apertura: ' . fechaHora($c['fecha_apertura']) . ' por ' . $c['usuario_apertura']), 0, 1);
-    $pdf->Cell(0, 7, latin1('Cierre: ' . fechaHora($c['fecha_cierre']) . ($c['usuario_cierre'] ? ' por ' . $c['usuario_cierre'] : '')), 0, 1);
-    $pdf->Ln(4);
+    $pdf = new ReportePDF('Cierre de caja #' . $id);
+    $pdf->portada(
+        'Cierre de caja #' . $id,
+        'Estado: ' . $c['estado'] . ' · Apertura: ' . fechaHora($c['fecha_apertura']) . ' por ' . $c['usuario_apertura']
+            . ($cerrada ? ' · Cierre: ' . fechaHora($c['fecha_cierre']) . ($c['usuario_cierre'] ? ' por ' . $c['usuario_cierre'] : '') : ''),
+        'CAJA-' . str_pad((string) $id, 4, '0', STR_PAD_LEFT)
+    );
 
-    $pdf->SetFont('Arial', 'B', 13);
-    $pdf->Cell(0, 8, 'Efectivo', 0, 1);
-    $pdf->SetFont('Arial', '', 11);
-    $filas = [
+    $esperado = $c['efectivo_esperado'] ?? $detalle['esperado'];
+    $kpis = [
         ['Efectivo inicial', plata($detalle['monto_inicial'])],
         ['Cobros en efectivo', plata($detalle['ventas_efectivo'])],
         ['Ingresos', plata($detalle['ingresos'])],
         ['Egresos', plata($detalle['egresos'])],
-        ['Efectivo esperado', plata($c['efectivo_esperado'] ?? $detalle['esperado'])],
+        ['Efectivo esperado', plata($esperado)],
     ];
-    if ($c['estado'] === 'Cerrada') {
-        $filas[] = ['Efectivo contado', plata($c['efectivo_contado'])];
-        $filas[] = ['Diferencia', textoDiferencia($c['diferencia'])];
+    if ($cerrada) {
+        $kpis[] = ['Efectivo contado', plata($c['efectivo_contado'])];
+        $kpis[] = ['Diferencia', textoDiferencia($c['diferencia'])];
     }
-    foreach ($filas as $f) {
-        $pdf->Cell(80, 7, latin1($f[0]), 1);
-        $pdf->Cell(60, 7, latin1($f[1]), 1, 1, 'R');
-    }
-    if (!empty($c['nota_cierre'])) {
-        $pdf->Ln(2);
-        $pdf->MultiCell(0, 6, latin1('Nota: ' . $c['nota_cierre']));
-    }
+    $pdf->seccion('Resumen');
+    $pdf->kpis($kpis, 3);
 
-    $pdf->Ln(5);
-    $pdf->SetFont('Arial', 'B', 13);
-    $pdf->Cell(0, 8, latin1('Cobros por método de pago'), 0, 1);
-    $pdf->SetFont('Arial', '', 11);
+    $pdf->seccion('Cobros por método de pago');
     if (!$detalle['por_metodo']) {
-        $pdf->Cell(0, 7, 'Sin cobros en esta caja.', 0, 1);
+        $pdf->nota('Sin cobros en esta caja.');
     } else {
-        $pdf->Cell(70, 7, latin1('Método'), 1);
-        $pdf->Cell(30, 7, 'Pagos', 1, 0, 'R');
-        $pdf->Cell(40, 7, 'Total', 1, 1, 'R');
+        $grafico = [];
+        $filas = [];
         foreach ($detalle['por_metodo'] as $m) {
-            $pdf->Cell(70, 7, latin1($m['metodo'] . (!empty($m['es_efectivo']) ? '' : ' (informativo)')), 1);
-            $pdf->Cell(30, 7, (string) (int) $m['cantidad'], 1, 0, 'R');
-            $pdf->Cell(40, 7, latin1(plata($m['total'])), 1, 1, 'R');
+            $nombre = $m['metodo'] . (!empty($m['es_efectivo']) ? '' : ' (informativo)');
+            $grafico[$nombre] = (float) $m['total'];
+            $filas[] = [$nombre, (string) (int) $m['cantidad'], plata($m['total'])];
         }
+        $pdf->torta($grafico, '', true);
+        $pdf->tabla(['Método', 'Pagos', 'Total'], $filas, [100, 30, 50], ['L', 'R', 'R']);
     }
 
-    $pdf->Ln(5);
-    $pdf->SetFont('Arial', 'B', 13);
-    $pdf->Cell(0, 8, 'Ingresos y egresos', 0, 1);
-    $pdf->SetFont('Arial', '', 11);
+    $pdf->seccion('Ingresos y egresos');
     if (!$movs) {
-        $pdf->Cell(0, 7, 'Sin movimientos.', 0, 1);
+        $pdf->nota('Sin movimientos.');
     } else {
-        $pdf->Cell(35, 7, 'Fecha', 1);
-        $pdf->Cell(25, 7, 'Tipo', 1);
-        $pdf->Cell(75, 7, 'Motivo', 1);
-        $pdf->Cell(35, 7, 'Monto', 1, 1, 'R');
+        $filas = [];
         foreach ($movs as $m) {
-            $pdf->Cell(35, 7, date('d/m/Y H:i', strtotime($m['fecha'])), 1);
-            $pdf->Cell(25, 7, latin1($m['tipo']), 1);
-            $pdf->Cell(75, 7, latin1(mb_strimwidth($m['motivo'], 0, 40, '...')), 1);
-            $pdf->Cell(35, 7, latin1(plata($m['monto'])), 1, 1, 'R');
+            $filas[] = [date('d/m/Y H:i', strtotime($m['fecha'])), $m['tipo'], $m['motivo'],
+                        ($m['tipo'] === 'Egreso' ? '- ' : '+ ') . plata($m['monto'])];
         }
+        $pdf->tabla(['Fecha', 'Tipo', 'Motivo', 'Monto'], $filas, [34, 24, 80, 42], ['L', 'L', 'L', 'R']);
     }
+
+    $analisis = [];
+    if ($cerrada) {
+        $d = (float) $c['diferencia'];
+        $analisis[] = abs($d) < 0.005
+            ? 'La caja cerró justa: el efectivo contado coincide con el esperado.'
+            : ($d > 0 ? 'La caja cerró con un sobrante de ' . plata($d) . '.' : 'La caja cerró con un faltante de ' . plata(abs($d)) . '.');
+    } else {
+        $analisis[] = 'La caja todavía está abierta: el efectivo esperado puede cambiar.';
+    }
+    $analisis[] = 'Efectivo esperado = efectivo inicial + cobros en efectivo + ingresos - egresos. Los métodos marcados como informativos no suman al efectivo.';
+    if (!empty($c['nota_cierre'])) {
+        $analisis[] = 'Nota de cierre: ' . $c['nota_cierre'];
+    }
+    $pdf->seccion('Análisis');
+    $pdf->analisis($analisis);
 
     $pdf->Output('I', 'cierre_caja_' . $id . '.pdf');
     exit;
