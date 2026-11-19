@@ -12,7 +12,16 @@ require_once __DIR__ . '/../models/Caja.php';
 
 function e($v) { return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8'); }
 function plata($v) { return '$' . number_format((float) $v, 2, ',', '.'); }
-function numero($v): float { return (float) str_replace(',', '.', trim((string) $v)); }
+function numero($v): float
+{
+    $s = preg_replace('/[^\d.,\-]/', '', trim((string) $v));
+    if (strpos($s, ',') !== false) {
+        $s = str_replace(',', '.', str_replace('.', '', $s));
+    } elseif (preg_match('/^\d{1,3}(\.\d{3})+$/', $s)) {
+        $s = str_replace('.', '', $s);
+    }
+    return (float) $s;
+}
 
 if (empty($_SESSION['csrf_caja'])) {
     $_SESSION['csrf_caja'] = bin2hex(random_bytes(16));
@@ -109,7 +118,7 @@ $ruta_raiz = '../';
                 <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_caja']) ?>">
                 <input type="hidden" name="accion" value="abrir">
                 <label>Efectivo con el que empieza</label>
-                <input type="number" name="monto_inicial" step="0.01" min="0" value="0" required>
+                <input type="text" inputmode="decimal" name="monto_inicial" value="0" placeholder="Ej: 1.500,50" pattern="[0-9.,]+" title="Escribí el monto, por ejemplo 1.500,50" required>
                 <button class="btn-cc" type="submit">Abrir caja</button>
             </form>
         </div>
@@ -146,7 +155,7 @@ $ruta_raiz = '../';
                 <label>Tipo</label>
                 <select name="tipo"><option value="Egreso">Egreso (sale plata)</option><option value="Ingreso">Ingreso (entra plata)</option></select>
                 <label>Monto</label>
-                <input type="number" name="monto" step="0.01" min="0.01" required>
+                <input type="text" inputmode="decimal" name="monto" placeholder="Ej: 1.500,50" pattern="[0-9.,]+" title="Escribí el monto, por ejemplo 1.500,50" required>
                 <label>Motivo</label>
                 <input type="text" name="motivo" maxlength="200" placeholder="Ej: pago a proveedor" required>
                 <button class="btn-cc" type="submit">Registrar</button>
@@ -158,7 +167,7 @@ $ruta_raiz = '../';
                 <input type="hidden" name="accion" value="cerrar">
                 <input type="hidden" name="id_caja" value="<?= (int) $abierta['id_caja'] ?>">
                 <label>Efectivo contado (lo que realmente hay)</label>
-                <input type="number" name="contado" step="0.01" min="0" required>
+                <input type="text" inputmode="decimal" name="contado" placeholder="Ej: 1.500,50" pattern="[0-9.,]+" title="Escribí el monto, por ejemplo 1.500,50" required>
                 <label>Nota (opcional)</label>
                 <input type="text" name="nota" maxlength="255" placeholder="Ej: faltaron $50 de vuelto">
                 <button class="btn-cc" type="submit">Cerrar caja</button>
