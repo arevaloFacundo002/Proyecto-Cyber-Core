@@ -169,6 +169,18 @@ class MovimientoStock
                 throw new Exception("No se pudo registrar el movimiento.");
             }
 
+            try {
+                $uMov = (int) ($id_usuario ?? ($_SESSION['id_usuario'] ?? 0));
+                if ($uMov > 0) {
+                    $idMov = (int) $this->conexion->insert_id;
+                    $qMov = $this->conexion->prepare("UPDATE historial_movimientos SET rela_id_usuario = ? WHERE id_movimientos = ?");
+                    $qMov->bind_param("ii", $uMov, $idMov);
+                    $qMov->execute();
+                }
+            } catch (\Throwable $e) {
+                // la columna rela_id_usuario todavía no existe: no se interrumpe el movimiento
+            }
+
             // Confirmar todo
 
             $this->conexion->commit();

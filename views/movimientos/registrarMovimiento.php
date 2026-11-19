@@ -23,7 +23,7 @@ $conceptos = $conceptoModel->listar();
         name="viewport"
         content="width=device-width, initial-scale=1.0">
 
-    <title>Registrar Movimiento</title>
+    <title>Ajuste de Stock</title>
 
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
@@ -56,7 +56,7 @@ require __DIR__ . '/../../includes/header_admin.php';
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <h3 class="fw-bold mb-0">
-            Registrar Movimiento de Stock
+            Ajuste de Stock
         </h3>
 
     </div>
@@ -114,7 +114,7 @@ require __DIR__ . '/../../includes/header_admin.php';
                     <div class="col-md-5 mb-2">
 
                         <label class="form-label fw-bold mb-1">
-                            Tipo de movimiento
+                            Motivo del ajuste
                         </label>
 
                         <select
@@ -123,13 +123,14 @@ require __DIR__ . '/../../includes/header_admin.php';
                             required>
 
                             <option value="">
-                                Seleccionar movimiento
+                                Seleccionar motivo
                             </option>
 
                             <?php foreach ($conceptos as $c): ?>
+                                <?php if (in_array((int) ($c['id_conceptos'] ?? 0), [1, 2], true)) continue; ?>
 
                                 <option
-                                  value="<?= $c['id_concepto'] ?>">
+                                  value="<?= (int) ($c['id_conceptos'] ?? $c['id_concepto'] ?? 0) ?>">
 
                                   <?= htmlspecialchars($c['descripcion']) ?>
 
@@ -235,7 +236,7 @@ require __DIR__ . '/../../includes/header_admin.php';
                         type="submit"
                         class="btn btn-info text-dark fw-bold btn-sm px-4">
 
-                        Registrar Movimiento
+                        Guardar ajuste
 
                     </button>
 

@@ -15,7 +15,7 @@ if (!isset($_SESSION['usuario']) ||
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consultas SQL - CyberCore</title>
+<title>Consultas y Reportes - CyberCore</title>
 
 <link href="../css/theme.css" rel="stylesheet">
 
@@ -130,41 +130,41 @@ require __DIR__ . '/../includes/header_admin.php';
 
 
 <header>
-    <div class="logo">CYBERCORE - CONSULTAS</div>
+    <div class="logo">CYBERCORE - CONSULTAS Y REPORTES</div>
     <a href="../inicio.php" class="back">⬅ Volver al Panel</a>
 </header>
 
 <div class="container">
-    <h1>Consultas del Sistema</h1>
+    <h1>Consultas y Reportes</h1>
 
     <div class="grid">
 
         <div class="card">
-            <h2>Consulta 1</h2>
-            <p>Producto y proveedor con el ultimo precio de compra</p>
+            <h2>Últimos precios de compra</h2>
+            <p>Producto y proveedor con el último precio de compra.</p>
             <a href="consulta1.php">Ver consulta</a>
         </div>
 
         <div class="card">
-            <h2>Consulta 2</h2>
-            <p>Pedidos agrupados: cada pedido con sus productos, cliente y envío.</p>
+            <h2>Pedidos detallados</h2>
+            <p>Cada pedido con sus productos, cliente y envío.</p>
             <a href="consulta2.php">Ver consulta</a>
         </div>
 
         <div class="card">
-            <h2>Consulta 3</h2>
-            <p>Top 5 productos más vendidos.</p>
+            <h2>Productos más vendidos</h2>
+            <p>Top 5 de productos más vendidos.</p>
             <a href="consulta3.php">Ver consulta</a>
         </div>
 
         <div class="card">
-            <h2>Consulta 4</h2>
+            <h2>Mejores clientes</h2>
             <p>Clientes con más pedidos realizados.</p>
             <a href="consulta4.php">Ver consulta</a>
         </div>
 
         <div class="card">
-            <h2>Consulta 5</h2>
+            <h2>Marcas con más productos</h2>
             <p>Marcas con mayor cantidad de productos.</p>
             <a href="consulta5.php">Ver consulta</a>
         </div>
@@ -174,6 +174,20 @@ require __DIR__ . '/../includes/header_admin.php';
             <p>Facturas emitidas, detalle imprimible y pedidos sin facturar.</p>
             <a href="facturas.php">Ver facturas</a>
         </div>
+
+        <div class="card">
+            <h2>Reportes</h2>
+            <p>Ventas, inventario, compras, clientes, pedidos y devoluciones, en PDF y Excel.</p>
+            <a href="../reportes/index.php">Ver reportes</a>
+        </div>
+
+        <?php if ($_SESSION['rol'] == "administrador") { ?>
+        <div class="card">
+            <h2>Reporte de usuarios y clientes</h2>
+            <p>Resumen con gráficos de usuarios, roles, provincias y crecimiento, en PDF.</p>
+            <a href="../reportes/reporte_usuarios.php">Generar reporte</a>
+        </div>
+        <?php } ?>
 
     </div>
 </div>

@@ -136,7 +136,7 @@ require __DIR__ . '/../includes/header_admin.php';
 
 
 <div class="subheader">
-    <a href="../inicio.php">← Volver a Módulos</a>
+    <a href="../consultas/menu_consultas.php">← Volver a Consultas y Reportes</a>
 </div>
 
 <div class="centro">
@@ -169,220 +169,123 @@ exit; // Detener ejecución para no generar PDF sin fechas
 
 <?php
 require "../conexion.php";
-require __DIR__ . "/FPDF/fpdf.php";
+require_once __DIR__ . "/ReportePDF.php";
 
-function latin1($t)
+$desde = $_GET["desde"] ?? '';
+$hasta = $_GET["hasta"] ?? '';
+
+$fechaValida = function ($f) {
+    $d = DateTime::createFromFormat('Y-m-d', $f);
+    return $d && $d->format('Y-m-d') === $f;
+};
+
+if (!$fechaValida($desde) || !$fechaValida($hasta) || $desde > $hasta) {
+    http_response_code(400);
+    die("Las fechas no son válidas. Volvé atrás y elegí un período correcto.");
+}
+
+function escalar(mysqli $c, string $sql, string $tipos = '', array $params = [])
 {
-    return mb_convert_encoding((string) $t, 'ISO-8859-1', 'UTF-8');
+    $st = $c->prepare($sql);
+    if ($tipos !== '') {
+        $st->bind_param($tipos, ...$params);
+    }
+    $st->execute();
+    $fila = $st->get_result()->fetch_row();
+    return $fila ? (int) $fila[0] : 0;
 }
 
-
-// ========= VALIDACIÓN =========
-$desde = $_GET["desde"] ?? null;
-$hasta = $_GET["hasta"] ?? null;
-
-if (!$desde || !$hasta) {
-    die("Error: Fechas no válidas.");
+function pares(mysqli $c, string $sql, string $tipos = '', array $params = []): array
+{
+    $st = $c->prepare($sql);
+    if ($tipos !== '') {
+        $st->bind_param($tipos, ...$params);
+    }
+    $st->execute();
+    $res = $st->get_result();
+    $out = [];
+    while ($f = $res->fetch_row()) {
+        $out[(string) $f[0]] = (int) $f[1];
+    }
+    return $out;
 }
 
-// =====================================================
-//                CONSULTAS PRINCIPALES
-// =====================================================
-$usuarios_total      = $conexion->query("SELECT COUNT(*) AS t FROM usuarios")->fetch_assoc()['t'];
-$clientes_total      = $conexion->query("SELECT COUNT(*) AS t FROM clientes")->fetch_assoc()['t'];
-
-$usuarios_periodo = $conexion->query("
-    SELECT COUNT(*) AS t 
-    FROM usuarios
-    WHERE DATE(fecha_registro) BETWEEN '$desde' AND '$hasta'
-")->fetch_assoc()['t'];
-
-$clientes_periodo = $conexion->query("
-    SELECT COUNT(*) AS t 
-    FROM clientes
-    WHERE DATE(fecha_registro) BETWEEN '$desde' AND '$hasta'
-")->fetch_assoc()['t'];
-
-// usuarios → clientes
-$usuarios_con_cliente = $conexion->query("
-    SELECT COUNT(*) AS t 
-    FROM usuarios 
-    WHERE id_usuario IN (SELECT rela_id_usuario FROM clientes)
-")->fetch_assoc()['t'];
-
+$usuarios_total   = escalar($conexion, "SELECT COUNT(*) FROM usuarios");
+$clientes_total   = escalar($conexion, "SELECT COUNT(*) FROM clientes");
+$usuarios_periodo = escalar($conexion, "SELECT COUNT(*) FROM usuarios WHERE DATE(fecha_registro) BETWEEN ? AND ?", "ss", [$desde, $hasta]);
+$clientes_periodo = escalar($conexion, "SELECT COUNT(*) FROM clientes WHERE DATE(fecha_registro) BETWEEN ? AND ?", "ss", [$desde, $hasta]);
+$usuarios_con_cliente = escalar($conexion, "SELECT COUNT(*) FROM usuarios WHERE id_usuario IN (SELECT rela_id_usuario FROM clientes)");
 $usuarios_sin_cliente = $usuarios_total - $usuarios_con_cliente;
 
-// Roles (usuarios.rela_id_perfil -> perfiles.nombre_perfil)
-$roles = [];
-$q = $conexion->query("
-    SELECT p.nombre_perfil AS rol, COUNT(*) AS c
+$roles = pares($conexion, "
+    SELECT p.nombre_perfil, COUNT(*)
     FROM usuarios u
     INNER JOIN perfiles p ON p.id_perfil = u.rela_id_perfil
-    GROUP BY p.nombre_perfil
-");
-while ($r = $q->fetch_assoc()) $roles[$r['rol']] = $r['c'];
+    GROUP BY p.id_perfil, p.nombre_perfil
+    ORDER BY COUNT(*) DESC");
 
-// Usuarios por estado (usuarios.estado: activo / inactivo / bloqueado)
-$estados = [];
-$q = $conexion->query("SELECT estado, COUNT(*) AS c FROM usuarios GROUP BY estado");
-while ($e = $q->fetch_assoc()) $estados[$e['estado']] = $e['c'];
+$estados = pares($conexion, "SELECT estado, COUNT(*) FROM usuarios GROUP BY estado ORDER BY COUNT(*) DESC");
 
-// Top 5 provincias con clientes
-// clientes -> direcciones (rela_id_direccion) -> localidades (rela_id_localidad) -> provincias (rela_id_provincia)
-$top_provincias = [];
-$q = $conexion->query("
-    SELECT p.nombre_provincia AS provincia, COUNT(*) AS total
+$provincias = pares($conexion, "
+    SELECT p.nombre_provincia, COUNT(*) AS total
     FROM clientes c
     INNER JOIN direcciones d ON d.id_direccion = c.rela_id_direccion
     INNER JOIN localidades l ON l.id_localidad = d.rela_id_localidad
     INNER JOIN provincias p ON p.id_provincia = l.rela_id_provincia
-    GROUP BY p.id_provincia
-    ORDER BY total DESC
-    LIMIT 5
-");
-while ($t = $q->fetch_assoc()) $top_provincias[$t['provincia']] = $t['total'];
+    GROUP BY p.id_provincia, p.nombre_provincia
+    ORDER BY total DESC, p.nombre_provincia ASC
+    LIMIT 5");
 
-// clientes por mes
-$clientes_mes = [];
-$q = $conexion->query("
-    SELECT DATE_FORMAT(fecha_registro, '%Y-%m') AS mes, COUNT(*) AS total
+$meses_raw = pares($conexion, "
+    SELECT DATE_FORMAT(fecha_registro, '%Y-%m') AS mes, COUNT(*)
     FROM clientes
+    WHERE DATE(fecha_registro) <= ?
     GROUP BY mes
-    ORDER BY mes ASC
-");
-while ($m = $q->fetch_assoc()) $clientes_mes[$m['mes']] = $m['total'];
-
-
-// =====================================================
-//                 GENERADOR DE GRÁFICOS
-// =====================================================
-function crearGrafico($datos, $titulo, $outfile) {
-
-    $w = 650; $h = 350;
-    $img = imagecreatetruecolor($w, $h);
-
-    // colores CyberCore
-    $blanco = imagecolorallocate($img, 255,255,255);
-    $negro  = imagecolorallocate($img, 0,0,0);
-    $celeste = imagecolorallocate($img, 0,189,255);
-
-    imagefill($img, 0,0, $blanco);
-
-    imagestring($img, 5, 10, 10, latin1($titulo), $negro);
-
-    if (!count($datos)) {
-        imagestring($img, 5, 20, 50, "No hay datos suficientes.", $negro);
-        imagepng($img, $outfile);
-        return;
-    }
-
-    $maxVal = max($datos);
-    $x = 60;
-    $base = 300;
-
-    foreach ($datos as $label => $value) {
-        $barH = (int) round(($value / $maxVal) * 220);
-
-        imagefilledrectangle($img, $x, $base - $barH, $x + 80, $base, $celeste);
-
-        imagestring($img, 4, $x + 10, $base + 5, latin1(substr($label,0,10)), $negro);
-        imagestring($img, 5, $x + 30, $base - $barH - 15, (string) $value, $negro);
-
-        $x += 130;
-    }
-
-    imagepng($img, $outfile);
-    imagedestroy($img);
+    ORDER BY mes DESC
+    LIMIT 12", "s", [$hasta]);
+$clientes_mes = [];
+for ($i = 11; $i >= 0; $i--) {
+    $mes = date('Y-m', strtotime($hasta . ' first day of -' . $i . ' month'));
+    $clientes_mes[substr($mes, 5, 2) . '/' . substr($mes, 2, 2)] = $meses_raw[$mes] ?? 0;
 }
 
-$chart_roles      = __DIR__ . "/roles.png";
-$chart_estados    = __DIR__ . "/estados.png";
-$chart_topprov    = __DIR__ . "/provincias.png";
-$chart_clientemes = __DIR__ . "/clientes_mes.png";
+$roles   = array_combine(array_map('ucfirst', array_keys($roles)), $roles);
+$estados = array_combine(array_map('ucfirst', array_keys($estados)), $estados);
 
-crearGrafico($roles, "Usuarios por Rol", $chart_roles);
-crearGrafico($estados, "Usuarios por Estado", $chart_estados);
-crearGrafico($top_provincias, "Top 5 Provincias con Clientes", $chart_topprov);
-crearGrafico($clientes_mes, "Crecimiento de Clientes por Mes", $chart_clientemes);
-
-
-// =====================================================
-//                      PDF PREMIUM
-// =====================================================
-class PDF extends FPDF {
-
-    function Header() {
-        $this->SetFont("Arial","B",16);
-        $this->SetTextColor(0,189,255);
-        $this->Cell(0,12,"Reporte General de Usuarios & Clientes",0,1,"C");
-        $this->Ln(3);
-    }
-
-    function Footer() {
-        // SIN PIE
-    }
-
-    function titulo($txt) {
-        $this->Ln(4);
-        $this->SetFont("Arial","B",14);
-        $this->SetTextColor(0,0,0);
-        $this->Cell(0,10, latin1($txt), 0,1);
-    }
-
-    function dato($txt) {
-        $this->SetFont("Arial","",12);
-        $this->SetTextColor(80,80,80);
-        $this->Cell(0,8, latin1("• $txt"), 0,1);
-    }
+$rolesTabla = [];
+foreach ($roles as $rol => $cant) {
+    $pct = $usuarios_total > 0 ? number_format($cant / $usuarios_total * 100, 1, ',', '.') . '%' : '0%';
+    $rolesTabla[] = [$rol, $cant, $pct];
 }
 
+$f = fn($x) => date('d/m/Y', strtotime($x));
 
-// ===================
-//     CREAR PDF
-// ===================
-$pdf = new PDF();
-$pdf->AddPage();
+$pdf = new ReportePDF("Reporte de usuarios y clientes");
+$pdf->portada("Reporte de usuarios y clientes", "Período: " . $f($desde) . " al " . $f($hasta));
 
-// periodo
-$pdf->SetFont("Arial","",12);
-$pdf->SetTextColor(0,0,0);
-$pdf->Cell(0,10,"Periodo seleccionado: $desde → $hasta",0,1);
+$pdf->seccion("Resumen general");
+$pdf->kpis([
+    ["Usuarios totales", $usuarios_total],
+    ["Usuarios nuevos en el período", $usuarios_periodo],
+    ["Clientes totales", $clientes_total],
+    ["Clientes nuevos en el período", $clientes_periodo],
+    ["Usuarios con cliente", $usuarios_con_cliente],
+    ["Usuarios sin cliente", $usuarios_sin_cliente],
+], 3);
 
-// resumen GENERAL
-$pdf->titulo("Resumen General");
-$pdf->dato("Total usuarios (historico): $usuarios_total");
-$pdf->dato("Usuarios en periodo: $usuarios_periodo");
-$pdf->dato("Total clientes (historico): $clientes_total");
-$pdf->dato("Clientes en periodo: $clientes_periodo");
-$pdf->dato("Usuarios con cliente: $usuarios_con_cliente");
-$pdf->dato("Usuarios sin cliente: $usuarios_sin_cliente");
+$pdf->seccion("Usuarios por rol");
+$pdf->torta($roles);
+$pdf->tabla(["Rol", "Usuarios", "Porcentaje"], $rolesTabla, [90, 45, 45], ['L', 'R', 'R']);
 
-// Gráfico roles
-$pdf->titulo("Usuarios por Rol");
-$pdf->Image($chart_roles, 15, $pdf->GetY(), 180);
-$pdf->Ln(120);
+$pdf->seccion("Usuarios por estado");
+$pdf->barras($estados);
 
-// Gráfico estados
-$pdf->titulo("Usuarios por Estado");
-$pdf->Image($chart_estados, 15, $pdf->GetY(), 180);
-$pdf->Ln(120);
+$pdf->seccion("Provincias con más clientes");
+$pdf->nota("Las 5 provincias donde más clientes tienen registrada su dirección.");
+$pdf->barras($provincias);
 
-// Top Provincias
-$pdf->titulo("Top 5 Provincias con Clientes");
-$pdf->Image($chart_topprov, 15, $pdf->GetY(), 180);
-$pdf->Ln(120);
+$pdf->seccion("Clientes registrados por mes");
+$pdf->nota("Últimos 12 meses hasta la fecha final del período.");
+$pdf->lineas($clientes_mes);
 
-// clientes por mes
-$pdf->titulo("Crecimiento de Clientes por Mes");
-$pdf->Image($chart_clientemes, 15, $pdf->GetY(), 180);
-$pdf->Ln(120);
-
-$pdf->Output();
-
-// borrar imágenes
-unlink($chart_roles);
-unlink($chart_estados);
-unlink($chart_topprov);
-unlink($chart_clientemes);
-
-?>
+$pdf->Output('I', 'reporte_usuarios_' . $desde . '_' . $hasta . '.pdf');

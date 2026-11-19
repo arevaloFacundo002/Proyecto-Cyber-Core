@@ -136,7 +136,7 @@ require __DIR__ . '/../../includes/header_admin.php';
         <div>
 
             <h2 class="fw-bold mb-1">
-                Movimientos de Stock
+                Movimientos de Stock · detalle por producto
             </h2>
 
             <span class="text-muted">
@@ -146,13 +146,11 @@ require __DIR__ . '/../../includes/header_admin.php';
         </div>
 
 
-        <a
-            href="registrarMovimiento.php"
-            class="btn btn-info text-dark fw-bold">
-
-            + Registrar Movimiento
-
-        </a>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="listarFacturas.php" class="btn btn-outline-secondary">← Ver por factura</a>
+            <a href="cargarFactura.php" class="btn btn-info text-dark fw-bold">+ Cargar factura</a>
+            <a href="registrarMovimiento.php" class="btn btn-outline-info fw-bold">Ajuste de un producto</a>
+        </div>
 
     </div>
 
@@ -492,9 +490,12 @@ require __DIR__ . '/../../includes/header_admin.php';
 
                                 <td>
 
-                                    <?= htmlspecialchars(
-                                        $mov['referencia_ext'] ?? '-'
-                                    ) ?>
+                                    <?php $refM = $mov['referencia_ext'] ?? '-'; ?>
+                                    <?php if (preg_match('/^FACT-(\d+)$/', (string) $refM, $mf)): ?>
+                                        <a href="verFactura.php?id=<?= (int) $mf[1] ?>"><?= htmlspecialchars($refM) ?></a>
+                                    <?php else: ?>
+                                        <?= htmlspecialchars($refM) ?>
+                                    <?php endif; ?>
 
                                 </td>
 
@@ -538,7 +539,7 @@ require __DIR__ . '/../../includes/header_admin.php';
 
         <?php if ($totalMovimientos > 0): ?>
 
-            <div class="card-footer bg-white">
+            <div class="card-footer" style="background-color: var(--cc-superficie); border-top: 1px solid var(--cc-borde);">
 
                 <div class="d-flex justify-content-between align-items-center">
 

@@ -1,7 +1,8 @@
- <?php
+<?php
 session_start();
 require_once '../models/Pedido.php';
 require_once '../models/Comprobante.php';
+require_once '../models/MercadoPago.php';
 require_once __DIR__ . '/_pago_info.php';
 
 if (!isset($_SESSION['usuario'], $_SESSION['id_usuario'])) {
@@ -33,6 +34,14 @@ function plata($valor)
 {
     return '$' . number_format((float) $valor, 2, ',', '.');
 }
+
+$mpModelo = new MercadoPago();
+$flashMp  = $_SESSION['mp_flash'] ?? null;
+unset($_SESSION['mp_flash']);
+if (empty($_SESSION['csrf_mp'])) {
+    $_SESSION['csrf_mp'] = bin2hex(random_bytes(16));
+}
+$mpPuede = $mpModelo->puedePagarPedido((int) $pedido['id_pedidos'], (int) $_SESSION['id_usuario']);
 
 $subtotal = 0.0;
 $base     = 0.0;
@@ -78,6 +87,28 @@ $envio = round((float) $pedido['monto_total'] - $subtotal, 2);
     <div class="aviso aviso-ok centrado">
         Tu pedido <strong>#<?= (int) $pedido['id_pedidos'] ?></strong> quedó registrado.
     </div>
+
+    <?php if ($flashMp): ?>
+        <div class="aviso <?= $flashMp['tipo'] === 'ok' ? 'aviso-ok' : '' ?> centrado"><?= e($flashMp['texto']) ?></div>
+    <?php endif; ?>
+
+    <?php if ($mpPuede): ?>
+    <div class="caja">
+        <h2>Pagá con tarjeta</h2>
+        <p>Pagás de forma segura en Mercado Pago. Nunca te pedimos los datos de tu tarjeta en este sitio.</p>
+        <form action="pagar_mp.php" method="POST">
+            <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_mp']) ?>">
+            <input type="hidden" name="id_pedido" value="<?= (int) $pedido['id_pedidos'] ?>">
+            <button type="submit" class="btn-principal">💳 Pagar con Mercado Pago</button>
+        </form>
+        <form action="verificar_mp.php" method="POST" style="margin-top:12px;">
+            <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_mp']) ?>">
+            <input type="hidden" name="id_pedido" value="<?= (int) $pedido['id_pedidos'] ?>">
+            <span class="texto-suave">¿Ya pagaste y no ves el resultado?</span>
+            <button type="submit" class="btn-secundario">Verificar mi pago</button>
+        </form>
+    </div>
+    <?php endif; ?>
 
     <div class="caja">
         <h2>Detalle</h2>

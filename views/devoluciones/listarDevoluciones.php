@@ -16,7 +16,7 @@ function plata($v) { return '$' . number_format((float) $v, 2, ',', '.'); }
 $modelo = new Devolucion();
 
 $estado = $_GET['estado'] ?? 'Pendiente';
-if (!in_array($estado, ['Pendiente', 'Aprobada', 'Rechazada', 'todos'], true)) {
+if (!in_array($estado, ['Pendiente', 'EnCurso', 'Recibida', 'Rechazada', 'todos'], true)) {
     $estado = 'Pendiente';
 }
 $buscar = trim($_GET['buscar'] ?? '');
@@ -46,11 +46,12 @@ $ruta_raiz = '../../';
 
 <div class="container">
     <h1>↩ Devoluciones</h1>
-    <div class="subtitulo">Pedidos de devolución de los clientes: revisalos, aprobalos o rechazalos</div>
+    <div class="subtitulo">Pedidos de devolución: revisalos, seguí el envío del producto y confirmá cuando lo recibís</div>
 
     <div class="tabs">
         <a class="tab <?= $estado === 'Pendiente' ? 'activa' : '' ?>" href="?estado=Pendiente">Pendientes (<?= $conteo['Pendiente'] ?>)</a>
-        <a class="tab <?= $estado === 'Aprobada' ? 'activa' : '' ?>" href="?estado=Aprobada">Aprobadas (<?= $conteo['Aprobada'] ?>)</a>
+        <a class="tab <?= $estado === 'EnCurso' ? 'activa' : '' ?>" href="?estado=EnCurso">En curso (<?= $conteo['EnCurso'] ?>)</a>
+        <a class="tab <?= $estado === 'Recibida' ? 'activa' : '' ?>" href="?estado=Recibida">Recibidas (<?= $conteo['Recibida'] ?>)</a>
         <a class="tab <?= $estado === 'Rechazada' ? 'activa' : '' ?>" href="?estado=Rechazada">Rechazadas (<?= $conteo['Rechazada'] ?>)</a>
         <a class="tab <?= $estado === 'todos' ? 'activa' : '' ?>" href="?estado=todos">Todas</a>
     </div>

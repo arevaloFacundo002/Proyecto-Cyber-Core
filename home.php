@@ -5,6 +5,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once 'models/Producto.php';
+require_once 'models/Favorito.php';
+require_once 'models/FiltroProducto.php';
 require_once 'includes/imagen_helper.php';   // Incluye la clase
 
 $pro = new Producto();                // Instancia de la clase
@@ -24,7 +26,39 @@ if ($buscar !== '') {
 }
 
 // Traer productos para la grilla
-$productos = $pro->listar($buscar);
+// Filtros (todos opcionales, vía GET)
+$filtros_modelo = new FiltroProducto();
+$f_categoria = (int) ($_GET['categoria'] ?? 0);
+$f_marca     = (int) ($_GET['marca'] ?? 0);
+$f_min       = (isset($_GET['precio_min']) && is_numeric($_GET['precio_min']) && $_GET['precio_min'] >= 0) ? (float) $_GET['precio_min'] : null;
+$f_max       = (isset($_GET['precio_max']) && is_numeric($_GET['precio_max']) && $_GET['precio_max'] >= 0) ? (float) $_GET['precio_max'] : null;
+$f_stock     = !empty($_GET['solo_stock']) ? 1 : 0;
+$f_orden     = $_GET['orden'] ?? 'nuevos';
+if (!isset(FiltroProducto::ORDENES[$f_orden])) {
+    $f_orden = 'nuevos';
+}
+
+$productos = $filtros_modelo->listar($buscar, [
+    'categoria'  => $f_categoria,
+    'marca'      => $f_marca,
+    'precio_min' => $f_min,
+    'precio_max' => $f_max,
+    'solo_stock' => $f_stock,
+    'orden'      => $f_orden,
+]);
+$lista_categorias = $filtros_modelo->categorias();
+$lista_marcas     = $filtros_modelo->marcas();
+$hay_filtros = $buscar !== '' || $f_categoria || $f_marca || $f_min !== null || $f_max !== null || $f_stock || $f_orden !== 'nuevos';
+
+// Favoritos del cliente (para pintar los corazones)
+$es_cliente = in_array($rol, ['cliente', 'usuario'], true);
+$mis_favoritos = [];
+if ($es_cliente && isset($_SESSION['id_usuario'])) {
+    $mis_favoritos = (new Favorito())->ids((int) $_SESSION['id_usuario']);
+    if (empty($_SESSION['csrf_fav'])) {
+        $_SESSION['csrf_fav'] = bin2hex(random_bytes(32));
+    }
+}
 
 ?>
 <!DOCTYPE html>
@@ -39,6 +73,7 @@ $productos = $pro->listar($buscar);
 <title>CyberCore - Inicio</title>
 
 <link href="css/theme.css" rel="stylesheet">
+<link href="css/favoritos.css" rel="stylesheet">
 
 <style>
     body {
@@ -175,6 +210,38 @@ nav a:hover {
     background: var(--cc-primario-hover);
 }
 
+/* FILTROS */
+.filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: flex-end;
+    margin-top: 22px;
+}
+.filtros label {
+    display: block;
+    font-size: 13px;
+    color: var(--cc-texto-secundario);
+    text-align: left;
+    margin-bottom: 4px;
+}
+.filtros select, .filtros input[type=number] {
+    width: auto;
+    padding: 10px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--cc-borde);
+    background: var(--cc-superficie);
+    color: var(--cc-texto);
+    font-size: 15px;
+    margin: 0;
+}
+.filtros input[type=number] { width: 120px; }
+.filtros .check { display: flex; align-items: center; gap: 6px; color: var(--cc-texto); padding-bottom: 10px; }
+.filtros .check input { width: auto; margin: 0; }
+.filtros .limpiar { color: var(--cc-primario); padding-bottom: 10px; text-decoration: none; font-weight: bold; }
+.resultado-info { text-align: center; color: var(--cc-texto-secundario); margin-top: 18px; }
+
 /* PRODUCT GRID */
 .products-title {
     text-align: center;
@@ -263,6 +330,7 @@ nav a:hover {
         <?php }elseif($rol == 'usuario' || $rol == 'cliente'){ ?>
             <a href="carrito/carrito.php">🛒 Carrito</a>
             <a href="carrito/mis_pedidos.php">📦 Mis pedidos</a>
+            <a href="carrito/mis_favoritos.php">❤ Favoritos</a>
             <a class="logout" href="logout.php">Cerrar sesión</a>
             
         <?php }else{ ?>
@@ -292,12 +360,57 @@ nav a:hover {
             placeholder="Buscar por nombre, código, marca o categoría..."
             value="<?php echo htmlspecialchars($buscar); ?>">
         <button type="submit">Buscar</button>
+
+        <div class="filtros">
+            <div>
+                <label for="f_categoria">Categoría</label>
+                <select name="categoria" id="f_categoria">
+                    <option value="0">Todas</option>
+                    <?php foreach ($lista_categorias as $c): ?>
+                        <option value="<?php echo (int) $c['id_categoria']; ?>" <?php echo $f_categoria === (int) $c['id_categoria'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($c['nombre']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label for="f_marca">Marca</label>
+                <select name="marca" id="f_marca">
+                    <option value="0">Todas</option>
+                    <?php foreach ($lista_marcas as $m): ?>
+                        <option value="<?php echo (int) $m['id_marca']; ?>" <?php echo $f_marca === (int) $m['id_marca'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($m['nombre_marca']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label for="f_min">Precio desde</label>
+                <input type="number" name="precio_min" id="f_min" min="0" step="1" placeholder="$ mín." value="<?php echo $f_min !== null ? htmlspecialchars((string) $f_min) : ''; ?>">
+            </div>
+            <div>
+                <label for="f_max">Precio hasta</label>
+                <input type="number" name="precio_max" id="f_max" min="0" step="1" placeholder="$ máx." value="<?php echo $f_max !== null ? htmlspecialchars((string) $f_max) : ''; ?>">
+            </div>
+            <div>
+                <label for="f_orden">Ordenar por</label>
+                <select name="orden" id="f_orden">
+                    <option value="nuevos" <?php echo $f_orden === 'nuevos' ? 'selected' : ''; ?>>Más nuevos</option>
+                    <option value="menor" <?php echo $f_orden === 'menor' ? 'selected' : ''; ?>>Precio: menor a mayor</option>
+                    <option value="mayor" <?php echo $f_orden === 'mayor' ? 'selected' : ''; ?>>Precio: mayor a menor</option>
+                    <option value="nombre" <?php echo $f_orden === 'nombre' ? 'selected' : ''; ?>>Nombre A-Z</option>
+                </select>
+            </div>
+            <label class="check"><input type="checkbox" name="solo_stock" value="1" <?php echo $f_stock ? 'checked' : ''; ?>> Solo con stock</label>
+            <?php if ($hay_filtros): ?>
+                <a class="limpiar" href="home.php#productos">Limpiar</a>
+            <?php endif; ?>
+        </div>
     </form>
 </div>
 
 
 <!-- TÍTULO LISTA -->
 <h2 class="products-title" id="productos">Productos destacados</h2>
+<?php if ($hay_filtros): ?>
+    <p class="resultado-info"><?php echo count($productos); ?> producto(s) encontrado(s)</p>
+<?php endif; ?>
 
 
 <!-- PRODUCTOS -->
@@ -306,13 +419,24 @@ nav a:hover {
 <?php if (empty($productos)): ?>
 
     <p style="grid-column: 1 / -1; text-align:center; color: var(--cc-texto-secundario);">
-        No se encontraron productos.
+        No se encontraron productos con esos filtros.
     </p>
 
 <?php else: ?>
 
 <?php foreach($productos as $p) { ?>
     <div class="card">
+
+        <?php if ($es_cliente): ?>
+            <?php $es_fav = in_array((int) $p['id_producto'], $mis_favoritos, true); ?>
+            <button type="button" class="btn-fav <?php echo $es_fav ? 'activo' : ''; ?>" aria-pressed="<?php echo $es_fav ? 'true' : 'false'; ?>"
+                    title="<?php echo $es_fav ? 'Quitar de favoritos' : 'Agregar a favoritos'; ?>"
+                    data-id="<?php echo (int) $p['id_producto']; ?>" data-csrf="<?php echo htmlspecialchars($_SESSION['csrf_fav']); ?>"
+                    data-url="ajax/favorito_toggle.php">❤</button>
+        <?php elseif ($rol === null): ?>
+            <button type="button" class="btn-fav" title="Iniciá sesión para guardar favoritos"
+                    data-id="<?php echo (int) $p['id_producto']; ?>" data-login="0" data-login-url="login.php">❤</button>
+        <?php endif; ?>
 
         <img src="<?php echo htmlspecialchars(urlImagen($p['imagen_url'])); ?>" alt="">
 
@@ -367,6 +491,7 @@ nav a:hover {
 
 </div>
 
+<script src="js/favoritos.js"></script>
 <script src="js/theme-toggle.js"></script>
 
 </body>

@@ -1,4 +1,4 @@
- <?php
+<?php
 require_once '../auth/auth.php';
 
 $ruta_raiz = '../';
@@ -8,7 +8,7 @@ $ruta_raiz = '../';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Tablas Maestras - CyberCore</title>
+    <title>Configuración del sistema - CyberCore</title>
 
     <link href="../css/theme.css" rel="stylesheet">
 
@@ -137,8 +137,8 @@ $ruta_raiz = '../';
 
 <div class="container">
 
-    <h1>📚 Panel de Tablas Maestras</h1>
-    <p class="subtitulo">Administración de datos base del sistema</p>
+    <h1>⚙️ Configuración del sistema</h1>
+    <p class="subtitulo">Categorías, marcas, métodos de pago y otros datos que usa el sistema</p>
 
     <div class="grid">
 

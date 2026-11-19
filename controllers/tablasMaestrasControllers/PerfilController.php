@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../auth/auth.php';
 require_once __DIR__ . '/../../models/tablas_maestras/Perfil.php';
 class PerfilController{
     private Perfil $perfil;

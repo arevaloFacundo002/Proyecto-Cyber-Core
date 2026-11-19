@@ -2,6 +2,7 @@
 session_start();
 require_once '../models/Pedido.php';
 require_once '../models/Comprobante.php';
+require_once '../models/MercadoPago.php';
 require_once __DIR__ . '/_pago_info.php';
 require_once __DIR__ . '/../includes/imagen_helper.php';
 
@@ -393,7 +394,7 @@ $metodoSel   = (int) old('metodo_pago', !empty($datos['metodos']) ? $datos['meto
                             <?php elseif ($tipoM === 'efectivo'): ?>
                                 <p><strong>Pagás en efectivo</strong> al recibir o retirar tu pedido. No hace falta completar nada más.</p>
                             <?php else: ?>
-                                <p><strong>Pago con <?= e($m['nombre']) ?>.</strong> Tu pedido queda registrado con el pago pendiente y te avisamos apenas lo confirmemos. Nunca te pedimos los datos de tu tarjeta en este sitio.</p>
+                                <p><strong>Pago con <?= e($m['nombre']) ?>.</strong> <?= MercadoPago::configurado() ? 'Al confirmar el pedido te llevamos a Mercado Pago para que pagues de forma segura.' : 'Tu pedido queda registrado con el pago pendiente y te avisamos apenas lo confirmemos.' ?> Nunca te pedimos los datos de tu tarjeta en este sitio.</p>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>

@@ -1,4 +1,4 @@
- <?php
+<?php
 
 require_once '../../auth/auth.php';
 require_once '../../models/inputs/MovimientoStock.php';
@@ -60,16 +60,19 @@ $fechaFormateada = date(
     <style>
 
         body {
-            background-color: #f8f9fa;
+            background-color: var(--cc-fondo);
+            color: var(--cc-texto);
         }
 
         .detalle-card {
-            border: none;
+            border: 1px solid var(--cc-borde);
             border-radius: 12px;
+            background-color: var(--cc-superficie);
+            color: var(--cc-texto);
         }
 
         .seccion {
-            border: 1px solid #e9ecef;
+            border: 1px solid var(--cc-borde);
             border-radius: 10px;
             padding: 16px;
             height: 100%;
@@ -78,20 +81,20 @@ $fechaFormateada = date(
         .titulo-seccion {
             font-size: 0.85rem;
             font-weight: 700;
-            color: #6c757d;
+            color: var(--cc-primario);
             text-transform: uppercase;
             margin-bottom: 12px;
         }
 
         .dato-label {
             font-size: 0.8rem;
-            color: #6c757d;
+            color: var(--cc-texto-secundario);
             margin-bottom: 2px;
         }
 
         .dato {
             font-weight: 600;
-            color: #212529;
+            color: var(--cc-texto);
         }
 
         .cantidad {
@@ -99,13 +102,15 @@ $fechaFormateada = date(
             font-weight: 700;
         }
 
-        .movimiento-id {
+        .movimiento-id,
+        .text-muted {
             font-size: 0.85rem;
-            color: #6c757d;
+            color: var(--cc-texto-secundario) !important;
         }
 
         .usuario-box {
-            background-color: #f8f9fa;
+            background-color: var(--cc-superficie-2);
+            color: var(--cc-texto);
             border-radius: 10px;
             padding: 14px;
         }
@@ -115,7 +120,8 @@ $fechaFormateada = date(
         }
 
         .comentario-box {
-            background-color: #f8f9fa;
+            background-color: var(--cc-superficie-2);
+            color: var(--cc-texto);
             border-radius: 8px;
             padding: 12px;
             min-height: 55px;

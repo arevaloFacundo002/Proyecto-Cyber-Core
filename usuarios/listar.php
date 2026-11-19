@@ -1,4 +1,4 @@
- <?php
+<?php
 require_once "../models/Usuario.php";
 $user = new Usuario();
 
@@ -19,7 +19,7 @@ $usuarios = $user->listar_usuarios($busqueda,$estado);
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 
-<title>ABM Usuarios</title>
+<title>Usuarios y Roles - CyberCore</title>
 
 <link href="../css/theme.css" rel="stylesheet">
 
@@ -202,7 +202,11 @@ require __DIR__ . '/../includes/header_admin.php';
     </div>
 </header>
 
-<h2>Gestión de Usuarios</h2>
+<h2>Usuarios y Roles</h2>
+
+<div class="add-user-box">
+    <a href="agregar.php">➕ Agregar usuario o empleado</a>
+</div>
 
 <div class="search-box">
     <form method="GET" style="display:flex; justify-content:center; gap:10px;">
@@ -315,10 +319,6 @@ require __DIR__ . '/../includes/header_admin.php';
 <?php } ?>
 
 </table>
-
-<div class="add-user-box">
-    <a href="agregar.php">➕ Agregar usuario</a>
-</div>
 
 <script src="../js/theme-toggle.js"></script>
 

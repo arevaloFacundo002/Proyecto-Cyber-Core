@@ -64,7 +64,7 @@ unset($_SESSION['dev_flash']);
 
         <div class="caja">
             <h2>¿Qué querés devolver?</h2>
-            <p class="texto-suave">Podés devolver hasta el <?= e($puede['limite']) ?>. Elegí cuántas unidades de cada producto.</p>
+            <p class="texto-suave">Elegí cuántas unidades de cada producto querés devolver.</p>
             <table class="tabla-compra">
                 <tr><th>Producto</th><th class="num">Precio</th><th class="num">Compraste</th><th class="num">Devolver</th></tr>
                 <?php foreach ($lineas as $l): ?>
@@ -87,8 +87,27 @@ unset($_SESSION['dev_flash']);
 
         <div class="caja">
             <h2>Motivo</h2>
-            <textarea name="motivo" class="campo-texto" rows="4" maxlength="1000" required
-                      placeholder="Contanos por qué querés devolverlo (producto defectuoso, no era lo esperado, etc.)"></textarea>
+            <select name="tipo_motivo" class="campo-texto" required>
+                <option value="">Elegí el motivo…</option>
+                <?php foreach (Devolucion::MOTIVOS as $clave => $m): ?>
+                    <?php $bloqueado = !$m['falla'] && !$puede['arrep_vigente']; ?>
+                    <option value="<?= e($clave) ?>" <?= $bloqueado ? 'disabled' : '' ?>>
+                        <?= e($m['texto']) ?><?= $bloqueado ? ' (el plazo de ' . Devolucion::PLAZO_ARREPENTIMIENTO . ' días ya pasó)' : '' ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <textarea name="motivo" class="campo-texto" rows="3" maxlength="1000" style="margin-top:10px;"
+                      placeholder="Comentario (opcional; obligatorio si elegís «Otro motivo»)"></textarea>
+        </div>
+
+        <div class="caja">
+            <h2>Políticas de devolución</h2>
+            <ul style="margin:0 0 0 18px;line-height:1.7;">
+                <li><strong>Falla, producto dañado o equivocado:</strong> podés pedirla hasta <?= Devolucion::PLAZO_DIAS ?> días después de la entrega (hasta el <?= e($puede['limite']) ?>). Te reembolsamos el producto y también el envío.</li>
+                <li><strong>Arrepentimiento u otro motivo:</strong> hasta <?= Devolucion::PLAZO_ARREPENTIMIENTO ?> días después de la entrega (hasta el <?= e($puede['limite_arrep']) ?>). Te reembolsamos el producto, sin el envío.</li>
+                <li>El producto tiene que estar sin uso y con su caja y accesorios.</li>
+                <li>Revisamos tu pedido y te avisamos si lo aprobamos o por qué no.</li>
+            </ul>
         </div>
 
         <p><button type="submit" class="btn-principal">Enviar pedido de devolución</button></p>

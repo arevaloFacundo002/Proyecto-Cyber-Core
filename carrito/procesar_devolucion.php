@@ -31,7 +31,7 @@ foreach ((array) ($_POST['cant'] ?? []) as $id_detalle => $cant) {
     $cantidades[(int) $id_detalle] = max(0, (int) $cant);
 }
 
-$r = (new Devolucion())->solicitar($id_pedido, (int) $_SESSION['id_usuario'], (string) ($_POST['motivo'] ?? ''), $cantidades);
+$r = (new Devolucion())->solicitar($id_pedido, (int) $_SESSION['id_usuario'], (string) ($_POST['motivo'] ?? ''), $cantidades, (string) ($_POST['tipo_motivo'] ?? ''));
 
 if (!empty($r['ok'])) {
     volver('ok', 'Recibimos tu pedido de devolución #' . $r['id_devolucion'] . '. Lo revisamos y te avisamos.', "mi_pedido.php?id=" . $id_pedido);

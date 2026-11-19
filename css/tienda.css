@@ -175,6 +175,9 @@ body {
 .btn-secundario {
     display: inline-block;
     padding: 12px 24px;
+    background: var(--cc-superficie);
+    font: inherit;
+    cursor: pointer;
     color: var(--cc-texto);
     border: 1px solid var(--cc-borde);
     border-radius: 25px;

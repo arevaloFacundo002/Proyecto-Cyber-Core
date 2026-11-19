@@ -283,7 +283,7 @@ require __DIR__ . '/../../includes/header_admin.php';
 
                     <div class="form-text">
                         JPG, PNG o WebP · hasta 8 fotos por producto · 4 MB cada una.
-                        Podés elegir varias a la vez (Ctrl + clic). Marcá "Principal" en la que quieras mostrar en la tienda, incluso entre las nuevas, y "Eliminar" en las que quieras sacar.
+                        Podés ir sumando fotos de a una o varias a la vez: se agregan a las que ya elegiste, y con la × quitás las que no quieras. Marcá "Principal" en la que quieras mostrar en la tienda, incluso entre las nuevas, y "Eliminar" en las que quieras sacar.
                     </div>
 
                     <div id="vistaPrevia" class="d-flex flex-wrap gap-2 mt-2"></div>
@@ -668,35 +668,90 @@ if (marca.value !== '') {
 
 
 <script>
-// Vista previa de las fotos nuevas, con la opción de elegir cuál es la principal
-document.getElementById('imagenes').addEventListener('change', function () {
-    var cont = document.getElementById('vistaPrevia');
-    cont.innerHTML = '';
+// Fotos nuevas: se van sumando de a una o de a varias, con vista previa y opción de quitar o elegir la principal
+(function () {
+    var input = document.getElementById('imagenes');
+    var cont  = document.getElementById('vistaPrevia');
     var esCrear = false;
-    Array.prototype.forEach.call(this.files, function (f, i) {
-        if (!f.type.startsWith('image/')) return;
-        var caja = document.createElement('div');
-        caja.style.cssText = 'width:110px;text-align:center;font-size:12px;';
+    var existentes = <?= count($imagenes) ?>;
+    var MAX = 8, MAX_BYTES = 4 * 1024 * 1024;
+    var archivos = [];
+    var principal = esCrear ? 0 : -1;
 
-        var img = document.createElement('img');
-        img.src = URL.createObjectURL(f);
-        img.style.cssText = 'width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid #888;';
+    var aviso = document.createElement('div');
+    aviso.className = 'form-text text-warning';
+    cont.parentNode.insertBefore(aviso, cont);
 
-        var etiqueta = document.createElement('label');
-        etiqueta.style.cssText = 'display:block;margin-top:4px;cursor:pointer;';
-        var radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.name = 'imagen_principal';
-        radio.value = 'nueva_' + i;
-        if (esCrear && i === 0) radio.checked = true;
-        etiqueta.appendChild(radio);
-        etiqueta.appendChild(document.createTextNode(' Principal'));
+    function clave(f) { return f.name + '|' + f.size + '|' + f.lastModified; }
 
-        caja.appendChild(img);
-        caja.appendChild(etiqueta);
-        cont.appendChild(caja);
+    function sincronizar() {
+        var dt = new DataTransfer();
+        archivos.forEach(function (f) { dt.items.add(f); });
+        input.files = dt.files;
+    }
+
+    function dibujar() {
+        cont.innerHTML = '';
+        archivos.forEach(function (f, i) {
+            var caja = document.createElement('div');
+            caja.style.cssText = 'width:110px;text-align:center;font-size:12px;position:relative;';
+
+            var img = document.createElement('img');
+            img.src = URL.createObjectURL(f);
+            img.style.cssText = 'width:100%;height:80px;object-fit:cover;border-radius:8px;border:1px solid #888;';
+
+            var quitar = document.createElement('button');
+            quitar.type = 'button';
+            quitar.textContent = '×';
+            quitar.title = 'Quitar esta foto';
+            quitar.style.cssText = 'position:absolute;top:2px;right:2px;width:22px;height:22px;line-height:18px;padding:0;border:none;border-radius:50%;background:#d33;color:#fff;font-size:16px;cursor:pointer;';
+            quitar.addEventListener('click', function () {
+                archivos.splice(i, 1);
+                if (principal === i) principal = esCrear ? 0 : -1;
+                else if (principal > i) principal--;
+                aviso.textContent = '';
+                sincronizar();
+                dibujar();
+            });
+
+            var etiqueta = document.createElement('label');
+            etiqueta.style.cssText = 'display:block;margin-top:4px;cursor:pointer;';
+            var radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'imagen_principal';
+            radio.value = 'nueva_' + i;
+            radio.checked = (principal === i);
+            radio.addEventListener('change', function () { principal = i; });
+            etiqueta.appendChild(radio);
+            etiqueta.appendChild(document.createTextNode(' Principal'));
+
+            caja.appendChild(img);
+            caja.appendChild(quitar);
+            caja.appendChild(etiqueta);
+            cont.appendChild(caja);
+        });
+    }
+
+    input.addEventListener('change', function () {
+        var nuevos = Array.prototype.slice.call(input.files);
+        var avisos = [];
+        var vistos = {};
+        archivos.forEach(function (f) { vistos[clave(f)] = true; });
+
+        nuevos.forEach(function (f) {
+            if (vistos[clave(f)]) return;
+            if (!f.type.startsWith('image/')) { avisos.push('«' + f.name + '» no es una imagen.'); return; }
+            if (f.size > MAX_BYTES) { avisos.push('«' + f.name + '» pesa más de 4 MB.'); return; }
+            if (existentes + archivos.length >= MAX) { avisos.push('Máximo ' + MAX + ' fotos por producto: «' + f.name + '» no se agregó.'); return; }
+            archivos.push(f);
+            vistos[clave(f)] = true;
+        });
+
+        aviso.textContent = avisos.join(' ');
+        sincronizar();
+        dibujar();
     });
-});
+})();
 </script>
 <script src="../../js/theme-toggle.js"></script>
 </body>

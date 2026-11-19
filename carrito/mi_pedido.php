@@ -3,6 +3,7 @@ session_start();
 require_once '../models/Pedido.php';
 require_once '../models/Devolucion.php';
 require_once '../models/Comprobante.php';
+require_once '../models/MercadoPago.php';
 require_once __DIR__ . '/_pago_info.php';
 require_once __DIR__ . '/_helpers_pedidos.php';
 
@@ -41,6 +42,18 @@ $devoluciones = $devModelo->deDelPedido($id_pedido);
 $puedeDev = $devModelo->puedeSolicitar($id_pedido, (int) $_SESSION['id_usuario']);
 $flashDev = $_SESSION['dev_flash'] ?? null;
 unset($_SESSION['dev_flash']);
+if (empty($_SESSION['csrf_devolucion'])) {
+    $_SESSION['csrf_devolucion'] = bin2hex(random_bytes(16));
+}
+$negocioDev = $devoluciones ? devolucion_datos_negocio() : [];
+
+$mpModelo = new MercadoPago();
+$flashMp  = $_SESSION['mp_flash'] ?? null;
+unset($_SESSION['mp_flash']);
+if (empty($_SESSION['csrf_mp'])) {
+    $_SESSION['csrf_mp'] = bin2hex(random_bytes(16));
+}
+$mpPuede = $mpModelo->puedePagarPedido((int) $pedido['id_pedidos'], (int) $_SESSION['id_usuario']);
 
 $flashComp = $_SESSION['comp_flash'] ?? null;
 unset($_SESSION['comp_flash']);
@@ -82,6 +95,28 @@ if (empty($_SESSION['csrf_comprobante'])) {
 
     <?php if ($flashDev): ?>
         <div class="aviso <?= $flashDev['tipo'] === 'ok' ? 'aviso-ok' : '' ?>"><?= e($flashDev['texto']) ?></div>
+    <?php endif; ?>
+
+    <?php if ($flashMp): ?>
+        <div class="aviso <?= $flashMp['tipo'] === 'ok' ? 'aviso-ok' : '' ?> centrado"><?= e($flashMp['texto']) ?></div>
+    <?php endif; ?>
+
+    <?php if ($mpPuede): ?>
+    <div class="caja">
+        <h2>Pagá con tarjeta</h2>
+        <p>Pagás de forma segura en Mercado Pago. Nunca te pedimos los datos de tu tarjeta en este sitio.</p>
+        <form action="pagar_mp.php" method="POST">
+            <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_mp']) ?>">
+            <input type="hidden" name="id_pedido" value="<?= (int) $pedido['id_pedidos'] ?>">
+            <button type="submit" class="btn-principal">💳 Pagar con Mercado Pago</button>
+        </form>
+        <form action="verificar_mp.php" method="POST" style="margin-top:12px;">
+            <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_mp']) ?>">
+            <input type="hidden" name="id_pedido" value="<?= (int) $pedido['id_pedidos'] ?>">
+            <span class="texto-suave">¿Ya pagaste y no ves el resultado?</span>
+            <button type="submit" class="btn-secundario">Verificar mi pago</button>
+        </form>
+    </div>
     <?php endif; ?>
 
     <div class="caja">
@@ -181,16 +216,48 @@ if (empty($_SESSION['csrf_comprobante'])) {
                     <?php endforeach; ?>
                 </ul>
                 <?php if (!empty($d['monto_reembolso'])): ?>
-                    <p class="texto-suave" style="margin:6px 0 0;">Reembolso: <strong><?= plata($d['monto_reembolso']) ?></strong></p>
+                    <p class="texto-suave" style="margin:6px 0 0;">Reembolso: <strong><?= plata($d['monto_reembolso']) ?></strong><?= (float) ($d['monto_envio'] ?? 0) > 0 ? ' (incluye ' . plata($d['monto_envio']) . ' de envío)' : '' ?></p>
                 <?php endif; ?>
                 <?php if (!empty($d['nota_admin'])): ?>
                     <p class="texto-suave" style="margin:6px 0 0;">Respuesta: <?= e($d['nota_admin']) ?></p>
+                <?php endif; ?>
+
+                <?php if ($d['estado'] === 'Aprobada'): ?>
+                    <div style="margin-top:10px;padding:12px;border:1px solid var(--cc-borde);border-radius:10px;">
+                        <strong>Aprobamos tu devolución. Ahora mandanos el producto</strong>
+                        <p class="texto-suave" style="margin:6px 0;">Embalalo con su caja y accesorios, e indicá el N° de devolución <strong>#<?= (int) $d['id_devolucion'] ?></strong>.</p>
+                        <p style="margin:6px 0;line-height:1.6;">
+                            📍 <strong>Dirección:</strong> <?= e($negocioDev['domicilio']) ?><br>
+                            🕘 <strong>Horario:</strong> <?= e($negocioDev['horario']) ?><br>
+                            <?php if ($negocioDev['telefono'] !== ''): ?>📞 <strong>Teléfono:</strong> <?= e($negocioDev['telefono']) ?><br><?php endif; ?>
+                            <?php if ($negocioDev['whatsapp'] !== ''): ?>💬 <strong>WhatsApp:</strong> <?= e($negocioDev['whatsapp']) ?><br><?php endif; ?>
+                            <?php if ($negocioDev['email'] !== ''): ?>✉️ <strong>Correo:</strong> <?= e($negocioDev['email']) ?><?php endif; ?>
+                        </p>
+                        <form method="POST" action="informar_envio_devolucion.php" style="margin-top:10px;">
+                            <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_devolucion']) ?>">
+                            <input type="hidden" name="id_devolucion" value="<?= (int) $d['id_devolucion'] ?>">
+                            <input type="hidden" name="id_pedido" value="<?= (int) $pedido['id_pedidos'] ?>">
+                            <label style="display:block;margin:4px 0;"><input type="radio" name="metodo_entrega" value="envio" checked onchange="alternarEnvio(this.form)"> Lo envío por correo o transporte</label>
+                            <label style="display:block;margin:4px 0;"><input type="radio" name="metodo_entrega" value="local" onchange="alternarEnvio(this.form)"> Lo llevo al local</label>
+                            <div class="campos-envio" style="margin-top:8px;">
+                                <input type="text" name="empresa_transporte" class="campo-texto" maxlength="100" placeholder="Empresa (ej: Andreani, Correo Argentino)" style="margin-bottom:6px;">
+                                <input type="text" name="num_seguimiento" class="campo-texto" maxlength="100" placeholder="Número de seguimiento">
+                            </div>
+                            <p style="margin:10px 0 0;"><button type="submit" class="btn-principal">📦 Avisar que ya lo despaché</button></p>
+                        </form>
+                    </div>
+                <?php elseif ($d['estado'] === 'Producto enviado'): ?>
+                    <p style="margin:8px 0 0;">📦 Avisaste el <?= e(date('d/m/Y H:i', strtotime($d['fecha_despacho']))) ?> que
+                        <?php if ($d['metodo_entrega'] === 'local'): ?>lo vas a llevar al local.<?php else: ?>lo despachaste por <strong><?= e($d['empresa_transporte']) ?></strong> (seguimiento <strong><?= e($d['num_seguimiento']) ?></strong>).<?php endif; ?>
+                        Cuando lo recibamos te avisamos.</p>
+                <?php elseif ($d['estado'] === 'Recibida' && !empty($d['fecha_recibida'])): ?>
+                    <p style="margin:8px 0 0;">✅ Recibimos tu producto el <?= e(date('d/m/Y', strtotime($d['fecha_recibida']))) ?>.<?= !empty($d['nota_recepcion']) ? ' ' . e($d['nota_recepcion']) : '' ?></p>
                 <?php endif; ?>
             </div>
         <?php endforeach; ?>
         <?php if ($puedeDev['ok']): ?>
             <p><a class="btn-principal" href="solicitar_devolucion.php?id=<?= (int) $pedido['id_pedidos'] ?>">↩ Pedir una devolución</a></p>
-            <p class="texto-suave">Podés pedirla hasta el <?= e($puedeDev['limite']) ?>.</p>
+            <p class="texto-suave">Plazo: <?= Devolucion::PLAZO_ARREPENTIMIENTO ?> días por arrepentimiento (hasta el <?= e($puedeDev['limite_arrep']) ?>) y <?= Devolucion::PLAZO_DIAS ?> días si el producto vino con falla (hasta el <?= e($puedeDev['limite']) ?>).</p>
         <?php endif; ?>
     </div>
     <?php endif; ?>
@@ -255,6 +322,12 @@ function copiarSeguimiento(btn, texto) {
     if (navigator.clipboard) { navigator.clipboard.writeText(texto).then(listo); return; }
     var t = document.createElement('textarea'); t.value = texto; document.body.appendChild(t);
     t.select(); try { document.execCommand('copy'); listo(); } catch (e) {} document.body.removeChild(t);
+}
+</script>
+<script>
+function alternarEnvio(form) {
+    var envio = form.querySelector('input[name=metodo_entrega]:checked').value === 'envio';
+    form.querySelector('.campos-envio').style.display = envio ? '' : 'none';
 }
 </script>
 <script src="../js/theme-toggle.js"></script>

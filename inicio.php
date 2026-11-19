@@ -1,4 +1,4 @@
- <?php
+<?php
 // Si NO hay usuario logueado → al login
 require_once "auth/auth.php";
 
@@ -251,7 +251,8 @@ h1 {
 </header>
 
 <div class="container">
-    <h1>Panel del Administrador</h1>
+    <?php $es_admin = (($_SESSION['rol'] ?? '') === 'administrador'); ?>
+    <h1><?php echo $es_admin ? 'Panel del Administrador' : 'Panel del Empleado'; ?></h1>
 
     <div class="buscador-modulos">
         <input
@@ -264,17 +265,21 @@ h1 {
 
     <div class="grid">
         
+        <?php if ($es_admin): ?>
         <div class="card">
-            <h2>ABM Usuarios</h2>
-            <p>Alta, baja y modificación del sistema.</p>
+            <h2>Usuarios y Roles</h2>
+            <p>Agregá empleados y administradores, cambiá roles y bloqueá cuentas.</p>
             <a href="usuarios/listar.php">Gestionar</a>
         </div>
+        <?php endif; ?>
 
+        <?php if ($es_admin): ?>
         <div class="card">
-            <h2>Tablas maestras</h2>
-            <p>Altas, bajas y modificaciones.</p>
-            <a href="views/panel_tablas.php">Gestionar</a>
+            <h2>Configuración del sistema</h2>
+            <p>Categorías, marcas, métodos de pago, IVA, provincias y más.</p>
+            <a href="views/panel_tablas.php">Configurar</a>
         </div>
+        <?php endif; ?>
 
         <div class="card">
             <h2>Pedidos</h2>
@@ -282,11 +287,13 @@ h1 {
             <a href="views/pedidos/listarPedidos.php">Gestionar</a>
         </div>
 
+        <?php if ($es_admin): ?>
         <div class="card">
             <h2>Promociones</h2>
             <p>Descuentos automáticos por monto de compra y fechas.</p>
             <a href="views/promociones/listarPromociones.php">Gestionar</a>
         </div>
+        <?php endif; ?>
 
         <div class="card">
             <h2>Devoluciones</h2>
@@ -294,17 +301,21 @@ h1 {
             <a href="views/devoluciones/listarDevoluciones.php">Gestionar</a>
         </div>
 
+        <?php if ($es_admin): ?>
         <div class="card">
             <h2>Comunicaciones</h2>
             <p>Anuncios y avisos para clientes o personal, por la app, correo o WhatsApp.</p>
             <a href="views/anuncios/listarAnuncio.php">Gestionar</a>
         </div>
+        <?php endif; ?>
 
+        <?php if ($es_admin): ?>
         <div class="card">
             <h2>Cupones</h2>
             <p>Códigos de descuento que el cliente escribe al comprar.</p>
             <a href="views/cupones/listarCupones.php">Gestionar</a>
         </div>
+        <?php endif; ?>
 
         <div class="card">
             <h2>Facturas</h2>
@@ -318,11 +329,13 @@ h1 {
             <a href="consultas/transacciones.php">Gestionar</a>
         </div>
 
+        <?php if ($es_admin): ?>
         <div class="card">
             <h2>Cuenta bancaria</h2>
             <p>Datos de la cuenta para pagos por transferencia.</p>
             <a href="consultas/cuenta_bancaria.php">Gestionar</a>
         </div>
+        <?php endif; ?>
 
         <div class="card">
             <h2>Caja</h2>
@@ -338,21 +351,24 @@ h1 {
 
         <div class="card">
             <h2>Movimientos</h2>
-            <p>Historial de movimientos de productos.</p>
-            <a href="views/movimientos/listarMovimiento.php">Ver</a>
+            <p>Facturas de compra y venta cargadas: cada factura es un solo movimiento.</p>
+            <a href="views/movimientos/listarFacturas.php">Ver</a>
         </div>
 
         <div class="card">
-            <h2>Consultas</h2>
-            <p>Consultas SQL del sistema.</p>
-            <a href="consultas/menu_consultas.php">Ver consultas</a>
+            <h2>Cargar factura</h2>
+            <p>Cargá una factura completa de compra o venta, con todos sus productos de una vez.</p>
+            <a href="views/movimientos/cargarFactura.php">Cargar</a>
         </div>
 
         <div class="card">
-            <h2>Reporte de Usuarios</h2>
-            <p>Generar archivo PDF con información del sistema.</p>
-            <a href="reportes/reporte_usuarios.php">Ver reporte</a>
+            <h2>Consultas y Reportes</h2>
+            <p>Consultas del sistema y reportes en PDF y Excel con gráficos.</p>
+            <a href="consultas/menu_consultas.php">Ver consultas y reportes</a>
         </div>
+
+        <?php if ($es_admin): ?>
+        <?php endif; ?>
 
     </div>
 </div>
@@ -363,9 +379,12 @@ h1 {
 // ===================== BUSCADOR DE MÓDULOS DEL ADMIN =====================
 // Lista de todos los módulos administrables del sistema.
 // Para agregar un módulo nuevo en el futuro, solo hay que sumar un objeto acá.
+const ES_ADMIN = <?php echo $es_admin ? 'true' : 'false'; ?>;
+const PREFIJOS_SOLO_ADMIN = ['usuarios/', 'views/tablas_maestras/', 'views/cupones/', 'views/promociones/', 'views/anuncios/', 'views/panel_tablas.php', 'consultas/cuenta_bancaria.php', 'reportes/reporte_usuarios.php'];
+
 const modulosAdmin = [
-    { nombre: "ABM Usuarios", grupo: "General", icono: "👥",
-      descripcion: "Alta, baja y modificación de usuarios del sistema.",
+    { nombre: "Usuarios y Roles", grupo: "General", icono: "👥",
+      descripcion: "Agregá empleados y administradores, cambiá roles y bloqueá cuentas.",
       url: "usuarios/listar.php",
       claves: "usuarios abm alta baja modificacion cuentas" },
 
@@ -445,66 +464,66 @@ const modulosAdmin = [
       claves: "productos proveedores inputs entradas" },
 
     { nombre: "Movimientos de stock", grupo: "General", icono: "🔁",
-      descripcion: "Historial de movimientos de productos.",
+      descripcion: "Facturas de compra y venta cargadas, una fila por factura.",
+      url: "views/movimientos/listarFacturas.php",
+      claves: "movimientos stock historial entradas salidas facturas compras ventas" },
+
+    { nombre: "Cargar factura", grupo: "General", icono: "📥",
+      descripcion: "Cargar una factura completa de compra o venta con todos sus productos.",
+      url: "views/movimientos/cargarFactura.php",
+      claves: "cargar factura compra venta proveedor stock productos entrada salida" },
+
+    { nombre: "Detalle de movimientos por producto", grupo: "General", icono: "📋",
+      descripcion: "Historial de movimientos de stock producto por producto.",
       url: "views/movimientos/listarMovimiento.php",
-      claves: "movimientos stock historial entradas salidas" },
+      claves: "detalle movimientos producto historial ajuste inventario" },
 
-    { nombre: "Consultas SQL", grupo: "General", icono: "🧮",
-      descripcion: "Consultas SQL del sistema.",
-      url: "consultas/menu_consultas.php",
-      claves: "consultas sql reportes queries" },
-
-    { nombre: "Reporte de Usuarios", grupo: "General", icono: "📄",
-      descripcion: "Generar archivo PDF con información del sistema.",
-      url: "reportes/reporte_usuarios.php",
-      claves: "reporte reportes pdf usuarios" },
-
-    { nombre: "Categorías", grupo: "Tablas maestras", icono: "📂",
+    { nombre: "Categorías", grupo: "Configuración del sistema", icono: "📂",
       descripcion: "Gestión de categorías y subcategorías de productos.",
       url: "views/tablas_maestras/categorias/listarCategoria.php",
       claves: "categorias subcategorias productos" },
 
-    { nombre: "Conceptos de Movimiento", grupo: "Tablas maestras", icono: "🔄",
+    { nombre: "Conceptos de Movimiento", grupo: "Configuración del sistema", icono: "🔄",
       descripcion: "Gestión de entradas, salidas y ajustes de stock.",
       url: "views/tablas_maestras/conceptoMovimientos/listarConcepto.php",
       claves: "conceptos movimiento entradas salidas ajustes stock" },
 
-    { nombre: "Marcas", grupo: "Tablas maestras", icono: "🏷️",
+    { nombre: "Marcas", grupo: "Configuración del sistema", icono: "🏷️",
       descripcion: "Gestión de fabricantes y marcas comerciales.",
       url: "views/tablas_maestras/marcas/listarMarca.php",
       claves: "marcas fabricantes" },
 
-    { nombre: "Métodos de Pago", grupo: "Tablas maestras", icono: "💳",
+    { nombre: "Métodos de Pago", grupo: "Configuración del sistema", icono: "💳",
       descripcion: "Administración de medios de pago habilitados.",
       url: "views/tablas_maestras/metodosPago/listarMetodo.php",
       claves: "metodos pago medios tarjeta efectivo" },
 
-    { nombre: "Condiciones IVA", grupo: "Tablas maestras", icono: "🧾",
+    { nombre: "Condiciones IVA", grupo: "Configuración del sistema", icono: "🧾",
       descripcion: "Configuración de condiciones fiscales.",
       url: "views/tablas_maestras/CondicionIva/listarCondicion.php",
       claves: "iva condiciones fiscales impuestos" },
 
-    { nombre: "Modelos de Productos", grupo: "Tablas maestras", icono: "💻",
+    { nombre: "Modelos de Productos", grupo: "Configuración del sistema", icono: "💻",
       descripcion: "Gestión de modelos asociados a las marcas.",
       url: "views/tablas_maestras/modelosProducto/listarModelo.php",
       claves: "modelos productos marcas" },
 
-    { nombre: "Provincias", grupo: "Tablas maestras", icono: "🗺️",
+    { nombre: "Provincias", grupo: "Configuración del sistema", icono: "🗺️",
       descripcion: "Gestión de provincias argentinas.",
       url: "views/tablas_maestras/provincias/listarProvincia.php",
       claves: "provincias argentina ubicacion" },
 
-    { nombre: "Localidades", grupo: "Tablas maestras", icono: "📍",
+    { nombre: "Localidades", grupo: "Configuración del sistema", icono: "📍",
       descripcion: "Gestión de ciudades y localidades.",
       url: "views/tablas_maestras/localidades/listarLocalidad.php",
       claves: "localidades ciudades ubicacion" },
 
-    { nombre: "Perfiles", grupo: "Tablas maestras", icono: "👤",
+    { nombre: "Perfiles", grupo: "Configuración del sistema", icono: "👤",
       descripcion: "Administración de roles y permisos.",
       url: "views/tablas_maestras/perfiles/listarPerfil.php",
       claves: "perfiles roles permisos" },
 
-    { nombre: "Tipos de Contactos", grupo: "Tablas maestras", icono: "📲",
+    { nombre: "Tipos de Contactos", grupo: "Configuración del sistema", icono: "📲",
       descripcion: "Gestión de los tipos de contacto con los usuarios.",
       url: "views/tablas_maestras/tiposContacto/listarTipoContacto.php",
       claves: "tipos contacto telefono email" },
@@ -519,30 +538,40 @@ const modulosAdmin = [
       url: "views/productos/listarProducto.php",
       claves: "productos stock catalogo imagenes fotos galeria precio stock cloudinary" },
 
-    { nombre: "Consulta 1 · Último precio de compra", grupo: "Consultas", icono: "🧮",
+    { nombre: "Consultas y Reportes", grupo: "Consultas y Reportes", icono: "🧮",
+      descripcion: "Consultas del sistema y reportes en PDF y Excel con gráficos.",
+      url: "consultas/menu_consultas.php",
+      claves: "consultas reportes pdf excel csv graficos informes ventas inventario compras proveedores clientes devoluciones ganancias stock" },
+
+    { nombre: "Reporte de usuarios y clientes", grupo: "Consultas y Reportes", icono: "📄",
+      descripcion: "Generar archivo PDF con información del sistema.",
+      url: "reportes/reporte_usuarios.php",
+      claves: "reporte reportes pdf usuarios" },
+
+    { nombre: "Últimos precios de compra", grupo: "Consultas y Reportes", icono: "🧮",
       descripcion: "Producto y proveedor con el último precio de compra.",
       url: "consultas/consulta1.php",
-      claves: "consulta 1 producto proveedor precio compra" },
+      claves: "ultimo precio compra producto proveedor precio compra" },
 
-    { nombre: "Consulta 2 · Pedidos agrupados", grupo: "Consultas", icono: "🧮",
+    { nombre: "Pedidos detallados", grupo: "Consultas y Reportes", icono: "🧮",
       descripcion: "Cada pedido con sus productos, cliente y envío. Filtros por fecha y estado.",
       url: "consultas/consulta2.php",
-      claves: "consulta 2 pedidos detallados agrupados cliente envio productos" },
+      claves: "pedidos detallados agrupados cliente envio productos" },
 
-    { nombre: "Consulta 3 · Más vendidos", grupo: "Consultas", icono: "🧮",
+    { nombre: "Productos más vendidos", grupo: "Consultas y Reportes", icono: "🧮",
       descripcion: "Top 5 de productos más vendidos.",
       url: "consultas/consulta3.php",
-      claves: "consulta 3 top productos mas vendidos ranking" },
+      claves: "top productos mas vendidos ranking" },
 
-    { nombre: "Consulta 4 · Mejores clientes", grupo: "Consultas", icono: "🧮",
+    { nombre: "Mejores clientes", grupo: "Consultas y Reportes", icono: "🧮",
       descripcion: "Clientes con más pedidos realizados.",
       url: "consultas/consulta4.php",
-      claves: "consulta 4 clientes pedidos frecuentes" },
+      claves: "mejores clientes pedidos frecuentes" },
 
-    { nombre: "Consulta 5 · Marcas", grupo: "Consultas", icono: "🧮",
+    { nombre: "Marcas con más productos", grupo: "Consultas y Reportes", icono: "🧮",
       descripcion: "Marcas con mayor cantidad de productos.",
       url: "consultas/consulta5.php",
-      claves: "consulta 5 marcas cantidad productos" },
+      claves: "marcas cantidad productos" },
 ];
 
 const inputBuscador = document.getElementById('buscadorModulos');
@@ -564,6 +593,7 @@ function buscarModulos(texto) {
     }
 
     return modulosAdmin.filter(function (m) {
+        if (!ES_ADMIN && PREFIJOS_SOLO_ADMIN.some(function (pre) { return m.url.toLowerCase().indexOf(pre.toLowerCase()) === 0; })) { return false; }
         const bolsa = normalizar(m.nombre + ' ' + m.descripcion + ' ' + m.grupo + ' ' + m.claves);
         return bolsa.includes(termino);
     });

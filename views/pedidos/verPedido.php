@@ -2,6 +2,7 @@
 require_once '../../auth/auth.php';
 require_once '../../models/Pedido.php';
 require_once '../../models/Comprobante.php';
+require_once '../../models/MercadoPago.php';
 
 // Solo administrador y empleados
 $rol = $_SESSION['rol'] ?? '';
@@ -370,6 +371,16 @@ h1 { color: var(--cc-primario); text-shadow: 0 0 10px rgba(0, 234, 255, 0.4); }
                 <label class="form-label fw-bold">Si el comprobante no sirve, escribí el motivo</label>
                 <input type="text" name="motivo" class="form-control" maxlength="255" placeholder="Ej: no se lee el monto" required>
                 <button type="submit" class="btn btn-outline-danger fw-bold mt-2">✖ Rechazar comprobante</button>
+            </form>
+        <?php endif; ?>
+
+        <?php if (MercadoPago::configurado() && ($pedido['estado_pagos'] ?? '') === 'Pendiente' && $pedido['estado'] !== 'Cancelado'
+                  && !empty($pedido['metodo_pago']) && MercadoPago::esPasarela($pedido['metodo_pago'])): ?>
+            <form method="POST" action="../../controllers/pedidosControllers/PedidoController.php?accion=verificarMercadoPago" style="margin-top:12px;">
+                <input type="hidden" name="id_pedido" value="<?= (int) $pedido['id_pedidos'] ?>">
+                <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf_admin_pedidos']) ?>">
+                <button type="submit" class="btn btn-primary fw-bold">🔎 Verificar pago en Mercado Pago</button>
+                <div style="font-size:12px;opacity:.7;margin-top:6px;">Le pregunta a Mercado Pago cómo quedó el pago y, si está aprobado, lo registra y emite el comprobante.</div>
             </form>
         <?php endif; ?>
 

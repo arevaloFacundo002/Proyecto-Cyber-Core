@@ -1,4 +1,4 @@
- /* =========================================================
+/* =========================================================
    CYBER CORE - TEMA UNIFICADO (claro / oscuro)
    Incluir con:
    <link href="../../css/theme.css" rel="stylesheet">
@@ -65,6 +65,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .text-muted {
+    color: var(--cc-texto-secundario) !important;
+}
+
+/* textos de ayuda debajo de los campos */
+.form-text {
     color: var(--cc-texto-secundario) !important;
 }
 
@@ -329,6 +334,11 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 9999;
     box-shadow: 0 2px 12px rgba(0,0,0,0.35);
     transition: transform 0.2s ease, background-color 0.25s ease;
+}
+
+/* deja espacio abajo para que el boton no tape la paginacion ni el final de la pagina */
+body {
+    padding-bottom: 90px;
 }
 
 #cc-theme-toggle:hover {

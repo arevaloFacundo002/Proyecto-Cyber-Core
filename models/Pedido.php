@@ -1020,6 +1020,23 @@ class Pedido
 
     // Crea la tabla del historial si todavía no existe (así no hace falta correr ningún script).
     // IMPORTANTE: llamarla siempre ANTES de abrir una transacción.
+    // Deja anotado qué empleado atiende el pedido (el primero que lo gestiona). No pisa uno ya asignado.
+    public function tomarPedido(int $id_pedido, int $id_usuario): void
+    {
+        if ($id_pedido <= 0 || $id_usuario <= 0) {
+            return;
+        }
+        try {
+            $stmt = $this->conexion->prepare(
+                "UPDATE pedidos SET rela_id_usuario_atiende = ? WHERE id_pedidos = ? AND rela_id_usuario_atiende IS NULL"
+            );
+            $stmt->bind_param("ii", $id_usuario, $id_pedido);
+            $stmt->execute();
+        } catch (\Throwable $e) {
+            // La columna todavía no existe: no se interrumpe la gestión del pedido.
+        }
+    }
+
     private function asegurarHistorial(): void
     {
         if (self::$historialListo) {

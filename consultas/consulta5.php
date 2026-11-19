@@ -11,16 +11,13 @@ if (!isset($_SESSION['usuario']) ||
 include "../conexion.php";
 
 $sql = "
-SELECT 
-    c.nombre,
-    c.apellido,
-    u.correo,
-    COUNT(p.id_pedidos) AS cantidad_pedidos
-FROM pedidos p
-INNER JOIN clientes c ON p.rela_id_cliente = c.id_cliente
-LEFT JOIN usuarios u ON c.rela_id_usuario = u.id_usuario
-GROUP BY c.id_cliente, c.nombre, c.apellido, u.correo
-ORDER BY cantidad_pedidos DESC;
+SELECT
+    m.nombre_marca AS marca,
+    COUNT(p.id_producto) AS cantidad_productos
+FROM marcas m
+INNER JOIN productos p ON p.rela_id_marca = m.id_marca
+GROUP BY m.id_marca, m.nombre_marca
+ORDER BY cantidad_productos DESC, m.nombre_marca ASC;
 ";
 
 $res = mysqli_query($conexion, $sql);
@@ -30,7 +27,7 @@ $res = mysqli_query($conexion, $sql);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clientes con más pedidos</title>
+<title>Marcas con más productos - CyberCore</title>
 
 <link href="../css/theme.css" rel="stylesheet">
 
@@ -96,33 +93,32 @@ $res = mysqli_query($conexion, $sql);
 
 <?php
 $ruta_raiz = '../';
-require __DIR__ . '/../includes/header_admin.php';
+require __DIR__ . '/../includes/header_admin.php'; require __DIR__ . '/_barra_volver.php';
 ?>
 
 <div class="container">
-    <h1>👥 Clientes con Más Pedidos</h1>
+    <h1>🏷️ Marcas con más productos</h1>
 
     <?php if ($res && mysqli_num_rows($res) > 0) { ?>
     <table>
         <tr>
-            <th>Cliente</th>
-            <th>Email</th>
-            <th>Pedidos Realizados</th>
+            <th>Marca</th>
+            <th>Cantidad de productos</th>
         </tr>
 
         <?php while ($f = mysqli_fetch_assoc($res)) { ?>
         <tr>
-            <td><?= htmlspecialchars($f['nombre'] . " " . $f['apellido']) ?></td>
-            <td><?= htmlspecialchars($f['correo'] ?? 'N/A') ?></td>
-            <td><?= htmlspecialchars($f['cantidad_pedidos']) ?></td>
+            <td><?= htmlspecialchars($f['marca']) ?></td>
+            <td><?= htmlspecialchars($f['cantidad_productos']) ?></td>
         </tr>
         <?php } ?>
 
     </table>
     <?php } else { ?>
-        <div class="empty">No se encontraron clientes con pedidos.</div>
+        <div class="empty">No se encontraron marcas con productos.</div>
     <?php } ?>
 
+    <a href="../reportes/reporte_consultas.php?tipo=marcas" target="_blank" class="volver" style="margin-right:10px;">📄 Generar reporte</a>
     <a href="menu_consultas.php" class="volver">⬅ Volver a Consultas</a>
 </div>
 

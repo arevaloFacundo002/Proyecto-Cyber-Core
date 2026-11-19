@@ -39,7 +39,7 @@ $res = mysqli_query($conexion, $sql);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consulta 1 - Último precio de compra por producto</title>
+<title>Últimos precios de compra - CyberCore</title>
 
 <link href="../css/theme.css" rel="stylesheet">
 
@@ -107,11 +107,11 @@ $res = mysqli_query($conexion, $sql);
 
 <?php
 $ruta_raiz = '../';
-require __DIR__ . '/../includes/header_admin.php';
+require __DIR__ . '/../includes/header_admin.php'; require __DIR__ . '/_barra_volver.php';
 ?>
 
 <div class="container">
-    <h1>Consulta 1 — Último precio de compra por producto</h1>
+    <h1>🧮 Últimos precios de compra</h1>
 
     <?php if ($res && mysqli_num_rows($res) > 0) { ?>
     <table>
@@ -136,6 +136,7 @@ require __DIR__ . '/../includes/header_admin.php';
         <div class="empty">No se encontraron registros para esta consulta.</div>
     <?php } ?>
 
+    <a href="../reportes/reporte_consultas.php?tipo=precios" target="_blank" class="volver" style="margin-right:10px;">📄 Generar reporte</a>
     <a href="menu_consultas.php" class="volver">⬅ Volver a Consultas</a>
 </div>
 

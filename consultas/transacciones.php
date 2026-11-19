@@ -98,7 +98,7 @@ $ruta_raiz = '../';
 </style>
 </head>
 <body>
-<?php require __DIR__ . '/../includes/header_admin.php'; ?>
+<?php require __DIR__ . '/../includes/header_admin.php'; require __DIR__ . '/_barra_volver.php'; ?>
 
 <div class="container">
     <h1>💳 Transacciones</h1>
@@ -125,6 +125,7 @@ $ruta_raiz = '../';
         <?php if ($desde !== '' || $hasta !== '' || $metodo > 0 || $estado !== ''): ?>
             <a class="btn-cc btn-sec" href="transacciones.php">Limpiar</a>
         <?php endif; ?>
+        <a class="btn-cc" target="_blank" href="../reportes/reporte_consultas.php?<?= e(http_build_query(['tipo' => 'transacciones', 'desde' => $desde, 'hasta' => $hasta, 'metodo' => $metodo, 'estado' => $estado])) ?>">📄 Generar reporte</a>
     </form>
 
     <div class="resumen">

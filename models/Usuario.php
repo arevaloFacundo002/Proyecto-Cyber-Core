@@ -145,8 +145,9 @@ class Usuario {
 
     //crud -> agregar_desde_panel
     function agregar_usuario_panel(string $nombre, string $password, string $correo, string $fecha, int $rela_id_perfil) {
-        $sql = "INSERT INTO usuarios(nombre, password, correo, fecha_registro, rela_id_perfil)
-            VALUES (?, ?, ?, ?, ?)";
+        // Las cuentas creadas desde el panel por el administrador ya quedan validadas
+        $sql = "INSERT INTO usuarios(nombre, password, correo, fecha_registro, rela_id_perfil, validado)
+            VALUES (?, ?, ?, ?, ?, 1)";
 
         $stmt = $this->conexion->prepare($sql);
         $password_hash = password_hash($password, PASSWORD_DEFAULT);

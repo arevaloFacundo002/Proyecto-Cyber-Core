@@ -30,7 +30,7 @@ $res = mysqli_query($conexion, $sql);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Top 5 Productos Más Vendidos</title>
+<title>Productos más vendidos - CyberCore</title>
 
 <link href="../css/theme.css" rel="stylesheet">
 
@@ -91,11 +91,11 @@ $res = mysqli_query($conexion, $sql);
 
 <?php
 $ruta_raiz = '../';
-require __DIR__ . '/../includes/header_admin.php';
+require __DIR__ . '/../includes/header_admin.php'; require __DIR__ . '/_barra_volver.php';
 ?>
 
 <div class="container">
-    <h1>🔥 Top 5 Productos Más Vendidos</h1>
+    <h1>🔥 Productos más vendidos</h1>
 
     <?php if ($res && mysqli_num_rows($res) > 0) { ?>
         <?php while ($f = mysqli_fetch_assoc($res)) { ?>
@@ -108,6 +108,7 @@ require __DIR__ . '/../includes/header_admin.php';
         <div class="empty">No se encontraron registros para esta consulta.</div>
     <?php } ?>
 
+    <a href="../reportes/reporte_consultas.php?tipo=vendidos" target="_blank" class="volver" style="margin-right:10px;">📄 Generar reporte</a>
     <a href="menu_consultas.php" class="volver">⬅ Volver a Consultas</a>
 </div>
 

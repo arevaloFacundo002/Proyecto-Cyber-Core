@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../models/Pedido.php';
+require_once '../models/MercadoPago.php';
 
 // Si algo sale mal volvemos al checkout SIN perder lo que la persona ya escribió.
 function volverConError(string $mensaje): void
@@ -72,7 +73,18 @@ if (!empty($resultado['ok'])) {
     // Pedido creado: vaciamos el carrito y renovamos el token
     unset($_SESSION['carrito'], $_SESSION['csrf_checkout'], $_SESSION['checkout_old'], $_SESSION['cupon_codigo']);
 
-    header("Location: pedido_confirmado.php?id=" . (int) $resultado['id_pedido']);
+    $id_nuevo = (int) $resultado['id_pedido'];
+
+    $mp = (new MercadoPago())->iniciarPago($id_nuevo, $id_usuario, MercadoPago::urlRetorno());
+    if (!empty($mp['ok'])) {
+        header("Location: " . $mp['url']);
+        exit;
+    }
+    if (($mp['aplica'] ?? true) !== false) {
+        $_SESSION['mp_flash'] = ['tipo' => 'error', 'texto' => $mp['error'] ?? 'No pudimos abrir Mercado Pago.'];
+    }
+
+    header("Location: pedido_confirmado.php?id=" . $id_nuevo);
     exit;
 }
 

@@ -82,7 +82,7 @@ $ruta_raiz = '../';
 </style>
 </head>
 <body>
-<?php require __DIR__ . '/../includes/header_admin.php'; ?>
+<?php require __DIR__ . '/../includes/header_admin.php'; require __DIR__ . '/_barra_volver.php'; ?>
 
 <div class="container">
     <h1>🧾 Facturas</h1>

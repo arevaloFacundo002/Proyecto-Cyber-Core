@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once 'models/Producto.php';
 require_once 'models/ProductoImagen.php';
+require_once 'models/Favorito.php';
 require_once 'includes/imagen_helper.php';
 $pro = new Producto();
 
@@ -16,6 +17,16 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 $rol = $_SESSION['rol'] ?? null;
 $id = intval($_GET['id']);
+
+// Favorito del cliente
+$es_cliente = in_array($rol, ['cliente', 'usuario'], true);
+$es_fav = false;
+if ($es_cliente && isset($_SESSION['id_usuario'])) {
+    $es_fav = in_array($id, (new Favorito())->ids((int) $_SESSION['id_usuario']), true);
+    if (empty($_SESSION['csrf_fav'])) {
+        $_SESSION['csrf_fav'] = bin2hex(random_bytes(32));
+    }
+}
 
 // Consulta del producto
 $producto = $pro->busqueda_de_producto($id);
@@ -36,6 +47,7 @@ $galeria = (new ProductoImagen())->listarPublico($id, $producto['imagen_url'] ??
 <title><?php echo htmlspecialchars($producto['nombre']); ?> - CyberCore</title>
 
 <link href="css/theme.css" rel="stylesheet">
+<link href="css/favoritos.css" rel="stylesheet">
 
 <style>
 body {
@@ -78,34 +90,6 @@ nav a:hover {
 
 .logout {
     color: var(--cc-peligro);
-}
-
-/* BOTÓN VOLVER */
-.volver-wrap {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 25px 50px 0;
-}
-
-.btn-volver {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 18px;
-    background: var(--cc-superficie);
-    color: var(--cc-texto);
-    border: 1px solid var(--cc-borde);
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
-    transition: 0.3s;
-}
-
-.btn-volver:hover {
-    color: var(--cc-primario);
-    border-color: var(--cc-primario);
-    box-shadow: 0 0 10px rgba(0, 234, 255, 0.25);
 }
 
 /* PRODUCT PAGE */
@@ -312,6 +296,7 @@ nav a:hover {
 
         <?php } elseif ($rol == 'usuario' || $rol == 'cliente') { ?>
             <a href="carrito/carrito.php">🛒 Carrito</a>
+            <a href="carrito/mis_favoritos.php">❤ Favoritos</a>
             <a class="logout" href="logout.php">Cerrar sesión</a>
 
         <?php } else { ?>
@@ -320,11 +305,6 @@ nav a:hover {
         <?php } ?>
     </nav>
 </header>
-
-<!-- BOTÓN VOLVER -->
-<div class="volver-wrap">
-    <a href="home.php" class="btn-volver" onclick="return volverAtras();">&larr; Volver</a>
-</div>
 
 <div class="container">
 
@@ -380,6 +360,15 @@ nav a:hover {
             <a href="carrito/agregar_carrito.php?id=<?php echo $producto['id_producto']; ?>" class="btn-add">
                 Agregar al carrito 🛒
             </a>
+        <?php endif; ?>
+
+        <?php if ($es_cliente): ?>
+            <button type="button" class="btn-fav btn-fav-detalle <?php echo $es_fav ? 'activo' : ''; ?>" aria-pressed="<?php echo $es_fav ? 'true' : 'false'; ?>"
+                    data-id="<?php echo (int) $producto['id_producto']; ?>" data-csrf="<?php echo htmlspecialchars($_SESSION['csrf_fav']); ?>"
+                    data-url="ajax/favorito_toggle.php">❤ Favorito</button>
+        <?php elseif ($rol === null): ?>
+            <button type="button" class="btn-fav btn-fav-detalle" data-id="<?php echo (int) $producto['id_producto']; ?>"
+                    data-login="0" data-login-url="login.php">❤ Favorito</button>
         <?php endif; ?>
 
     </div>
@@ -443,16 +432,8 @@ function cambiarImagen(mini) {
     document.querySelectorAll('.galeria-mini img').forEach(function (i) { i.classList.remove('activa'); });
     mini.classList.add('activa');
 }
-
-// Vuelve a la página anterior de la tienda; si entró directo, va al inicio
-function volverAtras() {
-    if (document.referrer && document.referrer.indexOf(location.host) !== -1) {
-        history.back();
-        return false;
-    }
-    return true;
-}
 </script>
+<script src="js/favoritos.js"></script>
 <script src="js/theme-toggle.js"></script>
 
 </body>

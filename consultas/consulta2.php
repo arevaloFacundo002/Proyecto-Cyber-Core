@@ -76,7 +76,7 @@ $ruta_raiz = '../';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consulta 2 - Pedidos detallados</title>
+<title>Pedidos detallados - CyberCore</title>
 <link href="../css/theme.css" rel="stylesheet">
 <?php require __DIR__ . '/_estilo_consultas.php'; ?>
 <style>
@@ -94,10 +94,10 @@ $ruta_raiz = '../';
 </head>
 <body>
 
-<?php require __DIR__ . '/../includes/header_admin.php'; ?>
+<?php require __DIR__ . '/../includes/header_admin.php'; require __DIR__ . '/_barra_volver.php'; ?>
 
 <div class="container">
-    <h1>Consulta 2 — Pedidos detallados</h1>
+    <h1>📦 Pedidos detallados</h1>
     <div class="subtitulo"><?= count($pedidos) ?> pedido(s) · cada bloque agrupa los productos de un pedido</div>
 
     <form method="GET" class="filtros">
@@ -114,6 +114,7 @@ $ruta_raiz = '../';
         </div>
         <button type="submit" class="btn-cc">🔎 Filtrar</button>
         <a href="consulta2.php" class="btn-cc btn-sec">Limpiar</a>
+        <a href="../reportes/reporte_consultas.php?<?= e(http_build_query(['tipo' => 'pedidos', 'desde' => $desde, 'hasta' => $hasta, 'estado' => $estado, 'buscar' => $buscar])) ?>" target="_blank" class="btn-cc">📄 Generar reporte</a>
     </form>
 
     <?php if (!$pedidos): ?>

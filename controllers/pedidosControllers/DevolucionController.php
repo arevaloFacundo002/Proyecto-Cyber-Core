@@ -39,9 +39,18 @@ $modelo = new Devolucion();
 if ($accion === 'aprobar') {
     $r = $modelo->aprobar($id, $autor, $nota !== '' ? $nota : null);
     if (!empty($r['ok'])) {
-        volver('ok', 'Devolución #' . $id . ' aprobada. Los productos volvieron al stock y se avisó al cliente.', $destino);
+        volver('ok', 'Devolución #' . $id . ' aprobada. Se le explicó al cliente cómo enviar el producto.', $destino);
     }
     volver('error', $r['error'] ?? 'No se pudo aprobar.', $destino);
+}
+
+if ($accion === 'recibir') {
+    $vuelve = ($_POST['destino_stock'] ?? '') === 'si';
+    $r = $modelo->recibir($id, $autor, $vuelve, $nota !== '' ? $nota : null);
+    if (!empty($r['ok'])) {
+        volver('ok', 'Devolución #' . $id . ' recibida. ' . ($vuelve ? 'Los productos volvieron al stock' : 'Los productos no volvieron al stock') . ' y se avisó al cliente.', $destino);
+    }
+    volver('error', $r['error'] ?? 'No se pudo registrar la recepción.', $destino);
 }
 
 if ($accion === 'rechazar') {
