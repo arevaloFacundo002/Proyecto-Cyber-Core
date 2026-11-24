@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'models/Usuario.php';
+require_once 'models/Auditoria.php';
 $user = new Usuario();
 
 $error = "";
@@ -16,17 +17,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if($usuario['validado'] == 0){
             $error = "Debes verificar tu correo antes de iniciar sesión";
+            Auditoria::registrar('Acceso', 'LOGIN_FALLIDO', 'Intento de ingreso con cuenta sin verificar: ' . $correo, 'Media', ['uid' => $usuario['id_usuario'], 'nombre' => $usuario['nombre'], 'rol' => $usuario['nombre_perfil']]);
 
             $_SESSION['reenviar_correo'] = $usuario['correo'];
         }
         elseif ($usuario['estado'] == "bloqueado" || $usuario['estado'] == "inactivo") {
             $error = "Tu cuenta está bloqueada o inactiva";
+            Auditoria::registrar('Acceso', 'LOGIN_FALLIDO', 'Intento de ingreso con cuenta ' . $usuario['estado'] . ': ' . $correo, 'Alta', ['uid' => $usuario['id_usuario'], 'nombre' => $usuario['nombre'], 'rol' => $usuario['nombre_perfil']]);
         } else{
 
             $_SESSION['usuario'] = $usuario['nombre'];
             $_SESSION['id_usuario'] = $usuario['id_usuario'];
             $_SESSION['rol'] = $usuario['nombre_perfil'];
             $_SESSION['correo'] = $usuario['correo'];
+            Auditoria::registrar('Acceso', 'LOGIN', 'Inicio de sesión (' . $usuario['nombre_perfil'] . ')', 'Baja');
 
             if ($usuario['nombre_perfil'] == 'administrador' || $usuario['nombre_perfil'] == 'empleado') {
                 header('Location: inicio.php');
@@ -43,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } else {
         $error = "Correo o contraseña incorrectos";
+        Auditoria::registrar('Acceso', 'LOGIN_FALLIDO', 'Credenciales incorrectas para: ' . (string) $correo, 'Media', ['uid' => $usuario['id_usuario'] ?? null, 'nombre' => $usuario['nombre'] ?? 'Anónimo', 'rol' => $usuario['nombre_perfil'] ?? null]);
     }
 }
 ?>
