@@ -36,66 +36,67 @@ $seleccion_previa = isset($_SESSION['metodo_envio']) ? $_SESSION['metodo_envio']
 <meta charset="UTF-8">
 <title>Método de Envío - CyberCore</title>
 
+<link href="../css/theme.css" rel="stylesheet">
 <style>
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #0a0a0a;
-    color: white;
+    background: var(--cc-fondo);
+    color: var(--cc-texto);
 }
 
 header {
-    background: #0a0a0a;
+    background: var(--cc-superficie);
     padding: 18px 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #00eaff55;
+    border-bottom: 1px solid var(--cc-borde);
 }
 
 .logo {
     font-size: 26px;
-    color: #00eaff;
+    color: var(--cc-primario);
     font-weight: bold;
 }
 
 nav a {
-    color: white;
+    color: var(--cc-texto);
     margin: 0 15px;
     text-decoration: none;
 }
 
 nav a:hover {
-    color: #00eaff;
+    color: var(--cc-primario);
 }
 
 .container {
     max-width: 900px;
     margin: 40px auto;
-    background: #111;
+    background: var(--cc-superficie);
     padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 0 20px #00eaff33;
+    box-shadow: 0 0 20px rgba(0,0,0,.25);
 }
 
 h2 {
     text-align: center;
-    color: #00eaff;
+    color: var(--cc-primario);
 }
 
 .envio-box {
-    background: #1a1a1a;
+    background: var(--cc-superficie-2);
     padding: 18px;
     border-radius: 10px;
     margin-bottom: 18px;
-    border-left: 4px solid #00eaff;
+    border-left: 4px solid var(--cc-primario);
 }
 
 .btn-next {
-    background: #00eaff;
+    background: var(--cc-primario);
     padding: 12px 22px;
     border-radius: 20px;
-    color: black;
+    color: var(--cc-texto-sobre-primario);
     font-weight: bold;
     text-decoration: none;
     float: right;
@@ -103,7 +104,7 @@ h2 {
 }
 
 .btn-next:hover {
-    background: #00c8d6;
+    background: var(--cc-primario-hover);
 }
 
 input[type=radio] {
@@ -149,5 +150,6 @@ input[type=radio] {
 </form>
 
 </div>
+<script src="../js/theme-toggle.js"></script>
 </body>
 </html>

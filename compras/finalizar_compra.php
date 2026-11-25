@@ -32,52 +32,53 @@ foreach ($carrito as $item) {
 <meta charset="UTF-8">
 <title>Finalizar compra - CyberCore</title>
 
+<link href="../css/theme.css" rel="stylesheet">
 <style>
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #0a0a0a;
-    color: white;
+    background: var(--cc-fondo);
+    color: var(--cc-texto);
 }
 
 header {
-    background: #0a0a0a;
+    background: var(--cc-superficie);
     padding: 18px 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: white;
-    border-bottom: 1px solid #00eaff55;
+    color: var(--cc-texto);
+    border-bottom: 1px solid var(--cc-borde);
 }
 
 .logo {
     font-size: 26px;
     font-weight: bold;
-    color: #00eaff;
+    color: var(--cc-primario);
 }
 
 nav a {
-    color: white;
+    color: var(--cc-texto);
     margin: 0 15px;
     text-decoration: none;
 }
 
 nav a:hover {
-    color: #00eaff;
+    color: var(--cc-primario);
 }
 
 .container {
     max-width: 1100px;
     margin: 40px auto;
-    background: #111;
+    background: var(--cc-superficie);
     padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 0 20px #00eaff33;
+    box-shadow: 0 0 20px rgba(0,0,0,.25);
 }
 
 h2 {
     text-align: center;
-    color: #00eaff;
+    color: var(--cc-primario);
 }
 
 .table {
@@ -88,7 +89,7 @@ h2 {
 
 .table th, .table td {
     padding: 15px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--cc-borde);
     text-align: center;
 }
 
@@ -104,10 +105,10 @@ h2 {
 }
 
 .btn-next {
-    background: #00eaff;
+    background: var(--cc-primario);
     padding: 12px 22px;
     border-radius: 20px;
-    color: black;
+    color: var(--cc-texto-sobre-primario);
     font-weight: bold;
     text-decoration: none;
     float: right;
@@ -115,7 +116,7 @@ h2 {
 }
 
 .btn-next:hover {
-    background: #00bcd4;
+    background: var(--cc-primario-hover);
 }
 </style>
 
@@ -136,7 +137,7 @@ h2 {
 
 <h2>🧾 Resumen de tu compra</h2>
 
-<p style="text-align:center; color:#bbb;">
+<p style="text-align:center; color:var(--cc-texto-secundario);">
     Revisá los productos antes de continuar al método de envío.
 </p>
 
@@ -179,5 +180,6 @@ h2 {
 
 </div>
 
+<script src="../js/theme-toggle.js"></script>
 </body>
 </html>

@@ -23,10 +23,10 @@ if (!empty($def['solo_admin']) && ($_SESSION['rol'] ?? '') !== 'administrador') 
 
 $f = reporte_filtros($def, $_GET);
 $res = $def['generar']($conexion, $f);
-$formato = ($_GET['formato'] ?? 'pdf') === 'csv' ? 'csv' : 'pdf';
+$formato = in_array($_GET['formato'] ?? 'pdf', ['xlsx', 'csv'], true) ? 'xlsx' : 'pdf';
 
-if ($formato === 'csv') {
-    reporte_csv($id, $def, $res, $f, $conexion);
+if ($formato === 'xlsx') {
+    reporte_xlsx($id, $def, $res, $f, $conexion);
 } else {
     reporte_pdf($id, $def, $res, $f, $conexion);
 }

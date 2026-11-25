@@ -14,4 +14,8 @@ if ($conexion->connect_error) {
 }
 
 $conexion->set_charset("utf8mb4");
+
+// AUDITORIA: le avisa a MySQL quien es el usuario logueado (lo usan los triggers)
+require_once __DIR__ . '/includes/auditoria_ctx.php';
+cc_auditoria_contexto($conexion);
 ?>

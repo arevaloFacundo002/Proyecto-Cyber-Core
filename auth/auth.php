@@ -50,6 +50,7 @@ $_solo_admin = [
     'views/anuncios/',
     'views/panel_tablas.php',
     'consultas/cuenta_bancaria.php',
+    'consultas/auditoria.php',
     'reportes/reporte_usuarios.php',
     'clientes/crear_cliente.php',
     'clientes/editar_cliente.php',

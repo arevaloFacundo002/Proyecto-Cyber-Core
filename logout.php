@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once __DIR__ . '/models/Auditoria.php';
+if (isset($_SESSION['id_usuario'])) { Auditoria::registrar('Acceso', 'LOGOUT', 'Cierre de sesión', 'Baja'); }
 $_SESSION = [];
 
 // borrar cookie de sesión

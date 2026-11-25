@@ -337,6 +337,14 @@ h1 {
         </div>
         <?php endif; ?>
 
+        <?php if ($es_admin): ?>
+        <div class="card">
+            <h2>Auditoría</h2>
+            <p>Registro de acciones de usuarios, operaciones críticas, control de caja y trazabilidad de cambios.</p>
+            <a href="consultas/auditoria.php">Ver auditoría</a>
+        </div>
+        <?php endif; ?>
+
         <div class="card">
             <h2>Caja</h2>
             <p>Apertura, ingresos y egresos, cierre del efectivo e historial.</p>
@@ -380,9 +388,14 @@ h1 {
 // Lista de todos los módulos administrables del sistema.
 // Para agregar un módulo nuevo en el futuro, solo hay que sumar un objeto acá.
 const ES_ADMIN = <?php echo $es_admin ? 'true' : 'false'; ?>;
-const PREFIJOS_SOLO_ADMIN = ['usuarios/', 'views/tablas_maestras/', 'views/cupones/', 'views/promociones/', 'views/anuncios/', 'views/panel_tablas.php', 'consultas/cuenta_bancaria.php', 'reportes/reporte_usuarios.php'];
+const PREFIJOS_SOLO_ADMIN = ['usuarios/', 'views/tablas_maestras/', 'views/cupones/', 'views/promociones/', 'views/anuncios/', 'views/panel_tablas.php', 'consultas/cuenta_bancaria.php', 'consultas/auditoria.php', 'reportes/reporte_usuarios.php'];
 
 const modulosAdmin = [
+    { nombre: "Auditoría", grupo: "General", icono: "🛡️",
+      descripcion: "Registro de acciones, operaciones críticas, control de caja y trazabilidad.",
+      url: "consultas/auditoria.php",
+      claves: "auditoria log bitacora trazabilidad seguridad control caja usuarios acciones" },
+
     { nombre: "Usuarios y Roles", grupo: "General", icono: "👥",
       descripcion: "Agregá empleados y administradores, cambiá roles y bloqueá cuentas.",
       url: "usuarios/listar.php",

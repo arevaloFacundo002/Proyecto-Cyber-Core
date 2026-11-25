@@ -68,24 +68,25 @@ if (isset($_POST['guardar'])) {
 <meta charset="UTF-8">
 <title>Editar Cliente</title>
 
+<link href="../css/theme.css" rel="stylesheet">
 <style>
 body {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
-    background: #f4f4f4;
+    background: var(--cc-fondo);
 }
 
 header {
-    background: #0a0a0a;
+    background: var(--cc-fondo);
     padding: 18px 40px;
-    color: white;
+    color: var(--cc-texto);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 header a {
-    color: #00eaff;
+    color: var(--cc-primario);
     text-decoration: none;
     font-weight: bold;
 }
@@ -93,7 +94,7 @@ header a {
 .form-container {
     width: 500px;
     margin: 40px auto;
-    background: white;
+    background: var(--cc-superficie);
     padding: 35px;
     border-radius: 16px;
     box-shadow: 0 0 12px rgba(0,0,0,0.15);
@@ -109,14 +110,14 @@ label {
     font-weight: bold;
     margin-top: 10px;
     display: block;
-    color: #333;
+    color: var(--cc-texto);
 }
 
 input, select {
     width: 100%;
     padding: 13px;
     margin-top: 5px;
-    border: 1px solid #aaa;
+    border: 1px solid var(--cc-borde);
     border-radius: 10px;
     font-size: 15px;
 }
@@ -124,7 +125,7 @@ input, select {
 button {
     width: 100%;
     padding: 14px;
-    background: #00eaff;
+    background: var(--cc-primario);
     border-radius: 20px;
     border: none;
     margin-top: 20px;
@@ -132,7 +133,8 @@ button {
     cursor: pointer;
     font-size: 16px;
 }
-button:hover { background:#009ebd; }
+button:hover { background:var(--cc-primario-hover); }
+input, select, textarea { background: var(--cc-superficie-2); color: var(--cc-texto); }
 </style>
 
 <script>
@@ -209,5 +211,6 @@ button:hover { background:#009ebd; }
 
 </div>
 
+<script src="../js/theme-toggle.js"></script>
 </body>
 </html>
